@@ -110,7 +110,7 @@ ERL_NIF_TERM inet_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     char inet_str[CASS_INET_STRING_LENGTH];
     cass_inet_string(inet, inet_str);
     
-    return make_binary(env, inet_str, CASS_INET_STRING_LENGTH - 1);
+    return make_binary(env, inet_str, strlen(inet_str));
 }
 
 ERL_NIF_TERM decimal_to_erlang_term(ErlNifEnv* env, const CassValue* value)

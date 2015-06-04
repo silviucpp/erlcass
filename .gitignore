@@ -1,0 +1,5 @@
+/DerivedData/
+/priv/
+/.rebar/
+/.idea/
+*.DS_Store

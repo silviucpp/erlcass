@@ -25,7 +25,7 @@
 -define(CASS_TEXT, text).                                           %use for (ascii, text, varchar)
 -define(CASS_INT, int).                                             %use for (int )
 -define(CASS_BIGINT, bigint).                                       %use for (timestamp, counter, bigint)
--define(CASS_BLOB, blob).                                           %use for (variant, blob)
+-define(CASS_BLOB, blob).                                           %use for (varint, blob)
 -define(CASS_BOOLEAN, bool).                                        %use for (bool)
 -define(CASS_FLOAT, float).                                         %use for (float)
 -define(CASS_DOUBLE, double).                                       %use for (double)

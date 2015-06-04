@@ -38,7 +38,10 @@ CassValueType GetValueTypeFromAtom(ERL_NIF_TERM value)
     
     if(enif_is_identical(value, ATOMS.atomUuid))
         return CASS_VALUE_TYPE_UUID;
-    
+
+    if(enif_is_identical(value, ATOMS.atomDecimal))
+        return CASS_VALUE_TYPE_DECIMAL;
+ 
     return CASS_VALUE_TYPE_UNKNOWN;
 }
 

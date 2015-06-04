@@ -34,8 +34,6 @@ application:start(erlcass).
 
 ### Setting the cluster options
 
-Example:
-
 ```erlang
 ok = erlcass:set_cluster_options([
             {contact_points,<<"172.17.3.129">>},
@@ -53,7 +51,7 @@ ok = erlcass:set_cluster_options([
 ]).
 ```
 
-Available settings:
+Available options:
 
 ##### contact_points (Mandatory)
 
@@ -226,13 +224,15 @@ Example: {load_balance_dc_aware, {"dc_name", 2, true}}
 Configures the cluster to use DC-aware load balancing.
 For each query, all live nodes in a primary 'local' DC are tried first, followed by any node from other DCs.
 
-Note:
+###### Note:
 
 This is the default, and does not need to be called unless switching an existing from another policy or changing settings.
 Without further configuration, a default local_dc is chosen from the first connected contact point, and no remote hosts are considered in query plans.
 If relying on this mechanism, be sure to use only contact points from the local DC.
 
-Params: {load_balance_dc_aware, {LocalDc, UsedHostsPerRemoteDc, AllowRemoteDcsForLocalCl}}
+###### Params:
+
+*{load_balance_dc_aware, {LocalDc, UsedHostsPerRemoteDc, AllowRemoteDcsForLocalCl}}*
 
 * LocalDc - The primary data center to try first
 * UsedHostsPerRemoteDc - The number of host used in each remote DC if no hosts are available in the local dc
@@ -273,7 +273,7 @@ Default: ?CASS_CONSISTENCY_ONE
 
 ### Creating a session
 
-**** Currently this is limited to one session per application. This is a Datastax recommendations as well ****
+*Currently this is limited to one session per application. This is a Datastax recommendations as well*
 
 In order to connect the session to a keyspace as well use as option:
 
@@ -291,28 +291,29 @@ ok = erlcass:create_session([{keyspace, <<"stresscql">>}]).
 ### Add a prepare statement
 
 The only downside is that you have to provide metadata about the types of the fields that are bound.
-The datatypes can be found into erlcass.hrl file as follow:
+The datatypes can be found into *erlcass.hrl* file as follow:
 
 ```erlang
--define(CASS_TEXT, text).                                           %use for (ascii, text, varchar)
--define(CASS_INT, int).                                             %use for (int )
--define(CASS_BIGINT, bigint).                                       %use for (timestamp, counter, bigint)
--define(CASS_BLOB, blob).                                           %use for (variant, blob)
--define(CASS_BOOLEAN, bool).                                        %use for (bool)
--define(CASS_FLOAT, float).                                         %use for (float)
--define(CASS_DOUBLE, double).                                       %use for (double)
--define(CASS_INET, inet).                                           %use for (inet)
--define(CASS_UUID, uuid).                                           %use for (timeuuid, uuid)
--define(CASS_DECIMAL, decimal).                                     %use for (decimal)
--define(CASS_LIST(ValueType), {list, ValueType}).                   %use for list
--define(CASS_SET(ValueType), {set, ValueType}).                     %use for set
--define(CASS_MAP(KeyType, ValueType), {map, KeyType, ValueType}).   %use for map
+-define(CASS_TEXT, text).                         %use for (ascii, text, varchar)
+-define(CASS_INT, int).                           %use for (int )
+-define(CASS_BIGINT, bigint).                     %use for (timestamp, counter, bigint)
+-define(CASS_BLOB, blob).                         %use for (variant, blob)
+-define(CASS_BOOLEAN, bool).                      %use for (bool)
+-define(CASS_FLOAT, float).                       %use for (float)
+-define(CASS_DOUBLE, double).                     %use for (double)
+-define(CASS_INET, inet).                         %use for (inet)
+-define(CASS_UUID, uuid).                         %use for (timeuuid, uuid)
+-define(CASS_DECIMAL, decimal).                   %use for (decimal)
+-define(CASS_LIST(ValueType), {list, ValueType}). %use for list
+-define(CASS_SET(ValueType), {set, ValueType}).   %use for set
+-define(CASS_MAP(KeyType, ValueType), {map, KeyType, ValueType}). %use for map
 ```
 
 Example:
 
 ```erlang
-ok = erlcass:add_prepare_statement(query_identifier, <<"select * from blogposts where domain = ? LIMIT 1">>,
+ok = erlcass:add_prepare_statement(query_identifier,
+                                   <<"select * from blogposts where domain = ? LIMIT 1">>,
                                    [{<<"domain">>, ?CASS_TEXT}]),
 ```
 
@@ -326,13 +327,14 @@ Example:
 
 ```erlang
 ok = erlcass:add_prepare_statement(query_identifier,
-                                   {<<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM}
+                                   { <<"select * from blogposts where domain = ? LIMIT 1">>,
+                                     ?CASS_CONSISTENCY_LOCAL_QUORUM },
                                    [{<<"domain">>, ?CASS_TEXT}]).
 ```
 
 ### Run a prepared statement query
 
-In case the first parameter for erlcass:execute is an atom then the driver will try to find the associated prepared statement and to run it.
+In case the first parameter for *erlcass:execute* is an atom then the driver will try to find the associated prepared statement and to run it.
 
 Example:
 
@@ -342,10 +344,10 @@ erlcass:execute(select_blogpost, [{<<"domain">>, <<"Domain_1">>}]).
 
 ### Async queries and blocking queries
 
-For blocking operations use erlcass:execute, for async execution use : erlcass:async_execute.
+For blocking operations use *erlcass:execute*, for async execution use : *erlcass:async_execute*.
 The blocking operation will block the current erlang process (still async into the native code in order to avoid freezing of the VM threads) until will get the result from the cluster.
 
-In case of an async execution the calling process will receive a message of the following form: {execute_statement_result, Tag, Result}
+In case of an async execution the calling process will receive a message of the following form: *{execute_statement_result, Tag, Result}*
 
 For example:
 
@@ -363,7 +365,8 @@ The same rules apply for setting the desired consistency level as on prepared st
 Example with binding by index (requires metadata parsing all the time so it might not be the best solution when using non prepared statements):
 
 ```erlang
-erlcass:execute(<<"select * from blogposts where domain = ? LIMIT 1">>, [{?CASS_TEXT, <<"Domain_1">>}]).
+erlcass:execute(<<"select * from blogposts where domain = ? LIMIT 1">>,
+                [{?CASS_TEXT, <<"Domain_1">>}]).
 ```
 or:
 
@@ -383,7 +386,7 @@ erlcass:execute(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>,
 
 ### Getting metrics
 
-In order to get metrics from the native driver you can use **** erlcass:get_metrics(). ****
+In order to get metrics from the native driver you can use *erlcass:get_metrics().*
 
 ##### requests
 
@@ -409,30 +412,31 @@ In order to get metrics from the native driver you can use **** erlcass:get_metr
 - exceeded_pending_requests_water_mark - Occurrences when requests exceeded a pool's water mark
 - exceeded_write_bytes_water_mark - Occurrences when number of bytes exceeded a connection's water mark
 
-##### errors:
+##### errors
 
 - connection_timeouts - Occurrences of a connection timeout
 - pending_request_timeouts - Occurrences of requests that timed out waiting for a connection
 - request_timeouts - Occurrences of requests that timed out waiting for a request to finish
 
-### Low level methods:
+### Low level methods
 
 Each query requires an internal statement (prepared or not). You can reuse the same statement object for multiple queries
 performed in the same process.
 
-##### Getting a statement reference for a prepared statement query:
+##### Getting a statement reference for a prepared statement query
 
 ```erlang
 {ok, Statement} = erlcass:bind_prepared_statement(select_blogpost).
 ```
 
-##### Getting a statement reference for a non prepared query:
+##### Getting a statement reference for a non prepared query
 
 ```erlang
-{ok, Statement} = erlcass:create_statement(<<"select * from blogposts where domain = ? LIMIT 1">>, [{?CASS_TEXT, <<"Domain_1">>}]).
+{ok, Statement} = erlcass:create_statement(<<"select * from blogposts where domain = ? LIMIT 1">>,
+                                           [{?CASS_TEXT, <<"Domain_1">>}]).
 ```
 
-##### Bind the values for a prepared statement before executing:
+##### Bind the values for a prepared statement before executing
 
 ```erlang
 ok = erlcass:bind_prepared_params(select_blogpost, [{<<"domain">>, <<"Domain_1">>}]);
@@ -444,14 +448,13 @@ ok = erlcass:bind_prepared_params(select_blogpost, [{<<"domain">>, <<"Domain_1">
 {ok, Tag} = erlcass:async_execute_statement(Statement).
 ```
 
-##### Execute a statement in blocking mode:
+##### Execute a statement in blocking mode
 
 ```erlang
 Result = erlcass:execute_statement(Statement).
 ```
 
 Using this low level functions are very useful when you want to run in loop a certain query. Helps you to avoid recreating the statements all the time.
-
 For example here is how the execute method is implemented:
 
 ```erlang

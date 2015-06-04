@@ -317,19 +317,15 @@ ok = erlcass:add_prepare_statement(query_identifier,
                                    [{<<"domain">>, ?CASS_TEXT}]),
 ```
 
-In case you want to overwrite the default consistency level for that prepare statement use a tuple for the query argument:
-
-```erlang
-{Query, ConsistencyLevelHere}
-```
+In case you want to overwrite the default consistency level for that prepare statement use a tuple for the query argument: *{Query, ConsistencyLevelHere}*
 
 Example:
 
 ```erlang
-ok = erlcass:add_prepare_statement(query_identifier,
-                                   { <<"select * from blogposts where domain = ? LIMIT 1">>,
-                                     ?CASS_CONSISTENCY_LOCAL_QUORUM },
-                                   [{<<"domain">>, ?CASS_TEXT}]).
+ok = erlcass:add_prepare_statement(
+                query_identifier,
+                { <<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM },
+                [{<<"domain">>, ?CASS_TEXT}]).
 ```
 
 ### Run a prepared statement query

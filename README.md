@@ -31,10 +31,15 @@ brew install libuv cmake
 Here is a correspondence of Cassandra column types with their equivalent Erlang types
 
 Cassandra Column Type      | Erlang types                                 | Examples
--------------------------- | -------------------------------------------- | ------------------------------------------
-ascii, varchar or text     | binary or string                             | <<"hello">> or "hello"
-bigint, timestamp, counter | integer (signed 64-bit)                      | 9223372036854775807
-blob, varint               | binary                                       | <<1,2,3,4,5,6,7,8,9,10>>
+-------------------------- | -------------------------------------------- | :----------------------------:
+ascii                      | binary or string                             | <<"hello">> or "hello"
+varchar                    | binary or string                             | <<"hello">> or "hello"
+text                       | binary or string                             | <<"hello">> or "hello"
+bigint                     | integer (signed 64-bit)                      | 9223372036854775807
+timestamp                  | integer (signed 64-bit)                      | 9223372036854775807
+counter                    | integer (signed 64-bit)                      | 9223372036854775807
+blob                       | binary                                       | <<1,2,3,4,5,6,7,8,9,10>>
+varint                     | binary                                       | <<"12423423423423423423243432432">>
 boolean                    | `true`, `false`                              | true
 decimal                    | `{Unscaled :: binary(), Scale :: integer()}` | {<<"1234">>, 5}
 double                     | float (signed 64-bit)                        | 5.1235131241221e-6

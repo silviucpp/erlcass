@@ -26,6 +26,28 @@ For example on Mac OS make sure you have the last XCode and also run:
 brew install libuv cmake
 ```
 
+### Data types
+
+Here is a correspondence of Cassandra column types with their equivalent Erlang types
+
+Cassandra Column Type      | Erlang types                                 | Examples
+-------------------------- | -------------------------------------------- | ------------------------------------------
+ascii, varchar or text     | binary or string                             | <<"hello">> or "hello"
+bigint, timestamp, counter | integer (signed 64-bit)                      | 9223372036854775807
+blob, varint               | binary                                       | <<1,2,3,4,5,6,7,8,9,10>>
+boolean                    | `true`, `false`                              | true
+decimal                    | `{Unscaled :: binary(), Scale :: integer()}` | {<<"1234">>, 5}
+double                     | float (signed 64-bit)                        | 5.1235131241221e-6
+float                      | float (signed 32-bit)                        | 5.12351e-6
+int                        | integer (signed 32-bit)                      | 2147483647
+uuid                       | binary                                       | <<"61c16fb1-44ca-4591-9317-ac96ddbd8694">>
+varint                     | binary                                       | <<"1928301970128391280192830198049113123">>
+timeuuid                   | binary                                       | <<"076a46c0-0ad7-11e5-b314-3d7bf89b87a1">>
+inet                       | binary                                       | <<"127.0.0.1">>
+
+In order to generate a uuid v4 you can use `erlcass:uuid_gen_random()` for uuid v1 you can use `erlcass:uuid_gen_time()`.
+For more details please see the section dedicated to uuid's
+
 ### Starting the application
 
 ```erlang

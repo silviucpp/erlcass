@@ -28,6 +28,7 @@ groups() ->
             async_insertion_roundtrip,
             emptiness,
             all_datatypes,
+            collection_types,
             uuid_testing,
             get_metrics,
             drop_keyspace
@@ -38,6 +39,9 @@ groups() ->
 init_per_suite(Config) ->
     ok = application:start(erlcass),
     Config.
+
+end_per_suite(_Config) ->
+    application:stop(erlcass).
 
 set_cluster_options(_Config) ->
     ok = erlcass:set_cluster_options(
@@ -281,5 +285,4 @@ get_metrics(_Config) ->
 drop_keyspace(_Config) ->
     {ok, []} = erlcass:execute(<<"DROP KEYSPACE erlang_driver_test">>,[]).
 
-end_per_suite(_Config) ->
-    application:stop(erlcass).
+

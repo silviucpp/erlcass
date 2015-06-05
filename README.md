@@ -11,7 +11,6 @@
 - Add support for Setting serial consistency,
 - Add support for setting log level and custom handler
 - Improve the metadata parsing (or find a way to drop this)
-- Add unit testing and data integrity testing
 - Add more performance testings.
 
 ### Getting starting:

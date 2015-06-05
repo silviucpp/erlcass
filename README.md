@@ -8,7 +8,6 @@
 
 - Add support for batch statements
 - Add support for SSL Authentication
-- Add support for Latency-aware routing settings,
 - Add support for Setting serial consistency,
 - Add support for setting log level and custom handler
 - Improve the metadata parsing (or find a way to drop this)
@@ -273,6 +272,30 @@ Configures the cluster to use token-aware request routing, or not.
 This routing policy composes the base routing policy, routing requests first to replicas on nodes considered 'local' by the base load balancing policy.
 
 Default is true (enabled).
+
+#### latency_aware_routing
+
+Example: {latency_aware_routing, true}
+         {latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}}
+
+Configures the cluster to use latency-aware request routing, or not.
+This routing policy is a top-level routing policy.
+It uses the base routing policy to determine locality (dc-aware) and/or placement (token-aware) before considering the latency.
+
+###### Params:
+
+{Enabled, {ExclusionThreshold, ScaleMs, RetryPeriodMs, UpdateRateMs, MinMeasured}}
+
+- Enabled : State of the future
+- ExclusionThreshold : Controls how much worse the latency must be compared to the average latency of the best performing node before it penalized.
+- ScaleMs Controls the weight given to older latencies when calculating the average latency of a node. A bigger scale will give more weight to older latency measurements.
+- RetryPeriodMs -  The amount of time a node is penalized by the policy before being given a second chance when the current average latency exceeds the calculated threshold (ExclusionThreshold * BestAverageLatency).
+- UpdateRateMs - The rate at  which the best average latency is recomputed.
+- MinMeasured - The minimum number of measurements per-host required to be considered by the policy.
+
+Defaults: {false, {2.0, 100, 10000, 100 , 50}}
+
+###### Note: In case you use only true false atom the tuning settings will not change.
 
 ##### tcp_nodelay
 

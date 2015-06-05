@@ -60,6 +60,7 @@ const char kAtomClusterSettingCredentials[] = "credentials";
 const char kAtomClusterSettingLoadBalanceRoundRobin[] = "load_balance_round_robin";
 const char kAtomClusterSettingLoadBalanceDcAware[] = "load_balance_dc_aware";
 const char kAtomClusterSettingTokenAwareRouting[] = "token_aware_routing";
+const char kAtomClusterSettingLatencyAwareRouting[] = "latency_aware_routing";
 const char kAtomClusterSettingTcpNodelay[] = "tcp_nodelay";
 const char kAtomClusterSettingTcpKeepalive[] = "tcp_keepalive";
 
@@ -130,6 +131,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingLoadBalanceRoundRobin = make_atom(env, kAtomClusterSettingLoadBalanceRoundRobin);
     ATOMS.atomClusterSettingLoadBalanceDcAware = make_atom(env, kAtomClusterSettingLoadBalanceDcAware);
     ATOMS.atomClusterSettingTokenAwareRouting = make_atom(env, kAtomClusterSettingTokenAwareRouting);
+    ATOMS.atomClusterSetringLatencyAwareRouting = make_atom(env, kAtomClusterSettingLatencyAwareRouting);
     ATOMS.atomClusterSettingTcpNodelay = make_atom(env, kAtomClusterSettingTcpNodelay);
     ATOMS.atomClusterSettingTcpKeepalive = make_atom(env, kAtomClusterSettingTcpKeepalive);
     

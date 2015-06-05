@@ -76,6 +76,7 @@ typedef struct
     ERL_NIF_TERM atomClusterSettingLoadBalanceRoundRobin;
     ERL_NIF_TERM atomClusterSettingLoadBalanceDcAware;
     ERL_NIF_TERM atomClusterSettingTokenAwareRouting;
+    ERL_NIF_TERM atomClusterSetringLatencyAwareRouting;
     ERL_NIF_TERM atomClusterSettingTcpNodelay;
     ERL_NIF_TERM atomClusterSettingTcpKeepalive;
 

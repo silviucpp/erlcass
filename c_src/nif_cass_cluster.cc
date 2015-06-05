@@ -163,6 +163,58 @@ bool internal_cluster_set_default_consistency_level(ErlNifEnv* env, ERL_NIF_TERM
     return true;
 }
 
+bool internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data, CassError* error)
+{
+    if(enif_is_atom(env, term_value))
+    {
+        //only enable/disable
+        
+        cass_bool_t enabled = enif_is_identical(term_value, ATOMS.atomTrue) ? cass_true : cass_false;
+        cass_cluster_set_latency_aware_routing(data->cluster, enabled);
+        *error = CASS_OK;
+        return true;
+    }
+    
+    const ERL_NIF_TERM *items;
+    int arity;
+    
+    if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
+        return false;
+    
+    cass_bool_t enabled = enif_is_identical(items[0], ATOMS.atomTrue) ? cass_true : cass_false;
+    cass_cluster_set_latency_aware_routing(data->cluster, enabled);
+    
+    //set also the settings
+    
+    if(!enif_get_tuple(env, items[1], &arity, &items) || arity != 5)
+        return false;
+
+    double exclusion_threshold;
+    unsigned long scale_ms;
+    unsigned long retry_period_ms;
+    unsigned long update_rate_ms;
+    unsigned long min_measured;
+    
+    if(!enif_get_double(env, items[0], &exclusion_threshold))
+        return false;
+    
+    if(!enif_get_uint64(env, items[1], &scale_ms))
+        return false;
+    
+    if(!enif_get_uint64(env, items[2], &retry_period_ms))
+        return false;
+    
+    if(!enif_get_uint64(env, items[3], &update_rate_ms))
+        return false;
+    
+    if(!enif_get_uint64(env, items[4], &min_measured))
+        return false;
+    
+    cass_cluster_set_latency_aware_routing_settings(data->cluster, exclusion_threshold, scale_ms, retry_period_ms, update_rate_ms, min_measured);
+    *error = CASS_OK;
+    return true;
+}
+
 bool ApplyClusterSetting(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_NIF_TERM term_value, cassandra_data* data, CassError* error)
 {
     CUSTOM_SETTING(ATOMS.atomClusterDefaultConsistencyLevel, internal_cluster_set_default_consistency_level);
@@ -191,8 +243,7 @@ bool ApplyClusterSetting(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_NIF_TERM ter
     CUSTOM_SETTING(ATOMS.atomClusterSettingLoadBalanceRoundRobin, internal_cass_cluster_set_load_balance_round_robin);
     CUSTOM_SETTING(ATOMS.atomClusterSettingLoadBalanceDcAware, internal_cass_cluster_set_load_balance_dc_aware);
     BOOL_SETTING(ATOMS.atomClusterSettingTokenAwareRouting, internal_cass_cluster_set_token_aware_routing);
-    //@todo: impement cass_cluster_set_latency_aware_routing
-    //@todo: implement cass_cluster_set_latency_aware_routing_settings
+    CUSTOM_SETTING(ATOMS.atomClusterSetringLatencyAwareRouting, internal_cluster_set_latency_aware_routing);
     BOOL_SETTING(ATOMS.atomClusterSettingTcpNodelay, internal_cass_cluster_set_tcp_nodelay);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpKeepalive, internal_cass_cluster_set_tcp_keepalive);
     

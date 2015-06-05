@@ -62,8 +62,9 @@ set_cluster_options(_Config) ->
             {request_timeout, 12000},
             %{credentials, {<<"username">>, <<"password">>}},
             {load_balance_round_robin, true},
-            {load_balance_dc_aware, {<<"dc-beta">>, 0, false}},
+            %{load_balance_dc_aware, {<<"dc-beta">>, 0, false}},
             {token_aware_routing, true},
+            {latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}},
             {tcp_nodelay, true},
             {tcp_keepalive, {true, 60}},
             {default_consistency_level, ?CASS_CONSISTENCY_ONE}

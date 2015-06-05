@@ -8,7 +8,7 @@
 
 -define(CONTACT_POINTS, <<"127.0.0.1">>).
 
-%%ct_run -suite common_test_SUITE -pa ebin -include include
+%%ct_run -suite integrity_test_SUITE -pa ebin -include include
 
 all() ->
 [
@@ -28,6 +28,8 @@ groups() ->
             async_insertion_roundtrip,
             emptiness,
             all_datatypes,
+            uuid_testing,
+            get_metrics,
             drop_keyspace
         ]
     }
@@ -139,7 +141,7 @@ datatypes_columns(I, [ColumnType|Rest], Bin) ->
     datatypes_columns(I+1, Rest, << Bin/binary, Column/binary >>).
 
 %limitation: float numbers from erlang are coming back with double precision.
-%seems the c++ driver has an issue with binding varint by name in a prepared statement (waiting feedback on datastax maillist)
+%seems the c++ driver has an issue with binding varint by name in a prepared statement https://datastax-oss.atlassian.net/browse/CPP-272
 
 all_datatypes(_Config) ->
     Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet]),
@@ -236,6 +238,43 @@ all_datatypes(_Config) ->
 
     BinAsciiString = list_to_binary(AsciiString),
     {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet} = Result2,
+    ok.
+
+collection_types(_Config) ->
+    CreationQ = <<"CREATE TABLE erlang_driver_test.entries3(key varchar, numbers list<int>, names set<varchar>, phones map<varchar, varchar>, PRIMARY KEY(key));">>,
+    ct:log("Executing : ~s~n", [CreationQ]),
+    {ok, []} = erlcass:execute(CreationQ, []),
+
+    Key = <<"somekeyhere">>,
+    List = [1,2,3,4,5,6,7,8,9,0],
+    Set = [<<"item1">>, <<"item2">>, <<"item3">>],
+    Map = [{<<"home">>, <<"418-123-4545">>}, {<<"work">>, <<"555-555-5555">>}],
+
+    {ok, []} = erlcass:execute(<<"INSERT INTO erlang_driver_test.entries3(key, numbers, names, phones) values (?, ?, ?, ?);">>,
+        [
+            {?CASS_TEXT, Key},
+            {?CASS_LIST(?CASS_INT), List},
+            {?CASS_SET(?CASS_TEXT), Set},
+            {?CASS_MAP(?CASS_TEXT, ?CASS_TEXT), Map}
+        ]),
+
+    {ok, [Result]} = erlcass:execute(<<"SELECT key, numbers, names, phones FROM erlang_driver_test.entries3;">>, []),
+    {Key, List, Set, Map} = Result,
+    ok.
+
+uuid_testing(_Config) ->
+    Ts = 2147483647,
+    {ok, _} = erlcass:uuid_gen_time(),
+    {ok, _} = erlcass:uuid_gen_random(),
+    {ok, UuidTs} = erlcass:uuid_gen_from_ts(Ts),
+    {ok, Ts} = erlcass:uuid_get_ts(UuidTs),
+    {ok, 1} = erlcass:uuid_get_version(UuidTs),
+    {ok, _} = erlcass:uuid_max_from_ts(Ts),
+    {ok, _} = erlcass:uuid_min_from_ts(Ts),
+    ok.
+
+get_metrics(_Config) ->
+    {ok, _} = erlcass:get_metrics(),
     ok.
 
 drop_keyspace(_Config) ->

@@ -101,7 +101,7 @@ ERL_NIF_TERM nif_cass_uuid_min_from_time(ErlNifEnv* env, int argc, const ERL_NIF
 {
     unsigned long timestamp;
     
-    if(!enif_get_uint64(env, argv[1], &timestamp))
+    if(!enif_get_uint64(env, argv[0], &timestamp))
         return enif_make_badarg(env);
     
     CassUuid obj;
@@ -113,7 +113,7 @@ ERL_NIF_TERM nif_cass_uuid_max_from_time(ErlNifEnv* env, int argc, const ERL_NIF
 {
     unsigned long timestamp;
     
-    if(!enif_get_uint64(env, argv[1], &timestamp))
+    if(!enif_get_uint64(env, argv[0], &timestamp))
         return enif_make_badarg(env);
     
     CassUuid obj;
@@ -125,7 +125,7 @@ ERL_NIF_TERM nif_cass_uuid_timestamp(ErlNifEnv* env, int argc, const ERL_NIF_TER
 {
     std::string str_value;
     
-    if(!get_string(env, argv[1], str_value))
+    if(!get_string(env, argv[0], str_value))
         return enif_make_badarg(env);
     
     CassUuid uuid;
@@ -139,7 +139,7 @@ ERL_NIF_TERM nif_cass_uuid_version(ErlNifEnv* env, int argc, const ERL_NIF_TERM 
 {
     std::string str_value;
     
-    if(!get_string(env, argv[1], str_value))
+    if(!get_string(env, argv[0], str_value))
         return enif_make_badarg(env);
     
     CassUuid uuid;

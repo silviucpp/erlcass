@@ -275,8 +275,10 @@ Default is true (enabled).
 
 #### latency_aware_routing
 
-Example: {latency_aware_routing, true}
-         {latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}}
+Example:
+
+- `{latency_aware_routing, true}`
+- `{latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}}`
 
 Configures the cluster to use latency-aware request routing, or not.
 This routing policy is a top-level routing policy.

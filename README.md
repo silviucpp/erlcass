@@ -8,7 +8,6 @@
 
 ### TODO List:
 
-- Add support for batch statements
 - Add support for SSL Authentication
 - Add support for Setting serial consistency,
 - Add support for setting log level and custom handler
@@ -419,6 +418,34 @@ or:
 
 ```erlang
 erlcass:execute(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>, []).
+```
+
+### Batched queries
+
+In order to perform batched statements you can use `erlcass:batch_async_execute/3` or `erlcass:batch_execute/3`.
+
+First argument is the batch type and is defined as:
+
+```erlang
+-define(CASS_BATCH_TYPE_LOGGED, 0).
+-define(CASS_BATCH_TYPE_UNLOGGED, 1).
+-define(CASS_BATCH_TYPE_COUNTER, 2).
+```
+
+The second one is a list of statements (prepared or normal statements) that needs to be executed in the batch.
+
+The third argument is a list of options currently ony `consistency_level` is available. If it's missing the batch will be
+executed using the default consistency level value.
+
+Example:
+
+```erlang
+    InsertStatement = <<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES (?, ?, ?)">>,
+    ok = erlcass:add_prepare_statement(insert_prep, InsertStatement),
+    {ok, Stm1} = erlcass:create_statement(InsertStatement, [{?CASS_TEXT, Id1}, {?CASS_INT, Age1}, {?CASS_TEXT, Email1}]),
+    {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
+    ok = erlcass:bind_prepared_params(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
+    {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]),
 ```
 
 ### Working with uuid or timeuuid fields:

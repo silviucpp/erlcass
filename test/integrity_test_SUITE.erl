@@ -6,7 +6,7 @@
 
 -compile(export_all).
 
--define(CONTACT_POINTS, <<"127.0.0.1">>).
+-define(CONTACT_POINTS, <<"172.17.3.129">>).
 
 %%ct_run -suite integrity_test_SUITE -pa ebin -include include
 
@@ -29,6 +29,7 @@ groups() ->
             emptiness,
             all_datatypes,
             collection_types,
+            batches,
             uuid_testing,
             get_metrics,
             drop_keyspace
@@ -249,6 +250,30 @@ collection_types(_Config) ->
 
     {ok, [Result]} = erlcass:execute(<<"SELECT key, numbers, names, phones FROM erlang_driver_test.entries3;">>, []),
     {Key, List, Set, Map} = Result,
+    ok.
+
+batches(_Config) ->
+    {ok, []} = erlcass:execute(<<"TRUNCATE erlang_driver_test.entries1;">>, []),
+
+    InsertStatement = <<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES (?, ?, ?)">>,
+    Id1 = <<"id_1">>,
+    Id2 = <<"id_2">>,
+    Age1 = 11,
+    Age2 = 12,
+    Email1 = <<"test1@test.com">>,
+    Email2 = <<"test2@test.com">>,
+
+    {ok, Stm1} = erlcass:create_statement(InsertStatement, [{?CASS_TEXT, Id1}, {?CASS_INT, Age1}, {?CASS_TEXT, Email1}]),
+    ok = erlcass:add_prepare_statement(insert_prep, InsertStatement),
+
+    {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
+    ok = erlcass:bind_prepared_params(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
+
+    {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]),
+
+    {ok, Result} = erlcass:execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>,[]),
+    ListLength = 2,
+    ListLength = length(Result),
     ok.
 
 uuid_testing(_Config) ->

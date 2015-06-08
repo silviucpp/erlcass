@@ -11,6 +11,7 @@ const char kAtomError[] = "error";
 const char kAtomTrue[] = "true";
 const char kAtomFalse[] = "false";
 const char kAtomNull[] = "null";
+const char kAtomConsistencyLevel[] = "consistency_level";
 
 //events atoms
 
@@ -82,6 +83,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomTrue = make_atom(env, kAtomTrue);
     ATOMS.atomFalse = make_atom(env, kAtomFalse);
     ATOMS.atomNull = make_atom(env, kAtomNull);
+    ATOMS.atomConsistencyLevel = make_atom(env, kAtomConsistencyLevel);
     
     //events atoms
     
@@ -188,6 +190,7 @@ static ErlNifFunc nif_funcs[] =
     {"nif_cass_statement_new", 2, nif_cass_statement_new},
     {"nif_cass_statement_bind_parameters", 2, nif_cass_statement_bind_parameters},
     {"nif_cass_session_execute", 4, nif_cass_session_execute},
+    {"nif_cass_session_execute_batch", 5, nif_cass_session_execute_batch},
     {"nif_cass_session_get_metrics", 1, nif_cass_session_get_metrics},
     
     //CassUuidGen

@@ -11,6 +11,7 @@ typedef struct
     ERL_NIF_TERM atomTrue;
     ERL_NIF_TERM atomFalse;
     ERL_NIF_TERM atomNull;
+    ERL_NIF_TERM atomConsistencyLevel;
     
     //events atoms
     

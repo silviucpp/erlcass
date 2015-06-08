@@ -53,7 +53,7 @@ public:
     SchemaScope(const CassSchema* schema) : schema_(schema) {}
     ~SchemaScope() {cass_schema_free(schema_);}
     
-    const CassSchema* get() {return schema_;}
+    const CassSchema* get() const {return schema_;}
     
 private:
     

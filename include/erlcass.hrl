@@ -22,6 +22,10 @@
 -define(CASS_CONSISTENCY_LOCAL_SERIAL, 9).
 -define(CASS_CONSISTENCY_LOCAL_ONE, 10).
 
+-define(CASS_BATCH_TYPE_LOGGED, 0).
+-define(CASS_BATCH_TYPE_UNLOGGED, 1).
+-define(CASS_BATCH_TYPE_COUNTER, 2).
+
 -define(CASS_TEXT, text).                                           %use for (ascii, text, varchar)
 -define(CASS_INT, int).                                             %use for (int )
 -define(CASS_BIGINT, bigint).                                       %use for (timestamp, counter, bigint)

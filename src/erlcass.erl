@@ -20,6 +20,8 @@
 
     async_execute/2,
     execute/2,
+    batch_execute/3,
+    batch_async_execute/3,
 
     create_statement/2,
     bind_prepared_statement/1,
@@ -101,6 +103,20 @@ execute(Identifier, Params) ->
     end,
 
     execute_statement(Statement).
+
+batch_async_execute(BatchType, StmList, Options) ->
+    gen_server:call(?MODULE, {batch_execute, BatchType, StmList, Options}).
+
+batch_execute(BatchType, StmList, Options) ->
+    {ok, Tag} = batch_async_execute(BatchType, StmList, Options),
+
+    receive
+        {execute_statement_result, Tag, Result} ->
+            Result
+
+    after ?TIMEOUT ->
+        timeout
+    end.
 
 uuid_gen_time() ->
     gen_server:call(?MODULE, gen_time).
@@ -197,7 +213,12 @@ handle_call({execute_statement, StatementRef}, From, State) ->
     Tag = make_ref(),
     {FromPid, _} = From,
     Result = nif_cass_session_execute(State#state.session, StatementRef, FromPid, Tag),
-    {reply, {Result, Tag}, State}.
+    {reply, {Result, Tag}, State};
+
+handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
+    {FromPid, _} = From,
+    Result = nif_cass_session_execute_batch(State#state.session, BatchType, StmList, Options, FromPid),
+    {reply, Result, State}.
 
 handle_cast(_Request, State) ->
     {noreply, State}.
@@ -331,6 +352,9 @@ nif_cass_statement_bind_parameters(_StatementRef, _Args)->
     ?NOT_LOADED.
 
 nif_cass_session_execute(_SessionRef, _StatementRef, _FromPid, _Tag) ->
+    ?NOT_LOADED.
+
+nif_cass_session_execute_batch(_SessionRef, _BatchType, _StmList, _Options, _Pid) ->
     ?NOT_LOADED.
 
 nif_cass_session_get_metrics(_SessionRef) ->

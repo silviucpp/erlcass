@@ -17,6 +17,20 @@
 #define UINT64_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_uint64(env, Property))
 #define DOUBLE_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_double(env, Property))
 
+class CassBatchScope
+{
+public:
+    
+    CassBatchScope(CassBatch* batch) : batch_(batch) {}
+    ~CassBatchScope() {cass_batch_free(batch_);}
+    
+    CassBatch* get() const {return batch_;}
+    
+private:
+    
+    CassBatch* batch_;
+};
+
 typedef struct
 {
     CassSession* session;
@@ -325,6 +339,90 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
     CassError error = cass_future_set_callback(future, on_statement_executed, callback);
     cass_future_free(future);
     return cass_error_to_nif_term(env, error);
+}
+
+ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    
+    enif_cass_session * enif_session = NULL;
+    
+    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session) || !enif_is_list(env, argv[2]) || !enif_is_list(env, argv[3]))
+        return enif_make_badarg(env);
+    
+    int batch_type;
+    
+    if(!enif_get_int(env, argv[1], &batch_type))
+        return enif_make_badarg(env);
+    
+    CassBatchScope batch(cass_batch_new((CassBatchType) batch_type));
+    
+    if(!batch.get())
+        return make_error(env, "failed to create the batch object");
+    
+    ERL_NIF_TERM statements_list = argv[2];
+    ERL_NIF_TERM head;
+    
+    while(enif_get_list_cell(env, statements_list, &head, &statements_list))
+    {
+        CassStatement* stm = get_statement(env, data->resCassStatement, head);
+        
+        if(!stm)
+            return enif_make_badarg(env);
+        
+        CassError error = cass_batch_add_statement(batch.get(), stm);
+        
+        if(error != CASS_OK)
+            return cass_error_to_nif_term(env, error);
+    }
+
+    ERL_NIF_TERM options_list = argv[3];
+    CassConsistency consistency_level = data->defaultConsistencyLevel;
+
+    while(enif_get_list_cell(env, options_list, &head, &options_list))
+    {
+        const ERL_NIF_TERM *items;
+        int arity;
+        
+        if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
+            return enif_make_badarg(env);
+        
+        if(!enif_is_identical(items[0], ATOMS.atomConsistencyLevel))
+            return enif_make_badarg(env);
+        
+        int cLevel;
+        
+        if(!enif_get_int(env, items[1], &cLevel))
+            return enif_make_badarg(env);
+        
+        consistency_level = static_cast<CassConsistency>(cLevel);
+    }
+
+    CassError error = cass_batch_set_consistency(batch.get(), consistency_level);
+    
+    if(error != CASS_OK)
+        return cass_error_to_nif_term(env, error);
+    
+    ErlNifPid pid;
+    
+    if(enif_get_local_pid(env, argv[4], &pid) == 0)
+        make_error(env, "Failed to get the parent pid");
+    
+    ERL_NIF_TERM tag = enif_make_ref(env);
+    
+    callback_info* callback = (callback_info*) enif_alloc(sizeof(callback_info));
+    callback->env = enif_alloc_env();
+    callback->pid = pid;
+    callback->arguments = enif_make_copy(callback->env, tag);
+    
+    CassFuture* future = cass_session_execute_batch(enif_session->session, batch.get());
+    error = cass_future_set_callback(future, on_statement_executed, callback);
+    cass_future_free(future);
+    
+    if(error != CASS_OK)
+        return cass_error_to_nif_term(env, error);
+    
+    return enif_make_tuple2(env, ATOMS.atomOk, tag);
 }
 
 ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])

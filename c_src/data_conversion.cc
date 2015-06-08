@@ -10,6 +10,8 @@
 #include "erlcass.h"
 #include "utils.h"
 
+#include <cstring>
+
 ERL_NIF_TERM string_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM blob_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM uuid_to_erlang_term(ErlNifEnv* env, const CassValue* value);

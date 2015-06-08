@@ -7,6 +7,7 @@
 //
 
 #include "schema.h"
+#include <cstring>
 
 const char kValidatorAscii[] = "org.apache.cassandra.db.marshal.AsciiType";
 const char kValidatorUUID[] = "org.apache.cassandra.db.marshal.UUIDType";
@@ -28,23 +29,32 @@ const char kValidatorMap[] = "org.apache.cassandra.db.marshal.MapType";
 const char kValidatorCounter[] = "org.apache.cassandra.db.marshal.CounterColumnType";
 const char kValidatorReversedType[] = "org.apache.cassandra.db.marshal.ReversedType";
 
-const std::map<std::string, CassValueType> kValidatorsMap = {
-    {kValidatorAscii, CASS_VALUE_TYPE_ASCII},
-    {kValidatorLong, CASS_VALUE_TYPE_BIGINT},
-    {kValidatorBytes, CASS_VALUE_TYPE_BLOB},
-    {kValidatorBoolean, CASS_VALUE_TYPE_BOOLEAN},
-    {kValidatorCounter, CASS_VALUE_TYPE_COUNTER},
-    {kValidatorDecimal, CASS_VALUE_TYPE_DECIMAL},
-    {kValidatorDouble, CASS_VALUE_TYPE_DOUBLE},
-    {kValidatorFloat, CASS_VALUE_TYPE_FLOAT},
-    {kValidatorInt32, CASS_VALUE_TYPE_INT},
-    {kValidatorUTF8, CASS_VALUE_TYPE_TEXT},
-    {kValidatorTimestamp, CASS_VALUE_TYPE_TIMESTAMP},
-    {kValidatorUUID, CASS_VALUE_TYPE_UUID},
-    {kValidatorInteger, CASS_VALUE_TYPE_VARINT},
-    {kValidatorTimeUUID, CASS_VALUE_TYPE_TIMEUUID},
-    {kValidatorInetAddress, CASS_VALUE_TYPE_INET}
-};
+#define VALIDATOR_MAP_INSERT(Key, Value) map[Key] = Value
+
+std::map<std::string, CassValueType> create_validators_map()
+{
+	std::map<std::string, CassValueType> map;
+
+	VALIDATOR_MAP_INSERT(kValidatorAscii, CASS_VALUE_TYPE_ASCII);
+	VALIDATOR_MAP_INSERT(kValidatorLong, CASS_VALUE_TYPE_BIGINT);
+	VALIDATOR_MAP_INSERT(kValidatorBytes, CASS_VALUE_TYPE_BLOB);
+	VALIDATOR_MAP_INSERT(kValidatorBoolean, CASS_VALUE_TYPE_BOOLEAN);
+	VALIDATOR_MAP_INSERT(kValidatorCounter, CASS_VALUE_TYPE_COUNTER);
+	VALIDATOR_MAP_INSERT(kValidatorDecimal, CASS_VALUE_TYPE_DECIMAL);
+	VALIDATOR_MAP_INSERT(kValidatorDouble, CASS_VALUE_TYPE_DOUBLE);
+	VALIDATOR_MAP_INSERT(kValidatorFloat, CASS_VALUE_TYPE_FLOAT);
+	VALIDATOR_MAP_INSERT(kValidatorInt32, CASS_VALUE_TYPE_INT);
+	VALIDATOR_MAP_INSERT(kValidatorUTF8, CASS_VALUE_TYPE_TEXT);
+	VALIDATOR_MAP_INSERT(kValidatorTimestamp, CASS_VALUE_TYPE_TIMESTAMP);
+	VALIDATOR_MAP_INSERT(kValidatorUUID, CASS_VALUE_TYPE_UUID);
+	VALIDATOR_MAP_INSERT(kValidatorInteger, CASS_VALUE_TYPE_VARINT);
+	VALIDATOR_MAP_INSERT(kValidatorTimeUUID, CASS_VALUE_TYPE_TIMEUUID);
+	VALIDATOR_MAP_INSERT(kValidatorInetAddress, CASS_VALUE_TYPE_INET);
+
+	return map;
+}
+
+const std::map<std::string, CassValueType> kValidatorsMap = create_validators_map();
 
 class SchemaScope
 {

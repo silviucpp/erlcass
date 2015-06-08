@@ -16,10 +16,10 @@
 
 struct SchemaColumn
 {
-    SchemaColumn() : type(CASS_VALUE_TYPE_UNKNOWN), valueType(CASS_VALUE_TYPE_UNKNOWN), keyType(CASS_VALUE_TYPE_UNKNOWN) {}
-    SchemaColumn(CassValueType vt) : type(vt), valueType(vt), keyType(CASS_VALUE_TYPE_UNKNOWN) {}
-    SchemaColumn(CassValueType tp, CassValueType vt) : type(tp), valueType(vt), keyType(CASS_VALUE_TYPE_UNKNOWN) {}
-    SchemaColumn(CassValueType tp, CassValueType kt, CassValueType vt) : type(tp), valueType(vt), keyType(kt) {}
+    SchemaColumn() : type(CASS_VALUE_TYPE_UNKNOWN), keyType(CASS_VALUE_TYPE_UNKNOWN), valueType(CASS_VALUE_TYPE_UNKNOWN) {}
+    SchemaColumn(CassValueType vt) : type(vt), keyType(CASS_VALUE_TYPE_UNKNOWN), valueType(vt) {}
+    SchemaColumn(CassValueType tp, CassValueType vt) : type(tp), keyType(CASS_VALUE_TYPE_UNKNOWN), valueType(vt) {}
+    SchemaColumn(CassValueType tp, CassValueType kt, CassValueType vt) : type(tp), keyType(kt), valueType(vt) {}
     
     CassValueType type;
     CassValueType keyType;

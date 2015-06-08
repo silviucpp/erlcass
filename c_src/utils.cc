@@ -1,6 +1,8 @@
 #include "utils.h"
 #include "erlcass.h"
 
+#include <cstring>
+
 ERL_NIF_TERM make_atom(ErlNifEnv* env, const char* name)
 {
     ERL_NIF_TERM ret;

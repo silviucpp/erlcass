@@ -109,14 +109,23 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     }
     else
     {
-        const char* keyspace;
-        const char* table;
+        char* keyspace;
+        size_t keyspace_length;
+
+        char* table;
+        size_t table_length;
         
-        const CassPrepared* prep = cass_future_get_prepared(future, &keyspace, &table);
+        const CassPrepared* prep = cass_future_get_prepared(future, &keyspace, &keyspace_length, &table, &table_length);
+        
+        std::string keyspace_str(keyspace, keyspace_length);
+        std::string table_str(table, table_length);
+        
+        delete [] keyspace;
+        delete [] table;
         
         ColumnsMap *columns_map = new ColumnsMap();
         
-        if(!get_table_schema(cb->session, keyspace, table, columns_map))
+        if(!get_table_schema(cb->session, keyspace_str, table_str, columns_map))
         {
             result = make_error(cb->env, "failed to get the table schema");
             cass_prepared_free(prep);

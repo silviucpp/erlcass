@@ -3,3 +3,4 @@
 /.rebar/
 /.idea/
 *.DS_Store
+/erlcass.xcodeproj/

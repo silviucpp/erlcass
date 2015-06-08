@@ -43,42 +43,62 @@
 -record(state, {session, connected, ets_prep, uuid_generator}).
 
 -spec(set_cluster_options(OptionList :: list()) ->
-    ok | {error, Reason :: string()}).
+    ok | badarg | {error, Reason :: binary()}).
 
 set_cluster_options(Options) ->
     gen_server:call(?MODULE, {set_cluster_options, Options}).
 
+-spec(create_session(Args :: list()) ->
+    ok | badarg | {error, Reason :: binary()}).
+
 create_session(Args) ->
     gen_server:call(?MODULE, {create_session, Args}, ?CONNECT_TIMEOUT).
+
+-spec(get_metrics() ->
+    {ok, MetricsList :: list()} | badarg | {error, Reason :: binary()}).
 
 get_metrics() ->
     gen_server:call(?MODULE, get_metrics).
 
+-spec(create_statement(Query :: binary() | {binary(), integer()}, BindParams :: list()) ->
+    {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
+
 create_statement(Query, BindParams) ->
     nif_cass_statement_new(Query, BindParams).
+
+-spec(add_prepare_statement(Identifier :: atom(), Query :: binary() | {binary(), integer()}) ->
+    ok | already_exist | badarg | {error, Reason :: binary()}).
 
 add_prepare_statement(Identifier, Query) ->
     gen_server:call(?MODULE, {prepare_statement, Identifier, Query}, ?TIMEOUT).
 
+-spec(bind_prepared_statement(Identifier :: atom()) ->
+    {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
+
 bind_prepared_statement(Identifier) ->
     gen_server:call(?MODULE, {bind_prepare_statement, Identifier}).
+
+-spec(bind_prepared_params(StatementRef :: reference(), Params :: list()) ->
+    ok | badarg | {error, Reason :: binary()}).
 
 bind_prepared_params(StatementRef, Params) ->
     nif_cass_statement_bind_parameters(StatementRef, Params).
 
-async_execute_statement(Statement) ->
-    gen_server:call(?MODULE, {execute_statement, Statement}).
+-spec(async_execute_statement(StatementRef :: reference()) ->
+    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
 
-execute_statement(Statement) ->
-    {ok, Tag} = gen_server:call(?MODULE, {execute_statement, Statement}),
+async_execute_statement(StatementRef) ->
+    gen_server:call(?MODULE, {execute_statement, StatementRef}).
 
-    receive
-        {execute_statement_result, Tag, Result} ->
-            Result
+-spec(execute_statement(StatementRef :: reference()) ->
+    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
 
-    after ?TIMEOUT ->
-        timeout
-    end.
+execute_statement(StatementRef) ->
+    {ok, Tag} = async_execute_statement(StatementRef),
+    receive_response(Tag).
+
+-spec(async_execute(Identifier :: atom() | binary(), Params :: list()) ->
+    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
 
 async_execute(Identifier, Params) ->
     if
@@ -92,49 +112,64 @@ async_execute(Identifier, Params) ->
 
     async_execute_statement(Statement).
 
+-spec(execute(Identifier :: atom() | binary(), Params :: list()) ->
+    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+
 execute(Identifier, Params) ->
-    if
-        is_atom(Identifier) ->
-            {ok, Statement} = bind_prepared_statement(Identifier),
-            ok = bind_prepared_params(Statement, Params);
+    {ok, Tag} = async_execute(Identifier, Params),
+    receive_response(Tag).
 
-        true ->
-            {ok, Statement} = create_statement(Identifier, Params)
-    end,
-
-    execute_statement(Statement).
+-spec(batch_async_execute(BatchType :: integer(), StmList :: list(), Options :: list()) ->
+    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
 
 batch_async_execute(BatchType, StmList, Options) ->
     gen_server:call(?MODULE, {batch_execute, BatchType, StmList, Options}).
 
+-spec(batch_execute(BatchType :: integer(), StmList :: list(), Options :: list()) ->
+    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+
 batch_execute(BatchType, StmList, Options) ->
     {ok, Tag} = batch_async_execute(BatchType, StmList, Options),
+    receive_response(Tag).
 
-    receive
-        {execute_statement_result, Tag, Result} ->
-            Result
-
-    after ?TIMEOUT ->
-        timeout
-    end.
+-spec(uuid_gen_time() ->
+    {ok, Uuid :: binary()} | {error, Reason :: binary()}).
 
 uuid_gen_time() ->
     gen_server:call(?MODULE, gen_time).
 
+-spec(uuid_gen_random() ->
+    {ok, Uuid :: binary()} | {error, Reason :: binary()}).
+
 uuid_gen_random() ->
     gen_server:call(?MODULE, gen_random).
+
+-spec(uuid_gen_from_ts(Ts :: integer()) ->
+    {ok, Uuid :: binary()} | badarg | {error, Reason :: binary()}).
 
 uuid_gen_from_ts(Ts) ->
     gen_server:call(?MODULE, {gen_from_time, Ts}).
 
-uuid_min_from_ts(Timestamp) ->
-    nif_cass_uuid_min_from_time(Timestamp).
+-spec(uuid_min_from_ts(Ts :: integer()) ->
+    {ok, Uuid :: binary()} | badarg | {error, Reason :: binary()}).
 
-uuid_max_from_ts(Timestamp) ->
-    nif_cass_uuid_max_from_time(Timestamp).
+uuid_min_from_ts(Ts) ->
+    nif_cass_uuid_min_from_time(Ts).
+
+-spec(uuid_max_from_ts(Ts :: integer()) ->
+    {ok, Uuid :: binary()} | badarg | {error, Reason :: binary()}).
+
+uuid_max_from_ts(Ts) ->
+    nif_cass_uuid_max_from_time(Ts).
+
+-spec(uuid_get_ts(Uuid :: binary()) ->
+    {ok, Ts :: integer()} | badarg | {error, Reason :: binary()}).
 
 uuid_get_ts(Uuid) ->
     nif_cass_uuid_timestamp(Uuid).
+
+-spec(uuid_get_version(Uuid :: binary()) ->
+    {ok, Version :: integer()} | badarg | {error, Reason :: binary()}).
 
 uuid_get_version(Uuid) ->
     nif_cass_uuid_version(Uuid).
@@ -279,6 +314,15 @@ terminate(Reason, State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
+receive_response(Tag) ->
+    receive
+        {execute_statement_result, Tag, Result} ->
+            Result
+
+        after ?TIMEOUT ->
+            timeout
+    end.
 
 %% helper functions to store prepare statements
 

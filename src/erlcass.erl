@@ -16,7 +16,7 @@
     set_cluster_options/1,
     create_session/1,
     get_metrics/0,
-    add_prepare_statement/3,
+    add_prepare_statement/2,
 
     async_execute/2,
     execute/2,
@@ -55,8 +55,8 @@ get_metrics() ->
 create_statement(Query, BindParams) ->
     nif_cass_statement_new(Query, BindParams).
 
-add_prepare_statement(Identifier, Query, Metadata) ->
-    gen_server:call(?MODULE, {prepare_statement, Identifier, Query, Metadata}, ?TIMEOUT).
+add_prepare_statement(Identifier, Query) ->
+    gen_server:call(?MODULE, {prepare_statement, Identifier, Query}, ?TIMEOUT).
 
 bind_prepared_statement(Identifier) ->
     gen_server:call(?MODULE, {bind_prepare_statement, Identifier}).
@@ -165,7 +165,7 @@ handle_call({create_session, Args}, From, State) ->
 handle_call(get_metrics, _From, State) ->
     {reply, nif_cass_session_get_metrics(State#state.session), State};
 
-handle_call({prepare_statement, Identifier, Query, Metadata}, From, State) ->
+handle_call({prepare_statement, Identifier, Query}, From, State) ->
 
     AlreadyExist = prepare_statement_exist(State#state.ets_prep, Identifier),
 
@@ -173,7 +173,7 @@ handle_call({prepare_statement, Identifier, Query, Metadata}, From, State) ->
         AlreadyExist ->
             {reply, already_exist, State};
         true ->
-            ok = nif_cass_session_prepare(State#state.session, Query, Metadata, {From, Identifier}),
+            ok = nif_cass_session_prepare(State#state.session, Query, {From, Identifier}),
             {noreply, State}
     end;
 
@@ -318,7 +318,7 @@ nif_cass_session_connect_keyspace(_SessionRef, _FromPid, _Keyspace) ->
 nif_cass_session_close(_SessionRef) ->
     ?NOT_LOADED.
 
-nif_cass_session_prepare(_SessionRef, _Query, _Metadata, _Info) ->
+nif_cass_session_prepare(_SessionRef, _Query, _Info) ->
     ?NOT_LOADED.
 
 nif_cass_prepared_bind(_PrepStatementRef) ->

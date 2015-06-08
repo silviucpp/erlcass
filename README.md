@@ -2,7 +2,9 @@
 
 *An Erlang Cassandra driver, based on Datastax cpp driver focused on performance.*
 
-#####The project is under development and is not production ready
+#####The project is under development and is not production ready.
+#####Currently is working only with a modified version of DataStax driver that can be found [here][2].
+#####The changes are minimal and expose the keyspace and table for a prepared statement query (used to parse the schema automatically).
 
 ### TODO List:
 
@@ -10,7 +12,7 @@
 - Add support for SSL Authentication
 - Add support for Setting serial consistency,
 - Add support for setting log level and custom handler
-- Improve the metadata parsing (or find a way to drop this)
+- Improve the metadata parsing (or find a way to drop this for non prepared statements as well)
 - Add more performance testings.
 
 ### Getting starting:
@@ -341,31 +343,11 @@ ok = erlcass:create_session([{keyspace, <<"stresscql">>}]).
 
 ### Add a prepare statement
 
-The only downside is that you have to provide metadata about the types of the fields that are bound.
-The datatypes can be found into *erlcass.hrl* file as follow:
-
-```erlang
--define(CASS_TEXT, text).                         %use for (ascii, text, varchar)
--define(CASS_INT, int).                           %use for (int )
--define(CASS_BIGINT, bigint).                     %use for (timestamp, counter, bigint)
--define(CASS_BLOB, blob).                         %use for (varint, blob)
--define(CASS_BOOLEAN, bool).                      %use for (bool)
--define(CASS_FLOAT, float).                       %use for (float)
--define(CASS_DOUBLE, double).                     %use for (double)
--define(CASS_INET, inet).                         %use for (inet)
--define(CASS_UUID, uuid).                         %use for (timeuuid, uuid)
--define(CASS_DECIMAL, decimal).                   %use for (decimal)
--define(CASS_LIST(ValueType), {list, ValueType}). %use for list
--define(CASS_SET(ValueType), {set, ValueType}).   %use for set
--define(CASS_MAP(KeyType, ValueType), {map, KeyType, ValueType}). %use for map
-```
-
 Example:
 
 ```erlang
 ok = erlcass:add_prepare_statement(query_identifier,
-                                   <<"select * from blogposts where domain = ? LIMIT 1">>,
-                                   [{<<"domain">>, ?CASS_TEXT}]),
+                                   <<"select * from blogposts where domain = ? LIMIT 1">>),
 ```
 
 In case you want to overwrite the default consistency level for that prepare statement use a tuple for the query argument: *{Query, ConsistencyLevelHere}*
@@ -375,8 +357,7 @@ Example:
 ```erlang
 ok = erlcass:add_prepare_statement(
                 query_identifier,
-                { <<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM },
-                [{<<"domain">>, ?CASS_TEXT}]).
+                { <<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM }).
 ```
 
 ### Run a prepared statement query
@@ -407,6 +388,25 @@ For example:
 ```
 
 ### Non prepared statements queries
+
+The only downside is that you have to provide metadata about the types of the fields that are bound.
+The datatypes can be found into *erlcass.hrl* file as follow:
+
+```erlang
+-define(CASS_TEXT, text).                         %use for (ascii, text, varchar)
+-define(CASS_INT, int).                           %use for (int )
+-define(CASS_BIGINT, bigint).                     %use for (timestamp, counter, bigint)
+-define(CASS_BLOB, blob).                         %use for (varint, blob)
+-define(CASS_BOOLEAN, bool).                      %use for (bool)
+-define(CASS_FLOAT, float).                       %use for (float)
+-define(CASS_DOUBLE, double).                     %use for (double)
+-define(CASS_INET, inet).                         %use for (inet)
+-define(CASS_UUID, uuid).                         %use for (timeuuid, uuid)
+-define(CASS_DECIMAL, decimal).                   %use for (decimal)
+-define(CASS_LIST(ValueType), {list, ValueType}). %use for list
+-define(CASS_SET(ValueType), {set, ValueType}).   %use for set
+-define(CASS_MAP(KeyType, ValueType), {map, KeyType, ValueType}). %use for map
+```
 
 The same rules apply for setting the desired consistency level as on prepared statements (see Add prepare statement section).
 Example with binding by index (requires metadata parsing all the time so it might not be the best solution when using non prepared statements):
@@ -517,3 +517,4 @@ execute(Identifier, Params) ->
 ```
 
 [1]:http://datastax.github.io/cpp-driver/topics/building/
+[2]:https://github.com/silviucpp/cpp-driver.git

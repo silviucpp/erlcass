@@ -12,6 +12,7 @@
 #include "data_conversion.h"
 #include "metadata.h"
 #include "utils.h"
+#include "schema.h"
 
 #define UINT64_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_uint64(env, Property))
 #define DOUBLE_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_double(env, Property))
@@ -36,8 +37,8 @@ typedef struct
     ErlNifResourceType* prepared_res;
     ErlNifEnv *env;
     ERL_NIF_TERM arguments;
-    BindNameTypeMap* name_map;
     CassConsistency consistencyLevel;
+    CassSession* session;
 }
 callback_statement_info;
 
@@ -94,19 +95,33 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     }
     else
     {
-        const CassPrepared* prep = cass_future_get_prepared(future);
+        const char* keyspace;
+        const char* table;
         
-        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel, cb->name_map);
+        const CassPrepared* prep = cass_future_get_prepared(future, &keyspace, &table);
         
-        if(enif_is_tuple(cb->env, term))
+        ColumnsMap *columns_map = new ColumnsMap();
+        
+        if(!get_table_schema(cb->session, keyspace, table, columns_map))
         {
+            result = make_error(cb->env, "failed to get the table schema");
             cass_prepared_free(prep);
-            delete cb->name_map;
-            result = term;
+            delete columns_map;
         }
         else
         {
-            result = enif_make_tuple2(cb->env, ATOMS.atomOk, term);
+            ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel, columns_map);
+            
+            if(enif_is_tuple(cb->env, term))
+            {
+                cass_prepared_free(prep);
+                delete columns_map;
+                result = term;
+            }
+            else
+            {
+                result = enif_make_tuple2(cb->env, ATOMS.atomOk, term);
+            }
         }
     }
     
@@ -267,18 +282,13 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(enif_self(env, &pid) == NULL)
         make_error(env, "Failed to get the parent pid");
     
-    BindNameTypeMap metadata;
-    
-    if(!parse_statement_metadata(env, argv[2], &metadata))
-        return enif_make_badarg(env);
-    
     callback_statement_info* callback = (callback_statement_info*) enif_alloc(sizeof(callback_info));
     callback->pid = pid;
     callback->prepared_res = data->resCassPrepared;
-    callback->name_map = new BindNameTypeMap(metadata);
     callback->env = enif_alloc_env();
-    callback->arguments = enif_make_copy(callback->env, argv[3]);
+    callback->arguments = enif_make_copy(callback->env, argv[2]);
     callback->consistencyLevel = consistencyLevel;
+    callback->session = enif_session->session;
     
     CassFuture* future = cass_session_prepare(enif_session->session, query.c_str());
     

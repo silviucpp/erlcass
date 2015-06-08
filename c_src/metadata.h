@@ -9,9 +9,10 @@
 #ifndef __erlcass__metadata__
 #define __erlcass__metadata__
 
-#include "erlcass.h"
+#include "erl_nif.h"
+#include "schema.h"
 
-ItemType atom_to_cass_value_type(ErlNifEnv* env, ERL_NIF_TERM value);
-bool parse_statement_metadata(ErlNifEnv* env, ERL_NIF_TERM list, BindNameTypeMap* metadata);
+SchemaColumn atom_to_cass_value_type(ErlNifEnv* env, ERL_NIF_TERM value);
+bool parse_statement_metadata(ErlNifEnv* env, ERL_NIF_TERM list, ColumnsMap* metadata);
 
 #endif /* defined(__erlcass__metadata__) */

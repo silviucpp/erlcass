@@ -14,11 +14,11 @@
 typedef struct
 {
     CassStatement* statement;
-    BindNameTypeMap* name_map;
+    const ColumnsMap* columns_map;
 }
 enif_cass_statement;
 
-bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const ItemType& type, ERL_NIF_TERM value, CassError& cass_error)
+bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const SchemaColumn& type, ERL_NIF_TERM value, CassError& cass_error)
 {
     if(enif_is_identical(value, ATOMS.atomNull))
     {
@@ -28,6 +28,9 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
     
     switch (type.type)
     {
+            
+        case CASS_VALUE_TYPE_VARCHAR:
+        case CASS_VALUE_TYPE_ASCII:
         case CASS_VALUE_TYPE_TEXT:
         {
             std::string str_value;
@@ -50,6 +53,8 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             break;
         }
             
+        case CASS_VALUE_TYPE_TIMESTAMP:
+        case CASS_VALUE_TYPE_COUNTER:
         case CASS_VALUE_TYPE_BIGINT:
         {
             long long_value = 0;
@@ -60,7 +65,8 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             cass_error = cass_statement_bind_int64(statement, index, long_value);
             break;
         }
-            
+         
+        case CASS_VALUE_TYPE_VARINT:
         case CASS_VALUE_TYPE_BLOB:
         {
             std::string str_value;
@@ -171,11 +177,11 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
     return true;
 }
 
-bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const BindNameTypeMap* name_map, const std::string& key, ERL_NIF_TERM value, CassError& cass_error)
+bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const ColumnsMap* columns_map, const std::string& key, ERL_NIF_TERM value, CassError& cass_error)
 {
-    BindNameTypeMap::const_iterator it = name_map->find(key);
+    ColumnsMap::const_iterator it = columns_map->find(key);
     
-    if(it == name_map->end())
+    if(it == columns_map->end())
         return false;
     
     if(enif_is_identical(value, ATOMS.atomNull))
@@ -186,6 +192,8 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const BindNam
     
     switch (it->second.type)
     {
+        case CASS_VALUE_TYPE_VARCHAR:
+        case CASS_VALUE_TYPE_ASCII:
         case CASS_VALUE_TYPE_TEXT:
         {
             std::string str_value;
@@ -208,6 +216,8 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const BindNam
             break;
         }
             
+        case CASS_VALUE_TYPE_TIMESTAMP:
+        case CASS_VALUE_TYPE_COUNTER:
         case CASS_VALUE_TYPE_BIGINT:
         {
             long long_value = 0;
@@ -219,6 +229,7 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const BindNam
             break;
         }
             
+        case CASS_VALUE_TYPE_VARINT:
         case CASS_VALUE_TYPE_BLOB:
         {
             std::string str_value;
@@ -329,13 +340,8 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const BindNam
     return true;
 }
 
-ERL_NIF_TERM bind_statement_params(ErlNifEnv* env, CassStatement* statement, const BindNameTypeMap* name_map, ERL_NIF_TERM list)
+ERL_NIF_TERM bind_statement_params(ErlNifEnv* env, CassStatement* statement, const ColumnsMap* columns_map, ERL_NIF_TERM list)
 {
-    unsigned int list_length = 0;
-    
-    if(!enif_get_list_length(env, list, &list_length) || list_length != name_map->size())
-        return enif_make_badarg(env);
-    
     ERL_NIF_TERM head;
     const ERL_NIF_TERM *items;
     int arity;
@@ -351,7 +357,7 @@ ERL_NIF_TERM bind_statement_params(ErlNifEnv* env, CassStatement* statement, con
             return enif_make_badarg(env);
         
         CassError cass_result;
-        if(!bind_params_by_name(env, statement, name_map, column_name, items[1], cass_result))
+        if(!bind_params_by_name(env, statement, columns_map, column_name, items[1], cass_result))
             return enif_make_badarg(env);
         
         if(cass_result != CASS_OK)
@@ -376,7 +382,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     cassandra_data* data = (cassandra_data*) enif_priv_data(env);
 
     ERL_NIF_TERM queryTerm;
-    BindNameTypeMap name_map;
+    ColumnsMap name_map;
     std::string query;
     CassConsistency consistencyLevel;
     
@@ -431,7 +437,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
             if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
                 return enif_make_badarg(env);
             
-            ItemType type = atom_to_cass_value_type(env, items[0]);
+            SchemaColumn type = atom_to_cass_value_type(env, items[0]);
             
             if(type.valueType == CASS_VALUE_TYPE_UNKNOWN)
                 return enif_make_badarg(env);
@@ -450,7 +456,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
         return make_error(env, "enif_alloc_resource failed");
     
     enif_obj->statement = stm;
-    enif_obj->name_map = NULL;
+    enif_obj->columns_map = NULL;
     
     ERL_NIF_TERM term = enif_make_resource(env, enif_obj);
     enif_release_resource(enif_obj);
@@ -459,7 +465,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 }
 
 
-ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, CassConsistency consistency, BindNameTypeMap* metadata)
+ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, CassConsistency consistency, const ColumnsMap* columns_map)
 {
     enif_cass_statement *enif_obj = (enif_cass_statement*) enif_alloc_resource(resource_type, sizeof(enif_cass_statement));
     
@@ -467,7 +473,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource
         return make_error(env, "enif_alloc_resource failed");
     
     enif_obj->statement = cass_prepared_bind(prep);
-    enif_obj->name_map = metadata;
+    enif_obj->columns_map = columns_map;
     
     CassError cass_result = cass_statement_set_consistency(enif_obj->statement, consistency);
     
@@ -497,5 +503,5 @@ ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const 
     if(!enif_get_resource(env, argv[0], data->resCassStatement, (void**) &enif_stm) || !enif_is_list(env, argv[1]))
         return enif_make_badarg(env);
 
-    return bind_statement_params(env, enif_stm->statement, enif_stm->name_map, argv[1]);
+    return bind_statement_params(env, enif_stm->statement, enif_stm->columns_map, argv[1]);
 }

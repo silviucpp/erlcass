@@ -4,21 +4,6 @@
 #include "erl_nif.h"
 #include "cassandra.h"
 
-#include <map>
-
-struct ItemType
-{
-    ItemType() : type(CASS_VALUE_TYPE_UNKNOWN), valueType(CASS_VALUE_TYPE_UNKNOWN), keyType(CASS_VALUE_TYPE_UNKNOWN) {}
-    ItemType(CassValueType vt) : type(vt), valueType(vt), keyType(CASS_VALUE_TYPE_UNKNOWN) {}
-    ItemType(CassValueType tp, CassValueType kt, CassValueType vt) : type(tp), valueType(vt), keyType(kt) {}
-    
-    CassValueType type;
-    CassValueType valueType;
-    CassValueType keyType;
-};
-
-typedef std::map<std::string, ItemType> BindNameTypeMap;
-
 typedef struct
 {
     ERL_NIF_TERM atomOk;

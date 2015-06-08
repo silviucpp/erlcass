@@ -7,9 +7,11 @@
 //
 
 #include "nif_collection.h"
+#include "erlcass.h"
 #include "utils.h"
+#include "schema.h"
 
-bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const ItemType& type, ERL_NIF_TERM value, CassError* cass_error)
+bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value, CassError* cass_error)
 {
     switch (type.type)
     {
@@ -144,7 +146,7 @@ CassCollectionType value_type_to_collection_type(CassValueType type)
     return CASS_COLLECTION_TYPE_MAP;
 }
 
-bool populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const ItemType &type, CassError* error)
+bool populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn &type, CassError* error)
 {
     ERL_NIF_TERM head;
     
@@ -160,7 +162,7 @@ bool populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollect
     return error;
 }
 
-bool populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const ItemType& type, CassError* error)
+bool populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn& type, CassError* error)
 {
     ERL_NIF_TERM head;
     const ERL_NIF_TERM *items;
@@ -191,7 +193,7 @@ bool populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *
     return true;
 }
 
-CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const ItemType & type, CassError * error)
+CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const  SchemaColumn& type, CassError * error)
 {
     unsigned int length;
     

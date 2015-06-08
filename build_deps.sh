@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-git clone https://github.com/datastax/cpp-driver.git
-git checkout 1dc1ee5378961717264e0f708e86604da5d03e50
+git clone https://github.com/silviucpp/cpp-driver.git
+git checkout ae56f5e4cd08feefc50383345d00b2dd604cec75
 mkdir cpp-driver/build
 cd cpp-driver/build
 cmake ..

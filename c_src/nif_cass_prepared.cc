@@ -13,12 +13,12 @@
 typedef struct
 {
     const CassPrepared* prepared;
-    BindNameTypeMap* name_map;
+    const ColumnsMap* columns_map;
     CassConsistency consistency_level;
 }
 enif_cass_prepared;
 
-ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency, BindNameTypeMap* metadata)
+ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency, const ColumnsMap* columns_map)
 {
     enif_cass_prepared *enif_obj = (enif_cass_prepared*) enif_alloc_resource(resource_type, sizeof(enif_cass_prepared));
     
@@ -26,7 +26,7 @@ ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_
         return make_error(env, "enif_alloc_resource failed");
     
     enif_obj->prepared = prepared;
-    enif_obj->name_map = metadata;
+    enif_obj->columns_map = columns_map;
     enif_obj->consistency_level = consistency;
     
     ERL_NIF_TERM term = enif_make_resource(env, enif_obj);
@@ -42,8 +42,8 @@ void nif_cass_prepared_free(ErlNifEnv* env, void* obj)
     if(enif_prepared->prepared != NULL)
         cass_prepared_free(enif_prepared->prepared);
     
-    if(enif_prepared->name_map)
-        delete enif_prepared->name_map;
+    if(enif_prepared->columns_map)
+        delete enif_prepared->columns_map;
 }
 
 ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -55,7 +55,7 @@ ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     if(!enif_get_resource(env, argv[0], data->resCassPrepared, (void**) &enif_prep))
         return enif_make_badarg(env);
     
-    ERL_NIF_TERM term = nif_cass_statement_new(env, data->resCassStatement, enif_prep->prepared, enif_prep->consistency_level, enif_prep->name_map);
+    ERL_NIF_TERM term = nif_cass_statement_new(env, data->resCassStatement, enif_prep->prepared, enif_prep->consistency_level, enif_prep->columns_map);
     
     if(enif_is_tuple(env, term))
         return term;

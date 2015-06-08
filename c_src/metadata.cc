@@ -7,6 +7,7 @@
 //
 
 #include "metadata.h"
+#include "erlcass.h"
 #include "utils.h"
 #include <string>
 
@@ -45,7 +46,7 @@ CassValueType GetValueTypeFromAtom(ERL_NIF_TERM value)
     return CASS_VALUE_TYPE_UNKNOWN;
 }
 
-ItemType atom_to_cass_value_type(ErlNifEnv* env, ERL_NIF_TERM value)
+SchemaColumn atom_to_cass_value_type(ErlNifEnv* env, ERL_NIF_TERM value)
 {
     if(enif_is_tuple(env, value))
     {
@@ -57,25 +58,25 @@ ItemType atom_to_cass_value_type(ErlNifEnv* env, ERL_NIF_TERM value)
             if(arity == 2)
             {
                 if(enif_is_identical(ATOMS.atomList, items[0]))
-                    return ItemType(CASS_VALUE_TYPE_LIST, CASS_VALUE_TYPE_UNKNOWN, GetValueTypeFromAtom(items[1]));
+                    return SchemaColumn(CASS_VALUE_TYPE_LIST, GetValueTypeFromAtom(items[1]));
                 else if(enif_is_identical(ATOMS.atomSet, items[0]))
-                    return ItemType(CASS_VALUE_TYPE_SET, CASS_VALUE_TYPE_UNKNOWN, GetValueTypeFromAtom(items[1]));
+                    return SchemaColumn(CASS_VALUE_TYPE_SET, GetValueTypeFromAtom(items[1]));
             }
             else if (arity == 3 && enif_is_identical(ATOMS.atomMap, items[0]))
             {
-                return ItemType(CASS_VALUE_TYPE_MAP, GetValueTypeFromAtom(items[1]), GetValueTypeFromAtom(items[2]));
+                return SchemaColumn(CASS_VALUE_TYPE_MAP, GetValueTypeFromAtom(items[1]), GetValueTypeFromAtom(items[2]));
             }
         }
         
-        return ItemType(GetValueTypeFromAtom(CASS_VALUE_TYPE_UNKNOWN));
+        return SchemaColumn(GetValueTypeFromAtom(CASS_VALUE_TYPE_UNKNOWN));
     }
     
     //non collection
     
-    return ItemType(GetValueTypeFromAtom(value));
+    return SchemaColumn(GetValueTypeFromAtom(value));
 }
 
-bool parse_statement_metadata(ErlNifEnv* env, ERL_NIF_TERM list, BindNameTypeMap* metadata)
+bool parse_statement_metadata(ErlNifEnv* env, ERL_NIF_TERM list, ColumnsMap* metadata)
 {
     metadata->clear();
     
@@ -93,7 +94,7 @@ bool parse_statement_metadata(ErlNifEnv* env, ERL_NIF_TERM list, BindNameTypeMap
         if(!get_string(env, items[0], column_name))
             return false;
         
-        ItemType type = atom_to_cass_value_type(env, items[1]);
+        SchemaColumn type = atom_to_cass_value_type(env, items[1]);
         
         if(type.valueType == CASS_VALUE_TYPE_UNKNOWN)
             return false;

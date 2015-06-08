@@ -182,7 +182,7 @@ static ErlNifFunc nif_funcs[] =
     {"nif_cass_session_connect", 2, nif_cass_session_connect},
     {"nif_cass_session_connect_keyspace", 3, nif_cass_session_connect},
     {"nif_cass_session_close", 1, nif_cass_session_close},
-    {"nif_cass_session_prepare", 4, nif_cass_session_prepare},
+    {"nif_cass_session_prepare", 3, nif_cass_session_prepare},
     
     {"nif_cass_prepared_bind", 1, nif_cass_prepared_bind},
     {"nif_cass_statement_new", 2, nif_cass_statement_new},

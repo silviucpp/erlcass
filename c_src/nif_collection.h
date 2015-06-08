@@ -9,8 +9,10 @@
 #ifndef __erlcass__collection__
 #define __erlcass__collection__
 
-#include "erlcass.h"
+#include "erl_nif.h"
+#include "cassandra.h"
+#include "schema.h"
 
-CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const ItemType & type, CassError * error);
+CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const SchemaColumn & type, CassError* error);
 
 #endif /* defined(__erlcass__collection__) */

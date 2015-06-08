@@ -193,24 +193,8 @@ all_datatypes(_Config) ->
 
     {AsciiValBin, BigIntPositive, Blob, BooleanTrue, DecimalPositive, DoublePositive, _, IntPositive, Timestamp, Uuid, Varchar1, Varint1, Timeuuid, Inet} = Result,
 
-    ok = erlcass:add_prepare_statement(insert_all_datatypes, InsertQuery, [
-        {<<"col1">>, ?CASS_TEXT},
-        {<<"col2">>, ?CASS_BIGINT},
-        {<<"col3">>, ?CASS_BLOB},
-        {<<"col4">>, ?CASS_BOOLEAN},
-        {<<"col5">>, ?CASS_DECIMAL},
-        {<<"col6">>, ?CASS_DOUBLE},
-        {<<"col7">>, ?CASS_FLOAT},
-        {<<"col8">>, ?CASS_INT},
-        {<<"col9">>, ?CASS_BIGINT},
-        {<<"col10">>, ?CASS_UUID},
-        {<<"col11">>, ?CASS_TEXT},
-        {<<"col12">>, ?CASS_BLOB},
-        {<<"col13">>, ?CASS_UUID},
-        {<<"col14">>, ?CASS_INET}
-    ]),
-
-    ok = erlcass:add_prepare_statement(select_all_datatypes, SelectQuery, [{<<"col1">>, ?CASS_TEXT}]),
+    ok = erlcass:add_prepare_statement(insert_all_datatypes, InsertQuery),
+    ok = erlcass:add_prepare_statement(select_all_datatypes, SelectQuery),
 
     AsciiString = "foo",
     BigIntNegative = -9223372036854775806,

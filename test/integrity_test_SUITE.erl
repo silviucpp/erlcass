@@ -79,6 +79,7 @@ connect(_Config) ->
     ok = erlcass:create_session([]).
 
 create_keyspace(_Config) ->
+    erlcass:execute(<<"DROP KEYSPACE erlang_driver_test">>,[]),
     {ok, []} = erlcass:execute(<<"CREATE KEYSPACE erlang_driver_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}">>,[]).
 
 create_table(_Config) ->

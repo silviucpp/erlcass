@@ -440,12 +440,12 @@ executed using the default consistency level value.
 Example:
 
 ```erlang
-    InsertStatement = <<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES (?, ?, ?)">>,
-    ok = erlcass:add_prepare_statement(insert_prep, InsertStatement),
-    {ok, Stm1} = erlcass:create_statement(InsertStatement, [{?CASS_TEXT, Id1}, {?CASS_INT, Age1}, {?CASS_TEXT, Email1}]),
-    {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
-    ok = erlcass:bind_prepared_params(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
-    {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]),
+InsertStatement = <<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES (?, ?, ?)">>,
+ok = erlcass:add_prepare_statement(insert_prep, InsertStatement),
+{ok, Stm1} = erlcass:create_statement(InsertStatement, [{?CASS_TEXT, Id1}, {?CASS_INT, Age1}, {?CASS_TEXT, Email1}]),
+{ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
+ok = erlcass:bind_prepared_params(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
+{ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]).
 ```
 
 ### Working with uuid or timeuuid fields:

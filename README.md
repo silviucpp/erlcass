@@ -19,7 +19,17 @@
 Make sure you have all dependencies required to compile the Datastax C++ Driver.
 More details [here][1].
 
-For example on Mac OS make sure you have the last XCode and also run:
+For example:
+
+Ubuntu:
+
+```sh
+sudo apt-add-repository ppa:linuxjedi/ppa
+sudo apt-get update
+sudo apt-get install g++ make cmake libuv-dev libssl-dev
+```
+
+Mac OS:
 
 ```sh
 brew install libuv cmake

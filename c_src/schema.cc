@@ -23,6 +23,7 @@ const char kValidatorDouble[] = "org.apache.cassandra.db.marshal.DoubleType";
 const char kValidatorFloat[] = "org.apache.cassandra.db.marshal.FloatType";
 const char kValidatorInt32[] = "org.apache.cassandra.db.marshal.Int32Type";
 const char kValidatorTimestamp[] = "org.apache.cassandra.db.marshal.TimestampType";
+const char kValidatorDate[] = "org.apache.cassandra.db.marshal.DateType";
 const char kValidatorSet[] = "org.apache.cassandra.db.marshal.SetType";
 const char kValidatorList[] = "org.apache.cassandra.db.marshal.ListType";
 const char kValidatorMap[] = "org.apache.cassandra.db.marshal.MapType";
@@ -46,6 +47,7 @@ std::map<std::string, CassValueType> create_validators_map()
 	VALIDATOR_MAP_INSERT(kValidatorInt32, CASS_VALUE_TYPE_INT);
 	VALIDATOR_MAP_INSERT(kValidatorUTF8, CASS_VALUE_TYPE_TEXT);
 	VALIDATOR_MAP_INSERT(kValidatorTimestamp, CASS_VALUE_TYPE_TIMESTAMP);
+	VALIDATOR_MAP_INSERT(kValidatorDate, CASS_VALUE_TYPE_TIMESTAMP);
 	VALIDATOR_MAP_INSERT(kValidatorUUID, CASS_VALUE_TYPE_UUID);
 	VALIDATOR_MAP_INSERT(kValidatorInteger, CASS_VALUE_TYPE_VARINT);
 	VALIDATOR_MAP_INSERT(kValidatorTimeUUID, CASS_VALUE_TYPE_TIMEUUID);

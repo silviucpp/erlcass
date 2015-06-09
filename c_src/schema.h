@@ -26,7 +26,7 @@ struct SchemaColumn
     CassValueType valueType;
 };
 
-typedef std::map<std::string, SchemaColumn > ColumnsMap;
+typedef std::map<std::string, SchemaColumn> ColumnsMap;
 
 bool get_table_schema(CassSession* session, const std::string& keyspace, const std::string& table, ColumnsMap* schema_map);
 

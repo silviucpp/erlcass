@@ -8,8 +8,7 @@
 
 #include "metadata.h"
 #include "erlcass.h"
-#include "utils.h"
-#include <string>
+#include "schema.h"
 
 CassValueType GetValueTypeFromAtom(ERL_NIF_TERM value)
 {
@@ -74,33 +73,4 @@ SchemaColumn atom_to_cass_value_type(ErlNifEnv* env, ERL_NIF_TERM value)
     //non collection
     
     return SchemaColumn(GetValueTypeFromAtom(value));
-}
-
-bool parse_statement_metadata(ErlNifEnv* env, ERL_NIF_TERM list, ColumnsMap* metadata)
-{
-    metadata->clear();
-    
-    ERL_NIF_TERM head;
-    const ERL_NIF_TERM *items;
-    int arity;
-    
-    std::string column_name;
-    
-    while(enif_get_list_cell(env, list, &head, &list))
-    {
-        if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return false;
-        
-        if(!get_string(env, items[0], column_name))
-            return false;
-        
-        SchemaColumn type = atom_to_cass_value_type(env, items[1]);
-        
-        if(type.valueType == CASS_VALUE_TYPE_UNKNOWN)
-            return false;
-        
-        (*metadata)[column_name] = type;
-    }
-    
-    return true;
 }

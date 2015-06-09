@@ -80,7 +80,7 @@ std::string get_subtype(const std::string& validator, const char begin, const ch
     
     start_index = start_index + 1;
     
-    return validator.substr(start_index, end_index-start_index);
+    return validator.substr(start_index, end_index - start_index);
 }
 
 SchemaColumn validator_to_cass_value_type(const std::string & validator)
@@ -89,7 +89,7 @@ SchemaColumn validator_to_cass_value_type(const std::string & validator)
     
     if(it == kValidatorsMap.end())
     {
-        //test for collections
+        //test for collections or reversed types
         
         static size_t set_length = strlen(kValidatorSet);
         static size_t list_length = strlen(kValidatorList);
@@ -102,6 +102,18 @@ SchemaColumn validator_to_cass_value_type(const std::string & validator)
             
             if(subtype != CASS_VALUE_TYPE_UNKNOWN)
                 return SchemaColumn(subtype);
+            
+            return SchemaColumn();
+        }
+        
+        if (validator.compare(0, list_length, kValidatorList) == 0)
+        {
+            CassValueType subtype = validator_to_cass_value_type(get_subtype(validator, '(', ')')).type;
+            
+            if(subtype != CASS_VALUE_TYPE_UNKNOWN)
+                return SchemaColumn(CASS_VALUE_TYPE_LIST, subtype);
+            
+            return SchemaColumn();
         }
         
         if (validator.compare(0, set_length, kValidatorSet) == 0)
@@ -110,6 +122,8 @@ SchemaColumn validator_to_cass_value_type(const std::string & validator)
             
             if(subtype != CASS_VALUE_TYPE_UNKNOWN)
                 return SchemaColumn(CASS_VALUE_TYPE_SET, subtype);
+            
+            return SchemaColumn();
         }
         
         if (validator.compare(0, map_length, kValidatorMap) == 0)
@@ -119,16 +133,10 @@ SchemaColumn validator_to_cass_value_type(const std::string & validator)
             
             if(keySubtype != CASS_VALUE_TYPE_UNKNOWN && valueSubtype != CASS_VALUE_TYPE_UNKNOWN)
                 return SchemaColumn(CASS_VALUE_TYPE_MAP, keySubtype, valueSubtype);
-        }
-        
-        if (validator.compare(0, list_length, kValidatorList) == 0)
-        {
-            CassValueType subtype = validator_to_cass_value_type(get_subtype(validator, '(', ')')).type;
             
-            if(subtype != CASS_VALUE_TYPE_UNKNOWN)
-                return SchemaColumn(CASS_VALUE_TYPE_LIST, subtype);
+            return SchemaColumn();
         }
-        
+                
         return SchemaColumn();
     }
     

@@ -17,6 +17,30 @@ More details [here][1].
 
 For example:
 
+Centos:
+
+```sh
+sudo yum install automake cmake gcc-c++ git libtool openssl-devel wget
+pushd /tmp
+wget http://libuv.org/dist/v1.4.2/libuv-v1.4.2.tar.gz
+tar xzf libuv-v1.4.2.tar.gz
+pushd libuv-v1.4.2
+sh autogen.sh
+./configure
+sudo make install
+popd
+popd
+```
+
+Also on CentOS you need to add `﻿usr/local/lib` into `ldconfig` search path.
+
+```sh
+su -
+﻿nano /etc/ld.so.conf.d/usrlocal.conf
+﻿add inside the file: usr/local/lib
+﻿ldconfig -v
+```
+
 Ubuntu:
 
 ```sh

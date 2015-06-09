@@ -3,8 +3,6 @@
 *An Erlang Cassandra driver, based on Datastax cpp driver focused on performance.*
 
 #####The project is under development and is not production ready.
-#####Currently is working only with a modified version of DataStax driver that can be found [here][2].
-#####The changes are minimal and expose the keyspace and table for a prepared statement query (used to parse the schema automatically).
 
 ### TODO List:
 

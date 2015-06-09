@@ -13,6 +13,7 @@
 #include "metadata.h"
 #include "utils.h"
 #include "schema.h"
+#include "types.hpp"
 
 #define UINT64_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_uint64(env, Property))
 #define DOUBLE_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_double(env, Property))
@@ -109,23 +110,11 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     }
     else
     {
-        char* keyspace;
-        size_t keyspace_length;
-
-        char* table;
-        size_t table_length;
-        
-        const CassPrepared* prep = cass_future_get_prepared(future, &keyspace, &keyspace_length, &table, &table_length);
-        
-        std::string keyspace_str(keyspace, keyspace_length);
-        std::string table_str(table, table_length);
-        
-        delete [] keyspace;
-        delete [] table;
+        const CassPrepared* prep = cass_future_get_prepared(future);
         
         ColumnsMap *columns_map = new ColumnsMap();
         
-        if(!get_table_schema(cb->session, keyspace_str, table_str, columns_map))
+        if(!get_table_schema(cb->session, prep->result()->keyspace(), prep->result()->table(), columns_map))
         {
             result = make_error(cb->env, "failed to get the table schema");
             cass_prepared_free(prep);

@@ -15,6 +15,8 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
 {
     switch (type.type)
     {
+        case CASS_VALUE_TYPE_VARCHAR:
+        case CASS_VALUE_TYPE_ASCII:
         case CASS_VALUE_TYPE_TEXT:
         {
             std::string str_value;
@@ -37,6 +39,8 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             break;
         }
             
+        case CASS_VALUE_TYPE_TIMESTAMP:
+        case CASS_VALUE_TYPE_COUNTER:
         case CASS_VALUE_TYPE_BIGINT:
         {
             long long_value = 0;
@@ -48,6 +52,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             break;
         }
             
+        case CASS_VALUE_TYPE_VARINT:            
         case CASS_VALUE_TYPE_BLOB:
         {
             std::string str_value;

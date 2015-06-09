@@ -2,15 +2,13 @@
 
 *An Erlang Cassandra driver, based on Datastax cpp driver focused on performance.*
 
-#####The project is under development and is not production ready.
+#####The project is under development.
 
 ### TODO List:
 
 - Add support for SSL Authentication
 - Add support for Setting serial consistency,
 - Add support for setting log level and custom handler
-- Improve the metadata parsing (or find a way to drop this for non prepared statements as well)
-- Add more performance testings.
 
 ### Getting starting:
 

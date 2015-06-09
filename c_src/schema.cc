@@ -7,7 +7,8 @@
 //
 
 #include "schema.h"
-#include <cstring>
+#include <string.h>
+#include <stdio.h>
 
 const char kValidatorAscii[] = "org.apache.cassandra.db.marshal.AsciiType";
 const char kValidatorUUID[] = "org.apache.cassandra.db.marshal.UUIDType";
@@ -199,8 +200,10 @@ bool get_table_schema(CassSession* session, const std::string& keyspace, const s
         
         if(type.type == CASS_VALUE_TYPE_UNKNOWN)
         {
-            success = false;
-            break;
+            //display an error on the screen instead of returning false because a column is not recognised.
+            fprintf (stderr, "Failed to get type for column: %s based on validator: %s \n", column_name.c_str(), validator.c_str());
+            //success = false;
+            //break;
         }
         
         (*schema_map)[column_name] = type;

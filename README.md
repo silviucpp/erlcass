@@ -375,7 +375,7 @@ ok = erlcass:create_session([{keyspace, <<"stresscql">>}]).
 Example:
 
 ```erlang
-ok = erlcass:add_prepare_statement(query_identifier,
+ok = erlcass:add_prepare_statement(select_blogpost,
                                    <<"select * from blogposts where domain = ? LIMIT 1">>),
 ```
 
@@ -385,7 +385,7 @@ Example:
 
 ```erlang
 ok = erlcass:add_prepare_statement(
-                query_identifier,
+                select_blogpost,
                 { <<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM }).
 ```
 

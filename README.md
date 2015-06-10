@@ -6,8 +6,8 @@
 
 ### TODO List:
 
-- Add support for SSL Authentication
 - Add support for Setting serial consistency,
+- Add support for pagination,
 - Add support for setting log level and custom handler
 
 ### Getting starting:
@@ -124,6 +124,52 @@ Example: {port, 9042}
 Sets the port.
 
 Default: 9042
+
+##### ssl
+
+Example:
+`{ssl, [
+            {trusted_certs, [<<"cert1">>, <<"cert2">>]},
+            {cert, <<"cert_here">>},
+            {private_key, {<<"private_key_here">>, <<"private_key_pwd_here">>}},
+            {verify_flags, ?CASS_SSL_VERIFY_PEER_CERT}
+        ]
+},
+`
+Sets the SSL context and enables SSL.
+Default: None
+
+###### Params:
+
+`
+{ssl, [
+        {trusted_certs, CertsList::list()},
+        {cert, Cert::binary()},
+        {private_key, {PrivateKey::binary(), KeyPassword::binary()}},
+        {verify_flags, VerifyFlags::integer()}
+       ]
+}
+`
+- trusted_certs : Adds one or more trusted certificate. This is used to verify the peer's certificate.
+- cert : Set client-side certificate chain. This is used to authenticate the client on the server-side. This should contain the entire Certificate chain starting with the certificate itself.
+- private_key: Set client-side private key. This is used to authenticate the client on the server-side. PrivateKey is a key PEM formatted key string and KeyPassword is the password used to decrypt key
+- verify_flags: Sets verification performed on the peer's certificate.
+
+For verify_flags use one of the values defined in `erlcass.hrl` :
+
+```erlang
+-define(CASS_SSL_VERIFY_NONE, 0).
+-define(CASS_SSL_VERIFY_PEER_CERT, 1).
+-define(CASS_SSL_VERIFY_PEER_IDENTITY, 2).
+```
+
+- CASS_SSL_VERIFY_NONE - No verification is performed
+- CASS_SSL_VERIFY_PEER_CERT - Certificate is present and valid
+- CASS_SSL_VERIFY_PEER_IDENTITY - IP address matches the certificate's common name or one of its subject alternative names. This implies the certificate is also present.
+
+You can use also a combination like : ?CASS_SSL_VERIFY_PEER_CERT bor ?CASS_SSL_VERIFY_PEER_IDENTITY
+
+Default: CASS_SSL_VERIFY_PEER_CERT
 
 ##### protocol_version
 
@@ -574,4 +620,3 @@ execute(Identifier, Params) ->
 ```
 
 [1]:http://datastax.github.io/cpp-driver/topics/building/
-[2]:https://github.com/silviucpp/cpp-driver.git

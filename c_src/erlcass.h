@@ -39,7 +39,6 @@ typedef struct
     //cluster setings atoms
     
     ERL_NIF_TERM atomClusterDefaultConsistencyLevel;
-    
     ERL_NIF_TERM atomClusterSettingContactPoints;
     ERL_NIF_TERM atomClusterSettingPort;
     ERL_NIF_TERM atomClusterSettingProtocolVersion;
@@ -65,7 +64,12 @@ typedef struct
     ERL_NIF_TERM atomClusterSetringLatencyAwareRouting;
     ERL_NIF_TERM atomClusterSettingTcpNodelay;
     ERL_NIF_TERM atomClusterSettingTcpKeepalive;
-
+    ERL_NIF_TERM atomClusterSettingSsl;
+    ERL_NIF_TERM atomClusterSettingSslTrustedCerts;
+    ERL_NIF_TERM atomClusterSettingSslVerifyFlags;
+    ERL_NIF_TERM atomClusterSettingSslCert;
+    ERL_NIF_TERM atomClusterSettingSslPrivateKey;
+    
 }atoms;
 
 typedef struct

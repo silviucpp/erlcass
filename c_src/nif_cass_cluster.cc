@@ -10,6 +10,8 @@
 #include "erlcass.h"
 #include "utils.h"
 
+#include <vector>
+
 //CassCluster
 
 #define STRING_SETTING(Key, Func) \
@@ -55,6 +57,20 @@
     { \
         return Func(env, term_value, data, error); \
     }
+
+class CassSslScope
+{
+public:
+    
+    CassSslScope(CassSsl* ssl) : ssl_(ssl) {}
+    ~CassSslScope() {cass_ssl_free(ssl_);}
+    
+    CassSsl* get() const {return ssl_;}
+    
+private:
+    
+    CassSsl* ssl_;
+};
 
 CassError internal_cass_cluster_set_reconnect_wait_time(CassCluster* cluster, unsigned wait_time)
 {
@@ -163,6 +179,105 @@ bool internal_cluster_set_default_consistency_level(ErlNifEnv* env, ERL_NIF_TERM
     return true;
 }
 
+bool internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data, CassError* error)
+{
+    ERL_NIF_TERM head;
+
+    std::vector<std::string> trusted_certs;
+    std::string cert;
+    std::string private_key;
+    std::string private_key_pwd;
+    int verify_flags = CASS_SSL_VERIFY_PEER_CERT;
+    
+    while(enif_get_list_cell(env, term_value, &head, &term_value))
+    {
+        const ERL_NIF_TERM *items;
+        int arity;
+        
+        if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
+            return false;
+        
+        if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslTrustedCerts))
+        {
+            ERL_NIF_TERM trust_list = items[1];
+            ERL_NIF_TERM cert_head;
+            
+            std::string cert;
+            
+            while(enif_get_list_cell(env, trust_list, &cert_head, &trust_list))
+            {
+                if(!get_string(env, cert_head, cert))
+                    return false;
+             
+                trusted_certs.push_back(cert);
+            }
+        }
+        else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslCert))
+        {
+            if(!get_string(env, items[1], cert))
+                return false;
+        }
+        else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslPrivateKey))
+        {
+            const ERL_NIF_TERM *pk_items;
+            int pk_arity;
+            
+            if(!enif_get_tuple(env, items[1], &pk_arity, &pk_items) || pk_arity != 2)
+                return false;
+            
+            if(!get_string(env, pk_items[0], private_key))
+                return false;
+            
+            if(!get_string(env, pk_items[1], private_key_pwd))
+                return false;
+        }
+        else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslVerifyFlags))
+        {
+            if(!enif_get_int(env, items[1], &verify_flags))
+                return false;
+        }
+        else
+        {
+            //no valid option
+            return false;
+        }
+    }
+    
+    CassSslScope ssl(cass_ssl_new());
+    
+    for (std::vector<std::string>::const_iterator it = trusted_certs.begin(); it != trusted_certs.end(); ++it)
+    {
+        *error = cass_ssl_add_trusted_cert(ssl.get(), (*it).c_str());
+        
+        if(*error != CASS_OK)
+            return true;
+    }
+
+    if(!cert.empty())
+    {
+        *error = cass_ssl_set_cert(ssl.get(), cert.c_str());
+        
+        if(*error != CASS_OK)
+            return true;
+    }
+    
+    if(!private_key.empty())
+    {
+        *error = cass_ssl_set_private_key(ssl.get(), private_key.c_str(), private_key_pwd.c_str());
+        
+        if(*error != CASS_OK)
+            return true;
+    }
+    
+    if(verify_flags != CASS_SSL_VERIFY_NONE)
+        cass_ssl_set_verify_flags(ssl.get(), verify_flags);
+
+    cass_cluster_set_ssl(data->cluster, ssl.get());
+    *error = CASS_OK;
+    
+    return true;
+}
+
 bool internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data, CassError* error)
 {
     if(enif_is_atom(env, term_value))
@@ -221,7 +336,7 @@ bool ApplyClusterSetting(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_NIF_TERM ter
     
     STRING_SETTING(ATOMS.atomClusterSettingContactPoints, cass_cluster_set_contact_points);
     INT_SETTING(ATOMS.atomClusterSettingPort, cass_cluster_set_port);
-    //@todo: implement cass_cluster_set_ssl    
+    CUSTOM_SETTING(ATOMS.atomClusterSettingSsl, internal_cass_cluster_set_ssl);
     INT_SETTING(ATOMS.atomClusterSettingProtocolVersion, cass_cluster_set_protocol_version);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingNumThreadsIo, cass_cluster_set_num_threads_io);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingQueueSizeIo, cass_cluster_set_queue_size_io);

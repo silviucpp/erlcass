@@ -64,6 +64,11 @@ const char kAtomClusterSettingTokenAwareRouting[] = "token_aware_routing";
 const char kAtomClusterSettingLatencyAwareRouting[] = "latency_aware_routing";
 const char kAtomClusterSettingTcpNodelay[] = "tcp_nodelay";
 const char kAtomClusterSettingTcpKeepalive[] = "tcp_keepalive";
+const char kAtomClusterSettingSsl[] = "ssl";
+const char kAtomClusterSettingSslTrustedCerts[] = "trusted_certs";
+const char kAtomClusterSettingSslVerifyFlags[] = "verify_flags";
+const char kAtomClusterSettingSslCert[] = "cert";
+const char kAtomClusterSettingSslPrivateKey[] = "private_key";
 
 atoms ATOMS;
 
@@ -136,6 +141,11 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSetringLatencyAwareRouting = make_atom(env, kAtomClusterSettingLatencyAwareRouting);
     ATOMS.atomClusterSettingTcpNodelay = make_atom(env, kAtomClusterSettingTcpNodelay);
     ATOMS.atomClusterSettingTcpKeepalive = make_atom(env, kAtomClusterSettingTcpKeepalive);
+    ATOMS.atomClusterSettingSsl = make_atom(env, kAtomClusterSettingSsl);
+    ATOMS.atomClusterSettingSslTrustedCerts = make_atom(env, kAtomClusterSettingSslTrustedCerts);
+    ATOMS.atomClusterSettingSslVerifyFlags = make_atom(env, kAtomClusterSettingSslVerifyFlags);
+    ATOMS.atomClusterSettingSslCert = make_atom(env, kAtomClusterSettingSslCert);
+    ATOMS.atomClusterSettingSslPrivateKey = make_atom(env, kAtomClusterSettingSslPrivateKey);
     
     cassandra_data* data = (cassandra_data*)enif_alloc(sizeof(cassandra_data));
     data->cluster = cass_cluster_new();

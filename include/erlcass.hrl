@@ -10,6 +10,8 @@
 
 -define(CASS_NULL, null).
 
+%consistency level
+
 -define(CASS_CONSISTENCY_ANY, 0).
 -define(CASS_CONSISTENCY_ONE, 1).
 -define(CASS_CONSISTENCY_TWO, 2).
@@ -22,9 +24,19 @@
 -define(CASS_CONSISTENCY_LOCAL_SERIAL, 9).
 -define(CASS_CONSISTENCY_LOCAL_ONE, 10).
 
+%batch types
+
 -define(CASS_BATCH_TYPE_LOGGED, 0).
 -define(CASS_BATCH_TYPE_UNLOGGED, 1).
 -define(CASS_BATCH_TYPE_COUNTER, 2).
+
+%ssl verification performed on the peer's certificate
+
+-define(CASS_SSL_VERIFY_NONE, 0).
+-define(CASS_SSL_VERIFY_PEER_CERT, 1).
+-define(CASS_SSL_VERIFY_PEER_IDENTITY, 2).
+
+%metadata types for index binding on non prepared statements
 
 -define(CASS_TEXT, text).                                           %use for (ascii, text, varchar)
 -define(CASS_INT, int).                                             %use for (int )

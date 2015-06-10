@@ -128,20 +128,24 @@ Default: 9042
 ##### ssl
 
 Example:
-`{ssl, [
+
+```erlang
+{ssl, [
             {trusted_certs, [<<"cert1">>, <<"cert2">>]},
             {cert, <<"cert_here">>},
             {private_key, {<<"private_key_here">>, <<"private_key_pwd_here">>}},
             {verify_flags, ?CASS_SSL_VERIFY_PEER_CERT}
         ]
-},
-`
+}
+```
+
 Sets the SSL context and enables SSL.
+
 Default: None
 
 ###### Params:
 
-`
+```erlang
 {ssl, [
         {trusted_certs, CertsList::list()},
         {cert, Cert::binary()},
@@ -149,11 +153,12 @@ Default: None
         {verify_flags, VerifyFlags::integer()}
        ]
 }
-`
-- trusted_certs : Adds one or more trusted certificate. This is used to verify the peer's certificate.
-- cert : Set client-side certificate chain. This is used to authenticate the client on the server-side. This should contain the entire Certificate chain starting with the certificate itself.
-- private_key: Set client-side private key. This is used to authenticate the client on the server-side. PrivateKey is a key PEM formatted key string and KeyPassword is the password used to decrypt key
-- verify_flags: Sets verification performed on the peer's certificate.
+```
+
+- `trusted_certs` : Adds one or more trusted certificate. This is used to verify the peer's certificate.
+- `cert` : Set client-side certificate chain. This is used to authenticate the client on the server-side. This should contain the entire Certificate chain starting with the certificate itself.
+- `private_key` : Set client-side private key. This is used to authenticate the client on the server-side. PrivateKey is a key PEM formatted key string and KeyPassword is the password used to decrypt key
+- `verify_flags` : Sets verification performed on the peer's certificate.
 
 For verify_flags use one of the values defined in `erlcass.hrl` :
 
@@ -163,13 +168,13 @@ For verify_flags use one of the values defined in `erlcass.hrl` :
 -define(CASS_SSL_VERIFY_PEER_IDENTITY, 2).
 ```
 
-- CASS_SSL_VERIFY_NONE - No verification is performed
-- CASS_SSL_VERIFY_PEER_CERT - Certificate is present and valid
-- CASS_SSL_VERIFY_PEER_IDENTITY - IP address matches the certificate's common name or one of its subject alternative names. This implies the certificate is also present.
+- `CASS_SSL_VERIFY_NONE` - No verification is performed
+- `CASS_SSL_VERIFY_PEER_CERT` - Certificate is present and valid
+- `CASS_SSL_VERIFY_PEER_IDENTITY` - IP address matches the certificate's common name or one of its subject alternative names. This implies the certificate is also present.
 
-You can use also a combination like : ?CASS_SSL_VERIFY_PEER_CERT bor ?CASS_SSL_VERIFY_PEER_IDENTITY
+You can use also a combination like : `?CASS_SSL_VERIFY_PEER_CERT bor ?CASS_SSL_VERIFY_PEER_IDENTITY`
 
-Default: CASS_SSL_VERIFY_PEER_CERT
+Default: `CASS_SSL_VERIFY_PEER_CERT`
 
 ##### protocol_version
 

@@ -10,6 +10,7 @@
 #define __erlcass__nif_cass_uuid__
 
 #include "erl_nif.h"
+#include "cassandra.h"
 
 ERL_NIF_TERM nif_cass_uuid_gen_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 ERL_NIF_TERM nif_cass_uuid_gen_time(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);

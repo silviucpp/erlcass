@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "erlcass.h"
+#include "serialization.hpp"
 
 #include <string.h>
 
@@ -85,3 +86,38 @@ ERL_NIF_TERM cass_future_error_to_nif_term(ErlNifEnv* env, CassFuture* future)
     return make_error(env, msg.c_str());
 }
 
+//more performant methods for converting CassUuid into string representation.
+//around 5 times faster. 
+
+void uint8_to_strhex(uint8_t bin, char* result)
+{
+    static char hex_str[] = "0123456789abcdef";
+    static int size_of_bin = sizeof(uint8_t);
+    
+    for (int i = 0; i < size_of_bin; i++)
+    {
+        result[i * 2 + 0] = hex_str[(bin >> 4) & 0x0F];
+        result[i * 2 + 1] = hex_str[(bin) & 0x0F];
+    }
+}
+
+void cass_uuid_to_string(CassUuid uuid, char* output)
+{
+    size_t pos = 0;
+    char encoded[16];
+    cass::encode_uuid(encoded, uuid);
+    
+    for (size_t i = 0; i < 16; ++i)
+    {
+        char buf[2];
+        uint8_to_strhex(static_cast<uint8_t>(encoded[i]), buf);
+        
+        if (i == 4 || i == 6 || i == 8 || i == 10)
+            output[pos++] = '-';
+
+        output[pos++] = buf[0];
+        output[pos++] = buf[1];
+    }
+    
+    output[pos] = '\0';
+}

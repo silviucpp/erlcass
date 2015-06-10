@@ -45,7 +45,7 @@ void nif_cass_uuid_gen_free(ErlNifEnv* env, void* obj)
 ERL_NIF_TERM cass_uuid_to_nif(ErlNifEnv* env, const CassUuid& obj)
 {
     char buffer[CASS_UUID_STRING_LENGTH];
-    cass_uuid_string(obj, buffer);
+    cass_uuid_to_string(obj, buffer);
     
     return enif_make_tuple2(env, ATOMS.atomOk, make_binary(env, buffer, CASS_UUID_STRING_LENGTH - 1));
 }

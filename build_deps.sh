@@ -29,9 +29,9 @@ case $OS in
        Ubuntu)
          echo "Linux, Ubuntu"
          
-         sudo apt-add-repository ppa:linuxjedi/ppa
-         sudo apt-get update
-         sudo apt-get install g++ make cmake libuv-dev libssl-dev
+         sudo apt-add-repository -y ppa:linuxjedi/ppa
+         sudo apt-get -y update
+         sudo apt-get -y install g++ make cmake libuv-dev libssl-dev
          ;;
        *) echo "Your system $KERNEL is not supported"
      esac
@@ -43,8 +43,12 @@ case $OS in
 esac
 
 ## Build Datastax cpp driver
-git clone https://github.com/datastax/cpp-driver
-git checkout -qf 40221db6be9103cc21f169e70b55e440000624e7
+if [[ ! -e cpp-driver ]]; then
+   git clone https://github.com/datastax/cpp-driver
+   git checkout -qf 40221db6be9103cc21f169e70b55e440000624e7
+fi
+
+
 mkdir -p cpp-driver/build
 cd cpp-driver/build
 cmake ..

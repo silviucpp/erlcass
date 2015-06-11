@@ -438,7 +438,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
             if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
                 return enif_make_badarg(env);
             
-            SchemaColumn type = atom_to_cass_value_type(env, items[0]);
+            SchemaColumn type = atom_to_schema_column(env, items[0]);
             
             if(type.valueType == CASS_VALUE_TYPE_UNKNOWN)
                 return enif_make_badarg(env);

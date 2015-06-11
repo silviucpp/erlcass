@@ -13,6 +13,6 @@
 
 struct SchemaColumn;
 
-SchemaColumn atom_to_cass_value_type(ErlNifEnv* env, ERL_NIF_TERM value);
+SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value);
 
 #endif /* defined(__erlcass__metadata__) */

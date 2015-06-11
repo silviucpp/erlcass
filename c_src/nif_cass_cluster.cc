@@ -330,7 +330,7 @@ bool internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_TERM ter
     return true;
 }
 
-bool ApplyClusterSetting(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_NIF_TERM term_value, cassandra_data* data, CassError* error)
+bool apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_NIF_TERM term_value, cassandra_data* data, CassError* error)
 {
     CUSTOM_SETTING(ATOMS.atomClusterDefaultConsistencyLevel, internal_cluster_set_default_consistency_level);
     
@@ -388,7 +388,7 @@ ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NI
         if(!enif_is_atom(env, items[0]))
             return enif_make_badarg(env);
         
-        if(!ApplyClusterSetting(env, items[0], items[1], data, &error))
+        if(!apply_cluster_settings(env, items[0], items[1], data, &error))
             return enif_make_badarg(env);
         
         if(error != CASS_OK)

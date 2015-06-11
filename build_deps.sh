@@ -42,4 +42,10 @@ case $OS in
   *) echo "Your system $OS is not supported"
 esac
 
-
+## Build Datastax cpp driver
+git clone https://github.com/datastax/cpp-driver
+git checkout -qf 40221db6be9103cc21f169e70b55e440000624e7
+mkdir -p cpp-driver/build
+cd cpp-driver/build
+cmake ..
+make

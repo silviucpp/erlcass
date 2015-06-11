@@ -4,4 +4,6 @@
 /.idea/
 *.DS_Store
 /erlcass.xcodeproj/
+/ebin
+/cpp-driver
 *.iml

@@ -8,7 +8,7 @@
 
 #include "nif_cass_prepared.h"
 #include "nif_cass_statement.h"
-#include "utils.h"
+#include "nif_utils.h"
 
 typedef struct
 {

@@ -8,7 +8,7 @@
 
 #include "nif_cass_cluster.h"
 #include "erlcass.h"
-#include "utils.h"
+#include "nif_utils.h"
 
 #include <vector>
 

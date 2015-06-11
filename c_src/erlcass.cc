@@ -4,7 +4,7 @@
 #include "nif_cass_prepared.h"
 #include "nif_cass_statement.h"
 #include "nif_cass_uuid.h"
-#include "utils.h"
+#include "nif_utils.h"
 
 const char kAtomOk[] = "ok";
 const char kAtomError[] = "error";

@@ -7,9 +7,10 @@
 //
 
 #include "nif_cass_statement.h"
-#include "utils.h"
+#include "nif_utils.h"
 #include "metadata.h"
 #include "nif_collection.h"
+#include "uuid_serialization.h"
 
 typedef struct
 {
@@ -38,7 +39,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             if(!get_string(env, value, str_value))
                 return false;
             
-            cass_error = cass_statement_bind_string(statement, index, str_value.c_str());
+            cass_error = cass_statement_bind_string_n(statement, index, str_value.c_str(), str_value.length());
             break;
         }
             
@@ -107,7 +108,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
                 return false;
             
             CassInet inet;
-            if(cass_inet_from_string(str_value.c_str(), &inet) != CASS_OK)
+            if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
                 return false;
             
             cass_error = cass_statement_bind_inet(statement, index, inet);
@@ -123,7 +124,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
                 return false;
             
             CassUuid uuid;
-            if(cass_uuid_from_string(str_value.c_str(), &uuid) != CASS_OK)
+            if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
                 return false;
             
             cass_error = cass_statement_bind_uuid(statement, index, uuid);
@@ -186,7 +187,7 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
     
     if(enif_is_identical(value, ATOMS.atomNull))
     {
-        cass_error = cass_statement_bind_null_by_name(statement, key.c_str());
+        cass_error = cass_statement_bind_null_by_name_n(statement, key.c_str(), key.length());
         return true;
     }
     
@@ -201,7 +202,7 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
             if(!get_string(env, value, str_value))
                 return false;
             
-            cass_error = cass_statement_bind_string_by_name(statement, key.c_str(), str_value.c_str());
+            cass_error = cass_statement_bind_string_by_name_n(statement, key.c_str(), key.length(), str_value.c_str(), str_value.length());
             break;
         }
             
@@ -212,7 +213,7 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
             if(!enif_get_int(env, value, &int_value ))
                 return false;
             
-            cass_error = cass_statement_bind_int32_by_name(statement, key.c_str(), int_value);
+            cass_error = cass_statement_bind_int32_by_name_n(statement, key.c_str(), key.length(), int_value);
             break;
         }
             
@@ -225,7 +226,7 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
             if(!enif_get_int64(env, value, &long_value ))
                 return false;
             
-            cass_error = cass_statement_bind_int64_by_name(statement, key.c_str(), long_value);
+            cass_error = cass_statement_bind_int64_by_name_n(statement, key.c_str(), key.length(), long_value);
             break;
         }
             
@@ -237,14 +238,14 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
             if(!get_string(env, value, str_value))
                 return false;
             
-            cass_error = cass_statement_bind_bytes_by_name(statement, key.c_str(), (cass_byte_t*)str_value.data(), str_value.size());
+            cass_error = cass_statement_bind_bytes_by_name_n(statement, key.c_str(), key.length(), (cass_byte_t*)str_value.data(), str_value.size());
             break;
         }
             
         case CASS_VALUE_TYPE_BOOLEAN:
         {
             cass_bool_t bool_value = enif_is_identical(ATOMS.atomTrue, value) ? cass_true : cass_false;
-            cass_error = cass_statement_bind_bool_by_name(statement, key.c_str(), bool_value);
+            cass_error = cass_statement_bind_bool_by_name_n(statement, key.c_str(), key.length(), bool_value);
             break;
         }
             
@@ -256,9 +257,9 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
                 return false;
             
             if(it->second.type == CASS_VALUE_TYPE_FLOAT)
-                cass_error = cass_statement_bind_float_by_name(statement, key.c_str(), (float)val_double);
+                cass_error = cass_statement_bind_float_by_name_n(statement, key.c_str(), key.length(), (float)val_double);
             else
-                cass_error = cass_statement_bind_double_by_name(statement, key.c_str(), val_double);
+                cass_error = cass_statement_bind_double_by_name_n(statement, key.c_str(), key.length(), val_double);
             break;
         }
             
@@ -270,10 +271,10 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
                 return false;
             
             CassInet inet;
-            if(cass_inet_from_string(str_value.c_str(), &inet) != CASS_OK)
+            if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
                 return false;
             
-            cass_error = cass_statement_bind_inet_by_name(statement, key.c_str(), inet);
+            cass_error = cass_statement_bind_inet_by_name_n(statement, key.c_str(), key.length(), inet);
             break;
         }
             
@@ -286,10 +287,10 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
                 return false;
             
             CassUuid uuid;
-            if(cass_uuid_from_string(str_value.c_str(), &uuid) != CASS_OK)
+            if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
                 return false;
             
-            cass_error = cass_statement_bind_uuid_by_name(statement, key.c_str(), uuid);
+            cass_error = cass_statement_bind_uuid_by_name_n(statement, key.c_str(), key.length(), uuid);
             break;
         }
             
@@ -307,7 +308,7 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
             if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
                 return false;
             
-            cass_error = cass_statement_bind_decimal_by_name(statement, key.c_str(), (cass_byte_t*)varint.data(), varint.size(), scale);
+            cass_error = cass_statement_bind_decimal_by_name_n(statement, key.c_str(), key.length(), (cass_byte_t*)varint.data(), varint.size(), scale);
             break;
         }
             
@@ -323,7 +324,7 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
                 return false;
             
             if(error == CASS_OK)
-                cass_error = cass_statement_bind_collection_by_name(statement, key.c_str(), collection);
+                cass_error = cass_statement_bind_collection_by_name_n(statement, key.c_str(), key.length(), collection);
             else
                 cass_error = error;
             
@@ -333,7 +334,7 @@ bool bind_params_by_name(ErlNifEnv* env, CassStatement* statement, const Columns
         }
 
         default:
-            cass_error = cass_statement_bind_null_by_name(statement, key.c_str());
+            cass_error = cass_statement_bind_null_by_name_n(statement, key.c_str(), key.length());
             break;
     }
     
@@ -417,7 +418,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     if(!enif_get_list_length(env, paramslist, &params_length))
         return enif_make_badarg(env);
 
-    CassStatement* stm = cass_statement_new(query.c_str(), params_length);
+    CassStatement* stm = cass_statement_new_n(query.c_str(), query.length(), params_length);
     
     CassError cass_result = cass_statement_set_consistency(stm, consistencyLevel);
     

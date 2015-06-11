@@ -7,9 +7,10 @@
 //
 
 #include "nif_collection.h"
+#include "nif_utils.h"
 #include "erlcass.h"
-#include "utils.h"
 #include "schema.h"
+#include "uuid_serialization.h"
 
 bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value, CassError* cass_error)
 {
@@ -24,7 +25,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(!get_string(env, value, str_value))
                 return false;
             
-            *cass_error = cass_collection_append_string(collection, str_value.c_str());
+            *cass_error = cass_collection_append_string_n(collection, str_value.c_str(), str_value.length());
             break;
         }
             
@@ -93,7 +94,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
                 return false;
             
             CassInet inet;
-            if(cass_inet_from_string(str_value.c_str(), &inet) != CASS_OK)
+            if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
                 return false;
             
             *cass_error = cass_collection_append_inet(collection, inet);
@@ -109,7 +110,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
                 return false;
             
             CassUuid uuid;
-            if(cass_uuid_from_string(str_value.c_str(), &uuid) != CASS_OK)
+            if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
                 return false;
             
             *cass_error = cass_collection_append_uuid(collection, uuid);

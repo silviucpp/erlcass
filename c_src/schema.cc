@@ -146,7 +146,6 @@ SchemaColumn validator_to_cass_value_type(const std::string & validator)
     return SchemaColumn(it->second);
 }
 
-
 bool get_schema_field_value(const CassSchemaMeta* schema, const char * name, std::string* value)
 {
     const CassSchemaMetaField* field = cass_schema_meta_get_field(schema, name);
@@ -168,12 +167,12 @@ bool get_table_schema(CassSession* session, const std::string& keyspace, const s
     if(!ss.get())
         return false;
     
-    const CassSchemaMeta* keyspace_meta = cass_schema_get_keyspace(ss.get(), keyspace.c_str());
+    const CassSchemaMeta* keyspace_meta = cass_schema_get_keyspace_n(ss.get(), keyspace.c_str(), keyspace.length());
     
     if(!keyspace_meta)
         return false;
     
-    const CassSchemaMeta* table_meta = cass_schema_meta_get_entry(keyspace_meta, table.c_str());
+    const CassSchemaMeta* table_meta = cass_schema_meta_get_entry_n(keyspace_meta, table.c_str(), table.length());
     
     if(!table_meta)
         return false;

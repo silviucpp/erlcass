@@ -11,7 +11,7 @@
 #include "nif_cass_statement.h"
 #include "data_conversion.h"
 #include "metadata.h"
-#include "utils.h"
+#include "nif_utils.h"
 #include "schema.h"
 #include "types.hpp"
 
@@ -302,7 +302,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     callback->consistencyLevel = consistencyLevel;
     callback->session = enif_session->session;
     
-    CassFuture* future = cass_session_prepare(enif_session->session, query.c_str());
+    CassFuture* future = cass_session_prepare_n(enif_session->session, query.c_str(), query.length());
     
     CassError error = cass_future_set_callback(future, on_statement_prepared, callback);
     cass_future_free(future);

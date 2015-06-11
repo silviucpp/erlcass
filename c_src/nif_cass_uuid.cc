@@ -8,7 +8,8 @@
 
 #include "nif_cass_uuid.h"
 #include "erlcass.h"
-#include "utils.h"
+#include "nif_utils.h"
+#include "uuid_serialization.h"
 
 typedef struct
 {
@@ -45,7 +46,7 @@ void nif_cass_uuid_gen_free(ErlNifEnv* env, void* obj)
 ERL_NIF_TERM cass_uuid_to_nif(ErlNifEnv* env, const CassUuid& obj)
 {
     char buffer[CASS_UUID_STRING_LENGTH];
-    cass_uuid_to_string(obj, buffer);
+    erlcass::cass_uuid_string(obj, buffer);
     
     return enif_make_tuple2(env, ATOMS.atomOk, make_binary(env, buffer, CASS_UUID_STRING_LENGTH - 1));
 }
@@ -129,7 +130,7 @@ ERL_NIF_TERM nif_cass_uuid_timestamp(ErlNifEnv* env, int argc, const ERL_NIF_TER
         return enif_make_badarg(env);
     
     CassUuid uuid;
-    if(cass_uuid_from_string(str_value.c_str(), &uuid) != CASS_OK)
+    if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
         return enif_make_badarg(env);
     
     return enif_make_tuple2(env, ATOMS.atomOk, enif_make_uint64(env, cass_uuid_timestamp(uuid)));
@@ -143,7 +144,7 @@ ERL_NIF_TERM nif_cass_uuid_version(ErlNifEnv* env, int argc, const ERL_NIF_TERM 
         return enif_make_badarg(env);
     
     CassUuid uuid;
-    if(cass_uuid_from_string(str_value.c_str(), &uuid) != CASS_OK)
+    if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
         return enif_make_badarg(env);
     
     return enif_make_tuple2(env, ATOMS.atomOk, enif_make_int(env,cass_uuid_version(uuid)));

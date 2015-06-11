@@ -8,7 +8,8 @@
 
 #include "data_conversion.h"
 #include "erlcass.h"
-#include "utils.h"
+#include "nif_utils.h"
+#include "uuid_serialization.h"
 
 #include <string.h>
 
@@ -99,7 +100,7 @@ ERL_NIF_TERM uuid_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     cass_value_get_uuid(value, &uuid);
     
     char uuid_str[CASS_UUID_STRING_LENGTH];
-    cass_uuid_to_string(uuid, uuid_str);
+    erlcass::cass_uuid_string(uuid, uuid_str);
     
     return make_binary(env, uuid_str, CASS_UUID_STRING_LENGTH - 1);
 }

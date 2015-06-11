@@ -74,9 +74,9 @@ void on_session_connect(CassFuture* future, void* user_data)
     if (cass_future_error_code(future) != CASS_OK)
         result = cass_future_error_to_nif_term(cb->env, future);
     else
-        result =  enif_make_tuple2(cb->env, ATOMS.atomOk, cb->arguments);
+        result = ATOMS.atomOk;
     
-    enif_send(NULL, &cb->pid, cb->env, enif_make_tuple2(cb->env, ATOMS.atomSessionConnected, result));
+    enif_send(NULL, &cb->pid, cb->env, enif_make_tuple2(cb->env, ATOMS.atomSessionConnected, enif_make_tuple2(cb->env, result, cb->arguments)));
     enif_free_env(cb->env);
 
     enif_free(cb);

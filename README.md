@@ -12,6 +12,8 @@
 
 ### Getting starting:
 
+*On the most recent driver version the rebar script will install for you all dependencies on Cent OS, Ubuntu and Mac OS. So you can skip this section.*
+
 Make sure you have all dependencies required to compile the Datastax C++ Driver.
 More details [here][1].
 

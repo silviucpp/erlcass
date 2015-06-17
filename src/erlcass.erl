@@ -3,7 +3,7 @@
 
 -define(NOT_LOADED, not_loaded(?LINE)).
 -define(TIMEOUT, 20000).
--define(CONNECT_TIMEOUT, 20000).
+-define(CONNECT_TIMEOUT, 5000).
 
 -behaviour(gen_server).
 
@@ -194,13 +194,21 @@ init([]) ->
                 {ok, Keyspace} -> nif_cass_session_connect_keyspace(S, self(), Keyspace);
                 _ -> nif_cass_session_connect(S, self())
             end,
-            _Result = receive R -> R end,
-            S;
+
+            receive
+                {session_connected, _Pid} -> S
+            after ?CONNECT_TIMEOUT ->
+                io:format("Session connection timeout~n"),
+                error
+            end;
         _ ->
             undefined
     end,
-
-    {ok, #state{connected = false, ets_prep = Tid, uuid_generator = UuidGenerator, session = SessionRef}}.
+    if SessionRef == error ->
+        {stop, session_connect_timeout, shutdown, #state{}};
+    true ->
+        {ok, #state{connected = false, ets_prep = Tid, uuid_generator = UuidGenerator, session = SessionRef}}
+    end.
 
 handle_call(gen_time, _From, State) ->
     {reply, nif_cass_uuid_gen_time(State#state.uuid_generator), State};

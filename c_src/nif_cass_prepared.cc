@@ -19,7 +19,7 @@ enif_cass_prepared;
 
 ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency)
 {
-    enif_cass_prepared *enif_obj = (enif_cass_prepared*) enif_alloc_resource(resource_type, sizeof(enif_cass_prepared));
+    enif_cass_prepared *enif_obj = static_cast<enif_cass_prepared*>(enif_alloc_resource(resource_type, sizeof(enif_cass_prepared)));
     
     if(enif_obj == NULL)
         return make_error(env, "enif_alloc_resource failed");
@@ -35,7 +35,7 @@ ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_
 
 void nif_cass_prepared_free(ErlNifEnv* env, void* obj)
 {
-    enif_cass_prepared *enif_prepared = (enif_cass_prepared*) obj;
+    enif_cass_prepared *enif_prepared = static_cast<enif_cass_prepared*>(obj);
     
     if(enif_prepared->prepared != NULL)
         cass_prepared_free(enif_prepared->prepared);
@@ -43,7 +43,7 @@ void nif_cass_prepared_free(ErlNifEnv* env, void* obj)
 
 ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_prepared * enif_prep = NULL;
     

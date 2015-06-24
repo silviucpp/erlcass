@@ -76,7 +76,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             if(!get_string(env, value, str_value))
                 return false;
             
-            cass_error = cass_statement_bind_bytes(statement, index, (cass_byte_t*)str_value.data(), str_value.size());
+            cass_error = cass_statement_bind_bytes(statement, index, reinterpret_cast<const cass_byte_t*>(str_value.data()), str_value.size());
             break;
         }
             
@@ -95,7 +95,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
                 return false;
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
-                cass_error = cass_statement_bind_float(statement, index, (float)val_double);
+                cass_error = cass_statement_bind_float(statement, index, static_cast<float>(val_double));
             else
                 cass_error = cass_statement_bind_double(statement, index, val_double);
             break;
@@ -146,7 +146,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
                 return false;
             
-            cass_error = cass_statement_bind_decimal(statement, index, (cass_byte_t*)varint.data(), varint.size(), scale);
+            cass_error = cass_statement_bind_decimal(statement, index, reinterpret_cast<const cass_byte_t*>(varint.data()), varint.size(), scale);
             break;
         }
         
@@ -194,6 +194,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
     CassError cass_result;
     
     cass::Statement* stm = static_cast<cass::Statement*>(statement);
+    
     const cass::ResultResponse* result = static_cast<cass::ExecuteRequest*>(stm)->prepared()->result().get();
     cass::ResultMetadata::IndexVec::const_iterator it;
     size_t index = 0;
@@ -268,7 +269,7 @@ CassStatement* get_statement(ErlNifEnv* env, ErlNifResourceType* resource_type, 
 
 ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
     ERL_NIF_TERM queryTerm;
     std::string query;
@@ -338,7 +339,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
         }
     }
     
-    enif_cass_statement *enif_obj = (enif_cass_statement*) enif_alloc_resource(data->resCassStatement, sizeof(enif_cass_statement));
+    enif_cass_statement *enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(data->resCassStatement, sizeof(enif_cass_statement)));
     
     if(enif_obj == NULL)
         return make_error(env, "enif_alloc_resource failed");
@@ -354,7 +355,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 
 ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, CassConsistency consistency)
 {
-    enif_cass_statement *enif_obj = (enif_cass_statement*) enif_alloc_resource(resource_type, sizeof(enif_cass_statement));
+    enif_cass_statement *enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(resource_type, sizeof(enif_cass_statement)));
     
     if(enif_obj == NULL)
         return make_error(env, "enif_alloc_resource failed");
@@ -374,7 +375,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource
 
 void nif_cass_statement_free(ErlNifEnv* env, void* obj)
 {
-    enif_cass_statement *data = (enif_cass_statement*) obj;
+    enif_cass_statement *data = static_cast<enif_cass_statement*>(obj);
     
     if(data->statement != NULL)
         cass_statement_free(data->statement);
@@ -382,7 +383,7 @@ void nif_cass_statement_free(ErlNifEnv* env, void* obj)
 
 ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_statement * enif_stm = NULL;
     

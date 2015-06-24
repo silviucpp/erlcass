@@ -147,7 +147,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingSslCert = make_atom(env, kAtomClusterSettingSslCert);
     ATOMS.atomClusterSettingSslPrivateKey = make_atom(env, kAtomClusterSettingSslPrivateKey);
     
-    cassandra_data* data = (cassandra_data*)enif_alloc(sizeof(cassandra_data));
+    cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
     data->cluster = cass_cluster_new();
     data->defaultConsistencyLevel = CASS_CONSISTENCY_ONE;
     
@@ -159,7 +159,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
 
 void on_nif_unload(ErlNifEnv* env, void* priv_data)
 {
-    cassandra_data* data = (cassandra_data*)priv_data;
+    cassandra_data* data = static_cast<cassandra_data*>(priv_data);
     
     if(data->cluster)
         cass_cluster_free(data->cluster);
@@ -169,9 +169,9 @@ void on_nif_unload(ErlNifEnv* env, void* priv_data)
 
 int on_nif_upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM info)
 {
-    cassandra_data* old_data = (cassandra_data*)*old_priv;
+    cassandra_data* old_data = static_cast<cassandra_data*>(*old_priv);
     
-    cassandra_data* data = (cassandra_data*)enif_alloc(sizeof(cassandra_data));
+    cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
     data->cluster = old_data->cluster;
     data->defaultConsistencyLevel = old_data->defaultConsistencyLevel;
     open_resources(env, data);

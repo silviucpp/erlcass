@@ -370,7 +370,7 @@ ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NI
     if(!enif_is_list(env, argv[0]))
         return enif_make_badarg(env);
  
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     ERL_NIF_TERM list = argv[0];
     

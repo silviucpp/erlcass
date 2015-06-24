@@ -4,7 +4,7 @@
 #include "erl_nif.h"
 #include "cassandra.h"
 
-typedef struct
+struct atoms
 {
     ERL_NIF_TERM atomOk;
     ERL_NIF_TERM atomError;
@@ -69,10 +69,9 @@ typedef struct
     ERL_NIF_TERM atomClusterSettingSslVerifyFlags;
     ERL_NIF_TERM atomClusterSettingSslCert;
     ERL_NIF_TERM atomClusterSettingSslPrivateKey;
-    
-}atoms;
+};
 
-typedef struct
+struct cassandra_data
 {
     CassCluster* cluster;
     CassConsistency defaultConsistencyLevel;
@@ -80,8 +79,7 @@ typedef struct
     ErlNifResourceType* resCassPrepared;
     ErlNifResourceType* resCassStatement;
     ErlNifResourceType* resCassUuidGen;
-    
-}cassandra_data;
+};
 
 extern atoms ATOMS;
 

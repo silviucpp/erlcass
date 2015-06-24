@@ -14,11 +14,10 @@
 #include "types.hpp"
 #include "execute_request.hpp"
 
-typedef struct
+struct enif_cass_statement
 {
     CassStatement* statement;
-}
-enif_cass_statement;
+};
 
 bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const SchemaColumn& type, ERL_NIF_TERM value, CassError& cass_error)
 {

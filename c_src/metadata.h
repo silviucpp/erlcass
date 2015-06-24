@@ -22,7 +22,6 @@ struct SchemaColumn
     SchemaColumn(CassValueType tp, CassValueType vt) : type(tp), keyType(CASS_VALUE_TYPE_UNKNOWN), valueType(vt) {}
     SchemaColumn(CassValueType tp, CassValueType kt, CassValueType vt) : type(tp), keyType(kt), valueType(vt) {}
     
-    
     CassValueType type;
     CassValueType keyType;
     CassValueType valueType;

@@ -10,12 +10,11 @@
 #include "nif_cass_statement.h"
 #include "nif_utils.h"
 
-typedef struct
+struct enif_cass_prepared
 {
     const CassPrepared* prepared;
     CassConsistency consistency_level;
-}
-enif_cass_prepared;
+};
 
 ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency)
 {

@@ -30,21 +30,19 @@ private:
     CassBatch* batch_;
 };
 
-typedef struct
+struct enif_cass_session
 {
     CassSession* session;
-}
-enif_cass_session;
+};
 
-typedef struct
+struct callback_info
 {
     ErlNifEnv *env;
     ErlNifPid pid;
     ERL_NIF_TERM arguments;
-}
-callback_info;
+};
 
-typedef struct
+struct callback_statement_info
 {
     ErlNifEnv *env;
     ErlNifPid pid;
@@ -52,8 +50,7 @@ typedef struct
     ErlNifResourceType* prepared_res;
     CassConsistency consistencyLevel;
     CassSession* session;
-}
-callback_statement_info;
+};
 
 void nif_cass_session_free(ErlNifEnv* env, void* obj)
 {

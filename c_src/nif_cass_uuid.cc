@@ -11,18 +11,16 @@
 #include "nif_utils.h"
 #include "uuid_serialization.h"
 
-typedef struct
+struct enif_cass_uuid_gen
 {
     CassUuidGen* gen;
-}
-EnifCassUuidGen;
-
+};
 
 ERL_NIF_TERM nif_cass_uuid_gen_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
-    EnifCassUuidGen *enif_gen = static_cast<EnifCassUuidGen*>(enif_alloc_resource(data->resCassUuidGen, sizeof(EnifCassUuidGen)));
+    enif_cass_uuid_gen *enif_gen = static_cast<enif_cass_uuid_gen*>(enif_alloc_resource(data->resCassUuidGen, sizeof(enif_cass_uuid_gen)));
     
     if(enif_gen == NULL)
         return make_error(env, "enif_alloc_resource failed");
@@ -37,7 +35,7 @@ ERL_NIF_TERM nif_cass_uuid_gen_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM 
 
 void nif_cass_uuid_gen_free(ErlNifEnv* env, void* obj)
 {
-    EnifCassUuidGen *enif_gen = static_cast<EnifCassUuidGen*>(obj);
+    enif_cass_uuid_gen *enif_gen = static_cast<enif_cass_uuid_gen*>(obj);
     
     if(enif_gen->gen != NULL)
         cass_uuid_gen_free(enif_gen->gen);
@@ -55,7 +53,7 @@ ERL_NIF_TERM nif_cass_uuid_gen_time(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
-    EnifCassUuidGen * enif_gen = NULL;
+    enif_cass_uuid_gen * enif_gen = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassUuidGen, (void**) &enif_gen))
         return enif_make_badarg(env);
@@ -69,7 +67,7 @@ ERL_NIF_TERM nif_cass_uuid_gen_random(ErlNifEnv* env, int argc, const ERL_NIF_TE
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
-    EnifCassUuidGen * enif_gen = NULL;
+    enif_cass_uuid_gen * enif_gen = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassUuidGen, (void**) &enif_gen))
         return enif_make_badarg(env);
@@ -83,7 +81,7 @@ ERL_NIF_TERM nif_cass_uuid_gen_from_time(ErlNifEnv* env, int argc, const ERL_NIF
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
-    EnifCassUuidGen * enif_gen = NULL;
+    enif_cass_uuid_gen * enif_gen = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassUuidGen, (void**) &enif_gen))
         return enif_make_badarg(env);

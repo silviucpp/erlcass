@@ -12,8 +12,6 @@
 #include "data_conversion.h"
 #include "metadata.h"
 #include "nif_utils.h"
-#include "schema.h"
-#include "types.hpp"
 
 #define UINT64_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_uint64(env, Property))
 #define DOUBLE_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_double(env, Property))
@@ -40,18 +38,18 @@ enif_cass_session;
 
 typedef struct
 {
-    ErlNifPid pid;
     ErlNifEnv *env;
+    ErlNifPid pid;
     ERL_NIF_TERM arguments;
 }
 callback_info;
 
 typedef struct
 {
-    ErlNifPid pid;
-    ErlNifResourceType* prepared_res;
     ErlNifEnv *env;
+    ErlNifPid pid;
     ERL_NIF_TERM arguments;
+    ErlNifResourceType* prepared_res;
     CassConsistency consistencyLevel;
     CassSession* session;
 }
@@ -112,28 +110,16 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     {
         const CassPrepared* prep = cass_future_get_prepared(future);
         
-        ColumnsMap *columns_map = new ColumnsMap();
+        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel);
         
-        if(!get_table_schema(cb->session, prep->result()->keyspace(), prep->result()->table(), columns_map))
+        if(enif_is_tuple(cb->env, term))
         {
-            result = make_error(cb->env, "failed to get the table schema");
             cass_prepared_free(prep);
-            delete columns_map;
+            result = term;
         }
         else
         {
-            ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel, columns_map);
-            
-            if(enif_is_tuple(cb->env, term))
-            {
-                cass_prepared_free(prep);
-                delete columns_map;
-                result = term;
-            }
-            else
-            {
-                result = enif_make_tuple2(cb->env, ATOMS.atomOk, term);
-            }
+            result = enif_make_tuple2(cb->env, ATOMS.atomOk, term);
         }
     }
     

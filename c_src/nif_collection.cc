@@ -9,7 +9,6 @@
 #include "nif_collection.h"
 #include "nif_utils.h"
 #include "erlcass.h"
-#include "schema.h"
 #include "uuid_serialization.h"
 
 bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value, CassError* cass_error)

@@ -8,7 +8,6 @@
 
 #include "metadata.h"
 #include "erlcass.h"
-#include "schema.h"
 
 CassValueType atom_to_cass_value_type(ERL_NIF_TERM value)
 {

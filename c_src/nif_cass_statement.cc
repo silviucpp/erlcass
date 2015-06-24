@@ -19,12 +19,14 @@ struct enif_cass_statement
     CassStatement* statement;
 };
 
-bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const SchemaColumn& type, ERL_NIF_TERM value, CassError& cass_error)
+ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const SchemaColumn& type, ERL_NIF_TERM value)
 {
+    CassError cass_error;
+    
     if(enif_is_identical(value, ATOMS.atomNull))
     {
         cass_error = cass_statement_bind_null(statement, index);
-        return true;
+        return ATOMS.atomOk;
     }
     
     switch (type.type)
@@ -37,7 +39,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
             cass_error = cass_statement_bind_string_n(statement, index, str_value.c_str(), str_value.length());
             break;
@@ -48,7 +50,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return false;
+                return enif_make_badarg(env);
             
             cass_error = cass_statement_bind_int32(statement, index, int_value);
             break;
@@ -61,7 +63,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             long long_value = 0;
             
             if(!enif_get_int64(env, value, &long_value ))
-                return false;
+                return enif_make_badarg(env);
             
             cass_error = cass_statement_bind_int64(statement, index, long_value);
             break;
@@ -73,7 +75,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
             cass_error = cass_statement_bind_bytes(statement, index, reinterpret_cast<const cass_byte_t*>(str_value.data()), str_value.size());
             break;
@@ -91,7 +93,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
         {
             double val_double;
             if(!enif_get_double(env, value, &val_double))
-                return false;
+                return enif_make_badarg(env);
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
                 cass_error = cass_statement_bind_float(statement, index, static_cast<float>(val_double));
@@ -105,11 +107,11 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
             CassInet inet;
             if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
-                return false;
+                return enif_make_badarg(env);
             
             cass_error = cass_statement_bind_inet(statement, index, inet);
             break;
@@ -121,11 +123,11 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
             CassUuid uuid;
             if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
-                return false;
+                return enif_make_badarg(env);
             
             cass_error = cass_statement_bind_uuid(statement, index, uuid);
             break;
@@ -137,13 +139,13 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             int arity;
             
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
-                return false;
+                return enif_make_badarg(env);
             
             std::string varint;
             int scale;
             
             if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
-                return false;
+                return enif_make_badarg(env);
             
             cass_error = cass_statement_bind_decimal(statement, index, reinterpret_cast<const cass_byte_t*>(varint.data()), varint.size(), scale);
             break;
@@ -158,7 +160,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             CassCollection* collection = nif_list_to_cass_collection(env, value, type, &error);
             
             if(!collection)
-                return false;
+                return enif_make_badarg(env);
             
             if(error == CASS_OK)
                 cass_error = cass_statement_bind_collection(statement, index, collection);
@@ -175,7 +177,7 @@ bool bind_params_by_index(ErlNifEnv* env, CassStatement* statement, size_t index
             break;
     }
     
-    return true;
+    return cass_error_to_nif_term(env, cass_error);
 }
 
 inline CassValueType uint16_to_cass_value_type(uint16_t v)
@@ -190,8 +192,6 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
     int arity;
     
     std::string column_name;
-    CassError cass_result;
-    
     cass::Statement* stm = static_cast<cass::Statement*>(statement);
     
     const cass::ResultResponse* result = static_cast<cass::ExecuteRequest*>(stm)->prepared()->result().get();
@@ -222,11 +222,10 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
                                     uint16_to_cass_value_type(def.collection_primary_type),
                                     uint16_to_cass_value_type(def.collection_secondary_type));
                 
-                if(!bind_params_by_index(env, statement, index, column, items[1], cass_result))
-                    return enif_make_badarg(env);
+                ERL_NIF_TERM result = bind_param_by_index(env, statement, index, column, items[1]);
                 
-                if(cass_result != CASS_OK)
-                    return cass_error_to_nif_term(env, cass_result);
+                if(!enif_is_identical(result, ATOMS.atomOk))
+                    return result;
             }
             
         }
@@ -243,11 +242,10 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
                                 uint16_to_cass_value_type(def.collection_primary_type),
                                 uint16_to_cass_value_type(def.collection_secondary_type));
             
-            if(!bind_params_by_index(env, statement, index, column, head, cass_result))
-                return enif_make_badarg(env);
+            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, column, head);
             
-            if(cass_result != CASS_OK)
-                return cass_error_to_nif_term(env, cass_result);
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
             
             index++;
         }
@@ -330,11 +328,12 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
             if(type.valueType == CASS_VALUE_TYPE_UNKNOWN)
                 return enif_make_badarg(env);
             
-            if(!bind_params_by_index(env, stm, index++, type, items[1], cass_result))
-                return enif_make_badarg(env);
+            ERL_NIF_TERM result = bind_param_by_index(env, stm, index, type, items[1]);
             
-            if(cass_result != CASS_OK)
-                return cass_error_to_nif_term(env, cass_result);
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
+            
+            index++;
         }
     }
     

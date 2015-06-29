@@ -12,19 +12,18 @@
 #include "erl_nif.h"
 #include "cassandra.h"
 
-#include <string>
-#include <map>
+#include <vector>
+
+#define KEY_INDEX 0
+#define VAL_INDEX 1
 
 struct SchemaColumn
 {
-    SchemaColumn() : type(CASS_VALUE_TYPE_UNKNOWN), keyType(CASS_VALUE_TYPE_UNKNOWN), valueType(CASS_VALUE_TYPE_UNKNOWN) {}
-    SchemaColumn(CassValueType vt) : type(vt), keyType(CASS_VALUE_TYPE_UNKNOWN), valueType(vt) {}
-    SchemaColumn(CassValueType tp, CassValueType vt) : type(tp), keyType(CASS_VALUE_TYPE_UNKNOWN), valueType(vt) {}
-    SchemaColumn(CassValueType tp, CassValueType kt, CassValueType vt) : type(tp), keyType(kt), valueType(vt) {}
+    SchemaColumn() : type(CASS_VALUE_TYPE_UNKNOWN){}
+    SchemaColumn(CassValueType vt) : type(vt){}
     
     CassValueType type;
-    CassValueType keyType;
-    CassValueType valueType;
+    std::vector<CassValueType> subtypes;
 };
 
 SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value);

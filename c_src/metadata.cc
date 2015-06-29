@@ -56,13 +56,24 @@ SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value)
             if(arity == 2)
             {
                 if(enif_is_identical(ATOMS.atomList, items[0]))
-                    return SchemaColumn(CASS_VALUE_TYPE_LIST, atom_to_cass_value_type(items[1]));
+                {
+                    SchemaColumn ss(CASS_VALUE_TYPE_LIST);
+                    ss.subtypes.push_back(atom_to_cass_value_type(items[1]));
+                    return ss;
+                }
                 else if(enif_is_identical(ATOMS.atomSet, items[0]))
-                    return SchemaColumn(CASS_VALUE_TYPE_SET, atom_to_cass_value_type(items[1]));
+                {
+                    SchemaColumn ss(CASS_VALUE_TYPE_SET);
+                    ss.subtypes.push_back(atom_to_cass_value_type(items[1]));
+                    return ss;
+                }
             }
             else if (arity == 3 && enif_is_identical(ATOMS.atomMap, items[0]))
             {
-                return SchemaColumn(CASS_VALUE_TYPE_MAP, atom_to_cass_value_type(items[1]), atom_to_cass_value_type(items[2]));
+                SchemaColumn ss(CASS_VALUE_TYPE_MAP);
+                ss.subtypes.push_back(atom_to_cass_value_type(items[1]));
+                ss.subtypes.push_back(atom_to_cass_value_type(items[2]));
+                return ss;
             }
         }
         

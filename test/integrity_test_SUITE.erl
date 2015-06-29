@@ -149,7 +149,6 @@ datatypes_columns(I, [ColumnType|Rest], Bin) ->
     datatypes_columns(I+1, Rest, << Bin/binary, Column/binary >>).
 
 %limitation: float numbers from erlang are coming back with double precision.
-%seems the c++ driver has an issue with binding varint by name in a prepared statement https://datastax-oss.atlassian.net/browse/CPP-272
 
 all_datatypes(_Config) ->
     Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet]),
@@ -207,7 +206,7 @@ all_datatypes(_Config) ->
     FloatNegative = -5.12351e-6,
     IntNegative = -2147483646,
     Varchar2 = <<"åäö"/utf8>>,
-    Varint2 = null, %erlang:integer_to_binary(123124211928301970128391280192830198049113123),
+    Varint2 = erlang:integer_to_binary(123124211928301970128391280192830198049113123),
 
     {ok, []} = erlcass:execute(insert_all_datatypes, [
         {<<"col1">>, AsciiString},

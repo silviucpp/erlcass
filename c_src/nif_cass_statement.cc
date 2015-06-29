@@ -13,6 +13,8 @@
 #include "uuid_serialization.h"
 #include "types.hpp"
 #include "execute_request.hpp"
+#include "data_type.hpp"
+#include "external_types.hpp"
 
 struct enif_cass_statement
 {
@@ -180,10 +182,6 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
     return cass_error_to_nif_term(env, cass_error);
 }
 
-inline CassValueType uint16_to_cass_value_type(uint16_t v)
-{
-    return static_cast<CassValueType>(v);
-}
 
 ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* statement, ERL_NIF_TERM list)
 {
@@ -195,7 +193,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
     cass::Statement* stm = static_cast<cass::Statement*>(statement);
     
     const cass::ResultResponse* result = static_cast<cass::ExecuteRequest*>(stm)->prepared()->result().get();
-    cass::ResultMetadata::IndexVec::const_iterator it;
+    cass::HashIndex::IndexVec::const_iterator it;
     size_t index = 0;
 
     while(enif_get_list_cell(env, list, &head, &list))
@@ -210,19 +208,26 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             if(!get_string(env, items[0], column_name))
                 return enif_make_badarg(env);
             
-            cass::ResultMetadata::IndexVec indices;
-            result->find_column_indices(column_name, &indices);
+            cass::HashIndex::IndexVec indices;
+            
+            result->metadata()->get_indices(column_name, &indices);
             
             for (it = indices.begin(); it != indices.end(); ++it)
             {
                 size_t index = *it;
-                const cass::ColumnDefinition def = result->metadata()->get(index);
+                const cass::ColumnDefinition def = result->metadata()->get_column_definition(index);
                 
-                SchemaColumn column(uint16_to_cass_value_type(def.type),
-                                    uint16_to_cass_value_type(def.collection_primary_type),
-                                    uint16_to_cass_value_type(def.collection_secondary_type));
+                SchemaColumn sc(def.data_type->value_type());
                 
-                ERL_NIF_TERM result = bind_param_by_index(env, statement, index, column, items[1]);
+                if(def.data_type->is_collection())
+                {
+                    const cass::CollectionType* collection_type = static_cast<const cass::CollectionType*>(def.data_type.get());
+                   
+                    for(size_t i = 0; i < collection_type->types().size(); i++)
+                        sc.subtypes.push_back(collection_type->types().at(i)->value_type());
+                }
+                
+                ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, items[1]);
                 
                 if(!enif_is_identical(result, ATOMS.atomOk))
                     return result;
@@ -236,13 +241,19 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             if(index > result->metadata()->column_count())
                 return enif_make_badarg(env);
             
-            const cass::ColumnDefinition def = result->metadata()->get(index);
+            const cass::ColumnDefinition def = result->metadata()->get_column_definition(index);
             
-            SchemaColumn column(uint16_to_cass_value_type(def.type),
-                                uint16_to_cass_value_type(def.collection_primary_type),
-                                uint16_to_cass_value_type(def.collection_secondary_type));
+            SchemaColumn sc(def.data_type->value_type());
             
-            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, column, head);
+            if(def.data_type->is_collection())
+            {
+                const cass::CollectionType* collection_type = static_cast<const cass::CollectionType*>(def.data_type.get());
+                
+                for(size_t i = 0; i < collection_type->types().size(); i++)
+                    sc.subtypes.push_back(collection_type->types().at(i)->value_type());
+            }
+
+            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, head);
             
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -324,9 +335,6 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
                 return enif_make_badarg(env);
             
             SchemaColumn type = atom_to_schema_column(env, items[0]);
-            
-            if(type.valueType == CASS_VALUE_TYPE_UNKNOWN)
-                return enif_make_badarg(env);
             
             ERL_NIF_TERM result = bind_param_by_index(env, stm, index, type, items[1]);
             

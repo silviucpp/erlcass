@@ -157,7 +157,7 @@ bool populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollect
     
     while(enif_get_list_cell(env, list, &head, &list))
     {
-        if(!cass_collection_append_from_nif(env, collection, type.valueType, head, error))
+        if(!cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], head, error))
             return false;
         
         if(*error != CASS_OK)
@@ -180,7 +180,7 @@ bool populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *
         
         //add key
         
-        if(!cass_collection_append_from_nif(env, collection, type.keyType, items[0], error))
+        if(!cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], items[0], error))
             break;
         
         if(*error != CASS_OK)
@@ -188,7 +188,7 @@ bool populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *
         
         //add value
         
-        if(!cass_collection_append_from_nif(env, collection, type.valueType, items[1], error))
+        if(!cass_collection_append_from_nif(env, collection, type.subtypes[VAL_INDEX], items[1], error))
             return false;
         
         if(*error != CASS_OK)

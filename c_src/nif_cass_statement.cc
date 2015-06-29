@@ -218,10 +218,18 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
                 size_t index = *it;
                 const cass::ColumnDefinition def = result->metadata()->get(index);
                 
-                SchemaColumn column(uint16_to_cass_value_type(def.type),
-                                    uint16_to_cass_value_type(def.collection_primary_type),
-                                    uint16_to_cass_value_type(def.collection_secondary_type));
+                SchemaColumn column(uint16_to_cass_value_type(def.type));
                 
+                if(column.type == CASS_VALUE_TYPE_LIST || column.type == CASS_VALUE_TYPE_SET)
+                {
+                    column.valueType = uint16_to_cass_value_type(def.collection_primary_type);
+                }
+                else if(column.type == CASS_VALUE_TYPE_MAP)
+                {
+                    column.keyType = uint16_to_cass_value_type(def.collection_primary_type);
+                    column.valueType = uint16_to_cass_value_type(def.collection_secondary_type);
+                }
+
                 ERL_NIF_TERM result = bind_param_by_index(env, statement, index, column, items[1]);
                 
                 if(!enif_is_identical(result, ATOMS.atomOk))
@@ -238,9 +246,17 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             
             const cass::ColumnDefinition def = result->metadata()->get(index);
             
-            SchemaColumn column(uint16_to_cass_value_type(def.type),
-                                uint16_to_cass_value_type(def.collection_primary_type),
-                                uint16_to_cass_value_type(def.collection_secondary_type));
+            SchemaColumn column(uint16_to_cass_value_type(def.type));
+            
+            if(column.type == CASS_VALUE_TYPE_LIST || column.type == CASS_VALUE_TYPE_SET)
+            {
+                column.valueType = uint16_to_cass_value_type(def.collection_primary_type);
+            }
+            else if(column.type == CASS_VALUE_TYPE_MAP)
+            {
+                column.keyType = uint16_to_cass_value_type(def.collection_primary_type);
+                column.valueType = uint16_to_cass_value_type(def.collection_secondary_type);
+            }
             
             ERL_NIF_TERM result = bind_param_by_index(env, statement, index, column, head);
             

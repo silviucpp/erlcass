@@ -259,25 +259,47 @@ prepared_bind_by_name_index(_Config) ->
     ok.
 
 collection_types(_Config) ->
-    CreationQ = <<"CREATE TABLE erlang_driver_test.entries3(key varchar, numbers list<int>, names set<varchar>, phones map<varchar, varchar>, PRIMARY KEY(key));">>,
+    CreationQ = <<"CREATE TABLE erlang_driver_test.entries3(key varchar, numbers list<int>, names set<varchar>, phones map<int, varchar>, PRIMARY KEY(key));">>,
     ct:log("Executing : ~s~n", [CreationQ]),
     {ok, []} = erlcass:execute(CreationQ, []),
 
-    Key = <<"somekeyhere">>,
+    Key1 = <<"somekeyhere_1">>,
+    Key2 = <<"somekeyhere_2">>,
+    Key3 = <<"somekeyhere_3">>,
     List = [1,2,3,4,5,6,7,8,9,0],
     Set = [<<"item1">>, <<"item2">>, <<"item3">>],
-    Map = [{<<"home">>, <<"418-123-4545">>}, {<<"work">>, <<"555-555-5555">>}],
+    Map = [{100, <<"418-123-4545">>}, {200, <<"555-555-5555">>}],
+    InsertQ = <<"INSERT INTO erlang_driver_test.entries3(key, numbers, names, phones) values (?, ?, ?, ?);">>,
+    SelectQ = <<"SELECT key, numbers, names, phones FROM erlang_driver_test.entries3 WHERE key = ?;">>,
 
-    {ok, []} = erlcass:execute(<<"INSERT INTO erlang_driver_test.entries3(key, numbers, names, phones) values (?, ?, ?, ?);">>,
+    ok = erlcass:add_prepare_statement(insert_collection_types, InsertQ),
+    ok = erlcass:add_prepare_statement(select_collection_types, SelectQ),
+
+    %%insert using normal query, prepapred query (bind by name and bind by index)
+
+    {ok, []} = erlcass:execute(InsertQ,
         [
-            {?CASS_TEXT, Key},
+            {?CASS_TEXT, Key1},
             {?CASS_LIST(?CASS_INT), List},
             {?CASS_SET(?CASS_TEXT), Set},
-            {?CASS_MAP(?CASS_TEXT, ?CASS_TEXT), Map}
+            {?CASS_MAP(?CASS_INT, ?CASS_TEXT), Map}
         ]),
 
-    {ok, [Result]} = erlcass:execute(<<"SELECT key, numbers, names, phones FROM erlang_driver_test.entries3;">>, []),
-    {Key, List, Set, Map} = Result,
+    {ok, []} = erlcass:execute(insert_collection_types,
+        [
+            {<<"key">>, Key2},
+            {<<"numbers">>, List},
+            {<<"names">>, Set},
+            {<<"phones">>, Map}
+        ]),
+
+    {ok, []} = erlcass:execute(insert_collection_types, [Key3, List, Set, Map]),
+
+    {ok, [Rs]} = erlcass:execute(SelectQ, [{?CASS_TEXT, Key1}]),
+    {Key1, List, Set, Map} = Rs,
+    {ok, [{Key2, List, Set, Map}]} = erlcass:execute(select_collection_types, [{<<"key">>, Key2}]),
+    {ok, [{Key3, List, Set, Map}]} = erlcass:execute(select_collection_types, [Key3]),
+
     ok.
 
 batches(_Config) ->

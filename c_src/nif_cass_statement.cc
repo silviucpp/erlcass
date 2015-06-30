@@ -21,6 +21,21 @@ struct enif_cass_statement
     CassStatement* statement;
 };
 
+SchemaColumn get_schema_column(const cass::ColumnDefinition& def)
+{
+    SchemaColumn sc(def.data_type->value_type());
+    
+    if(def.data_type->is_collection())
+    {
+        const cass::CollectionType* collection_type = static_cast<const cass::CollectionType*>(def.data_type.get());
+        
+        for(size_t i = 0; i < collection_type->types().size(); i++)
+            sc.subtypes.push_back(collection_type->types().at(i)->value_type());
+    }
+    
+    return sc;
+}
+
 ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const SchemaColumn& type, ERL_NIF_TERM value)
 {
     CassError cass_error;
@@ -182,7 +197,6 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
     return cass_error_to_nif_term(env, cass_error);
 }
 
-
 ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* statement, ERL_NIF_TERM list)
 {
     ERL_NIF_TERM head;
@@ -193,7 +207,6 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
     cass::Statement* stm = static_cast<cass::Statement*>(statement);
     
     const cass::ResultResponse* result = static_cast<cass::ExecuteRequest*>(stm)->prepared()->result().get();
-    cass::HashIndex::IndexVec::const_iterator it;
     size_t index = 0;
 
     while(enif_get_list_cell(env, list, &head, &list))
@@ -212,27 +225,15 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             
             result->metadata()->get_indices(column_name, &indices);
             
-            for (it = indices.begin(); it != indices.end(); ++it)
+            for (cass::HashIndex::IndexVec::const_iterator it = indices.begin(); it != indices.end(); ++it)
             {
-                size_t index = *it;
-                const cass::ColumnDefinition def = result->metadata()->get_column_definition(index);
-                
-                SchemaColumn sc(def.data_type->value_type());
-                
-                if(def.data_type->is_collection())
-                {
-                    const cass::CollectionType* collection_type = static_cast<const cass::CollectionType*>(def.data_type.get());
-                   
-                    for(size_t i = 0; i < collection_type->types().size(); i++)
-                        sc.subtypes.push_back(collection_type->types().at(i)->value_type());
-                }
-                
-                ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, items[1]);
+                SchemaColumn sc = get_schema_column(result->metadata()->get_column_definition(*it));
+                                
+                ERL_NIF_TERM result = bind_param_by_index(env, statement, *it, sc, items[1]);
                 
                 if(!enif_is_identical(result, ATOMS.atomOk))
                     return result;
             }
-            
         }
         else
         {
@@ -243,16 +244,8 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             
             const cass::ColumnDefinition def = result->metadata()->get_column_definition(index);
             
-            SchemaColumn sc(def.data_type->value_type());
+            SchemaColumn sc = get_schema_column(def);
             
-            if(def.data_type->is_collection())
-            {
-                const cass::CollectionType* collection_type = static_cast<const cass::CollectionType*>(def.data_type.get());
-                
-                for(size_t i = 0; i < collection_type->types().size(); i++)
-                    sc.subtypes.push_back(collection_type->types().at(i)->value_type());
-            }
-
             ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, head);
             
             if(!enif_is_identical(result, ATOMS.atomOk))

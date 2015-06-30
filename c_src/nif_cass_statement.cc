@@ -329,6 +329,9 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
             
             SchemaColumn type = atom_to_schema_column(env, items[0]);
             
+            if(type.type == CASS_VALUE_TYPE_UNKNOWN)
+                return enif_make_badarg(env);
+            
             ERL_NIF_TERM result = bind_param_by_index(env, stm, index, type, items[1]);
             
             if(!enif_is_identical(result, ATOMS.atomOk))

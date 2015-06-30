@@ -57,23 +57,39 @@ SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value)
             {
                 if(enif_is_identical(ATOMS.atomList, items[0]))
                 {
-                    SchemaColumn ss(CASS_VALUE_TYPE_LIST);
-                    ss.subtypes.push_back(atom_to_cass_value_type(items[1]));
-                    return ss;
+                    CassValueType subtype = atom_to_cass_value_type(items[1]);
+                    
+                    if(subtype != CASS_VALUE_TYPE_UNKNOWN)
+                    {
+                        SchemaColumn ss(CASS_VALUE_TYPE_LIST);
+                        ss.subtypes.push_back(subtype);
+                        return ss;
+                    }
                 }
                 else if(enif_is_identical(ATOMS.atomSet, items[0]))
                 {
-                    SchemaColumn ss(CASS_VALUE_TYPE_SET);
-                    ss.subtypes.push_back(atom_to_cass_value_type(items[1]));
-                    return ss;
+                    CassValueType subtype = atom_to_cass_value_type(items[1]);
+                    
+                    if(subtype != CASS_VALUE_TYPE_UNKNOWN)
+                    {
+                        SchemaColumn ss(CASS_VALUE_TYPE_SET);
+                        ss.subtypes.push_back(subtype);
+                        return ss;
+                    }
                 }
             }
             else if (arity == 3 && enif_is_identical(ATOMS.atomMap, items[0]))
             {
-                SchemaColumn ss(CASS_VALUE_TYPE_MAP);
-                ss.subtypes.push_back(atom_to_cass_value_type(items[1]));
-                ss.subtypes.push_back(atom_to_cass_value_type(items[2]));
-                return ss;
+                CassValueType subtype_key = atom_to_cass_value_type(items[1]);
+                CassValueType subtype_value = atom_to_cass_value_type(items[2]);
+                
+                if(subtype_key != CASS_VALUE_TYPE_UNKNOWN && subtype_value != CASS_VALUE_TYPE_UNKNOWN)
+                {
+                    SchemaColumn ss(CASS_VALUE_TYPE_MAP);
+                    ss.subtypes.push_back(subtype_key);
+                    ss.subtypes.push_back(subtype_value);
+                    return ss;
+                }
             }
         }
         

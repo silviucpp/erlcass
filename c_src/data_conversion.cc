@@ -123,7 +123,7 @@ ERL_NIF_TERM decimal_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     cass_int32_t scale;
     cass_value_get_decimal(value, &buffer, &buffer_size, &scale);
     
-    return enif_make_tuple2(env, make_binary(env, (const char*)buffer, buffer_size), enif_make_int(env, scale));
+    return enif_make_tuple2(env, make_binary(env, reinterpret_cast<const char*>(buffer), buffer_size), enif_make_int(env, scale));
 }
 
 ERL_NIF_TERM int64_to_erlang_term(ErlNifEnv* env, const CassValue* value)
@@ -194,7 +194,7 @@ ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value)
         cass_iterator_free(iterator);
     }
 
-    return enif_make_list_from_array(env, itemsList, (unsigned)itemsCount);
+    return enif_make_list_from_array(env, itemsList, static_cast<unsigned>(itemsCount));
 }
 
 //convert CassResult into erlang term
@@ -222,10 +222,10 @@ ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result
         for(size_t i = 0; i < columnsCount; i++)
             nifArrayColumns[i] = cass_value_to_nif_term(env, cass_row_get_column(row, i));
         
-        nifArrayRows[rowIndex++] = enif_make_tuple_from_array(env, nifArrayColumns, (unsigned) columnsCount);
+        nifArrayRows[rowIndex++] = enif_make_tuple_from_array(env, nifArrayColumns, static_cast<unsigned>(columnsCount));
     }
     
     cass_iterator_free(iterator);
     
-    return enif_make_list_from_array(env, nifArrayRows, (unsigned)rowsCount);
+    return enif_make_list_from_array(env, nifArrayRows, static_cast<unsigned>(rowsCount));
 }

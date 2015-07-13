@@ -445,11 +445,26 @@ ok = erlcass:add_prepare_statement(
 ### Run a prepared statement query
 
 In case the first parameter for *erlcass:execute* is an atom then the driver will try to find the associated prepared statement and to run it.
+You can bind the parameters in 2 ways: by name and by index.
 
 Example:
 
 ```erlang
+%bind by name
 erlcass:execute(select_blogpost, [{<<"domain">>, <<"Domain_1">>}]).
+%bind by index
+erlcass:execute(select_blogpost, [<<"Domain_1">>]).
+```
+
+In case of maps you can use `key(field)` and `value(field)` in order to bind by name.
+
+```erlang
+%table: CREATE TABLE test_map(key int PRIMARY KEY, value map<text,text>)
+%statement: UPDATE examples.test_map SET value[?] = ? WHERE key = ?
+%bind by index
+erlcass:execute(identifier, [<<"collection_key_here">>, <<"collection_value_here">>, <<"key_here">>]).
+%bind by name
+erlcass:execute(insert_test_bind, [{<<"key(value)">>, CollectionIndex1}, {<<"value(value)">>, CollectionValue1}, {<<"key">>, Key1}]),
 ```
 
 ### Async queries and blocking queries
@@ -596,8 +611,13 @@ performed in the same process.
 ##### Bind the values for a prepared statement before executing
 
 ```erlang
+%bind by name
 ok = erlcass:bind_prepared_params(select_blogpost, [{<<"domain">>, <<"Domain_1">>}]);
+%bind by index
+ok = erlcass:bind_prepared_params(select_blogpost, [<<"Domain_1">>]);
 ```
+
+For mode details about bind by index and name please see: 'Run a prepared statement query' section
 
 ##### Execute a statement async
 

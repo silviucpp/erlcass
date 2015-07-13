@@ -12,8 +12,6 @@
 #include "data_conversion.h"
 #include "metadata.h"
 #include "nif_utils.h"
-#include "schema.h"
-#include "types.hpp"
 
 #define UINT64_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_uint64(env, Property))
 #define DOUBLE_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_double(env, Property))
@@ -32,34 +30,31 @@ private:
     CassBatch* batch_;
 };
 
-typedef struct
+struct enif_cass_session
 {
     CassSession* session;
-}
-enif_cass_session;
+};
 
-typedef struct
+struct callback_info
 {
-    ErlNifPid pid;
     ErlNifEnv *env;
-    ERL_NIF_TERM arguments;
-}
-callback_info;
-
-typedef struct
-{
     ErlNifPid pid;
+    ERL_NIF_TERM arguments;
+};
+
+struct callback_statement_info
+{
+    ErlNifEnv *env;
+    ErlNifPid pid;
+    ERL_NIF_TERM arguments;
     ErlNifResourceType* prepared_res;
-    ErlNifEnv *env;
-    ERL_NIF_TERM arguments;
     CassConsistency consistencyLevel;
     CassSession* session;
-}
-callback_statement_info;
+};
 
 void nif_cass_session_free(ErlNifEnv* env, void* obj)
 {
-    enif_cass_session *enif_session = (enif_cass_session*) obj;
+    enif_cass_session *enif_session = static_cast<enif_cass_session*>(obj);
     
     if(enif_session->session != NULL)
         cass_session_free(enif_session->session);
@@ -67,7 +62,7 @@ void nif_cass_session_free(ErlNifEnv* env, void* obj)
 
 void on_session_connect(CassFuture* future, void* user_data)
 {
-    callback_info* cb = (callback_info*)user_data;
+    callback_info* cb = static_cast<callback_info*>(user_data);
     
     ERL_NIF_TERM result;
     
@@ -84,7 +79,7 @@ void on_session_connect(CassFuture* future, void* user_data)
 
 void on_session_closed(CassFuture* future, void* user_data)
 {
-    callback_info* cb = (callback_info*)user_data;
+    callback_info* cb = static_cast<callback_info*>(user_data);
     
     ERL_NIF_TERM result;
     
@@ -101,7 +96,7 @@ void on_session_closed(CassFuture* future, void* user_data)
 
 void on_statement_prepared(CassFuture* future, void* user_data)
 {
-    callback_statement_info* cb = (callback_statement_info*)user_data;
+    callback_statement_info* cb = static_cast<callback_statement_info*>(user_data);
     ERL_NIF_TERM result;
     
     if (cass_future_error_code(future) != CASS_OK)
@@ -112,28 +107,16 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     {
         const CassPrepared* prep = cass_future_get_prepared(future);
         
-        ColumnsMap *columns_map = new ColumnsMap();
+        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel);
         
-        if(!get_table_schema(cb->session, prep->result()->keyspace(), prep->result()->table(), columns_map))
+        if(enif_is_tuple(cb->env, term))
         {
-            result = make_error(cb->env, "failed to get the table schema");
             cass_prepared_free(prep);
-            delete columns_map;
+            result = term;
         }
         else
         {
-            ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel, columns_map);
-            
-            if(enif_is_tuple(cb->env, term))
-            {
-                cass_prepared_free(prep);
-                delete columns_map;
-                result = term;
-            }
-            else
-            {
-                result = enif_make_tuple2(cb->env, ATOMS.atomOk, term);
-            }
+            result = enif_make_tuple2(cb->env, ATOMS.atomOk, term);
         }
     }
     
@@ -145,7 +128,7 @@ void on_statement_prepared(CassFuture* future, void* user_data)
 
 void on_statement_executed(CassFuture* future, void* user_data)
 {
-    callback_info* cb = (callback_info*)user_data;
+    callback_info* cb = static_cast<callback_info*>(user_data);
     ERL_NIF_TERM result;
     
     if (cass_future_error_code(future) != CASS_OK)
@@ -161,7 +144,6 @@ void on_statement_executed(CassFuture* future, void* user_data)
     
     enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomExecuteStatementResult, cb->arguments, result));
     enif_free_env(cb->env);
-    
     enif_free(cb);
 }
 
@@ -169,9 +151,9 @@ void on_statement_executed(CassFuture* future, void* user_data)
 
 ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
-    enif_cass_session *enif_session = (enif_cass_session*) enif_alloc_resource(data->resCassSession, sizeof(enif_cass_session));
+    enif_cass_session *enif_session = static_cast<enif_cass_session*>(enif_alloc_resource(data->resCassSession, sizeof(enif_cass_session)));
     
     if(enif_session == NULL)
         return make_error(env, "enif_alloc_resource failed");
@@ -186,7 +168,7 @@ ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 
 ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
     
@@ -206,7 +188,7 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(enif_self(env, &pid) == NULL)
         make_error(env, "Failed to get the parent pid");
     
-    callback_info* callback = (callback_info*) enif_alloc(sizeof(callback_info));
+    callback_info* callback = static_cast<callback_info*>(enif_alloc(sizeof(callback_info)));
     callback->pid = pid;
     callback->env = enif_alloc_env();
     callback->arguments = enif_make_copy(callback->env, argv[1]);
@@ -225,7 +207,7 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
 ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
     
@@ -239,7 +221,7 @@ ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     
     ERL_NIF_TERM ref = enif_make_ref(env);
     
-    callback_info* callback = (callback_info*) enif_alloc(sizeof(callback_info));
+    callback_info* callback = static_cast<callback_info*>(enif_alloc(sizeof(callback_info)));
     callback->pid = pid;
     callback->env = enif_alloc_env();
     callback->arguments = enif_make_copy(callback->env, ref);
@@ -256,7 +238,7 @@ ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 
 ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
     
@@ -294,7 +276,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(enif_self(env, &pid) == NULL)
         make_error(env, "Failed to get the parent pid");
     
-    callback_statement_info* callback = (callback_statement_info*) enif_alloc(sizeof(callback_info));
+    callback_statement_info* callback = static_cast<callback_statement_info*>(enif_alloc(sizeof(callback_info)));
     callback->pid = pid;
     callback->prepared_res = data->resCassPrepared;
     callback->env = enif_alloc_env();
@@ -311,7 +293,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
 ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
     
@@ -328,7 +310,7 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(enif_get_local_pid(env, argv[2], &pid) == 0)
         make_error(env, "Failed to get the parent pid");
     
-    callback_info* callback = (callback_info*) enif_alloc(sizeof(callback_info));
+    callback_info* callback = static_cast<callback_info*>(enif_alloc(sizeof(callback_info)));
     callback->env = enif_alloc_env();
     callback->pid = pid;
     callback->arguments = enif_make_copy(callback->env, argv[3]);
@@ -341,7 +323,7 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
 ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
     
@@ -353,7 +335,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     if(!enif_get_int(env, argv[1], &batch_type))
         return enif_make_badarg(env);
     
-    CassBatchScope batch(cass_batch_new((CassBatchType) batch_type));
+    CassBatchScope batch(cass_batch_new(static_cast<CassBatchType>(batch_type)));
     
     if(!batch.get())
         return make_error(env, "failed to create the batch object");
@@ -408,7 +390,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     
     ERL_NIF_TERM tag = enif_make_ref(env);
     
-    callback_info* callback = (callback_info*) enif_alloc(sizeof(callback_info));
+    callback_info* callback = static_cast<callback_info*>(enif_alloc(sizeof(callback_info)));
     callback->env = enif_alloc_env();
     callback->pid = pid;
     callback->arguments = enif_make_copy(callback->env, tag);
@@ -425,7 +407,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
 
 ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
     

@@ -28,6 +28,7 @@ groups() ->
             async_insertion_roundtrip,
             emptiness,
             all_datatypes,
+            prepared_bind_by_name_index,
             collection_types,
             batches,
             uuid_testing,
@@ -229,6 +230,33 @@ all_datatypes(_Config) ->
 
     BinAsciiString = list_to_binary(AsciiString),
     {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet} = Result2,
+    ok.
+
+prepared_bind_by_name_index(_Config) ->
+    CreationQ = <<"CREATE TABLE erlang_driver_test.test_map(key int PRIMARY KEY, value map<text,text>)">>,
+    {ok, []} = erlcass:execute(CreationQ, []),
+
+    CollectionIndex1 = <<"my_index">>,
+    CollectionValue1 = <<"my_value">>,
+    CollectionIndex2 = <<"my_index_2">>,
+    CollectionValue2 = <<"my_value_2">>,
+    Key1 = 5,
+    Key2 = 10,
+    QueryInsert  = <<"UPDATE examples.test_map SET value[?] = ? WHERE key = ?">>,
+    QuerySelect  = <<"SELECT value FROM examples.test_map where key = ?">>,
+
+    ok = erlcass:add_prepare_statement(insert_test_bind, QueryInsert),
+    ok = erlcass:add_prepare_statement(select_test_bind, QuerySelect),
+
+    {ok, []} = erlcass:execute(insert_test_bind, [
+        {<<"key(value)">>, CollectionIndex1},
+        {<<"value(value)">>, CollectionValue1},
+        {<<"key">>, Key1}
+    ]),
+
+    {ok, []} = erlcass:execute(insert_test_bind, [CollectionIndex2, CollectionValue2, Key2]),
+    {ok, [{[{CollectionIndex1, CollectionValue1}]}]} = erlcass:execute(select_test_bind, [{<<"key">>, Key1}]),
+    {ok, [{[{CollectionIndex2, CollectionValue2}]}]} = erlcass:execute(select_test_bind, [Key2]),
     ok.
 
 collection_types(_Config) ->

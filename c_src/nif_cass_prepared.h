@@ -10,9 +10,8 @@
 #define __erlcass__nif_cass_prepared__
 
 #include "erlcass.h"
-#include "schema.h"
 
-ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency, const ColumnsMap* columns_map);
+ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency);
 ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 void nif_cass_prepared_free(ErlNifEnv* env, void* obj);
 

@@ -11,7 +11,7 @@
 
 #include "erl_nif.h"
 #include "cassandra.h"
-#include "schema.h"
+#include "metadata.h"
 
 CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const SchemaColumn & type, CassError* error);
 

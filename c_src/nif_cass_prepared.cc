@@ -10,23 +10,20 @@
 #include "nif_cass_statement.h"
 #include "nif_utils.h"
 
-typedef struct
+struct enif_cass_prepared
 {
     const CassPrepared* prepared;
-    const ColumnsMap* columns_map;
     CassConsistency consistency_level;
-}
-enif_cass_prepared;
+};
 
-ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency, const ColumnsMap* columns_map)
+ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency)
 {
-    enif_cass_prepared *enif_obj = (enif_cass_prepared*) enif_alloc_resource(resource_type, sizeof(enif_cass_prepared));
+    enif_cass_prepared *enif_obj = static_cast<enif_cass_prepared*>(enif_alloc_resource(resource_type, sizeof(enif_cass_prepared)));
     
     if(enif_obj == NULL)
         return make_error(env, "enif_alloc_resource failed");
     
     enif_obj->prepared = prepared;
-    enif_obj->columns_map = columns_map;
     enif_obj->consistency_level = consistency;
     
     ERL_NIF_TERM term = enif_make_resource(env, enif_obj);
@@ -37,25 +34,22 @@ ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_
 
 void nif_cass_prepared_free(ErlNifEnv* env, void* obj)
 {
-    enif_cass_prepared *enif_prepared = (enif_cass_prepared*) obj;
+    enif_cass_prepared *enif_prepared = static_cast<enif_cass_prepared*>(obj);
     
     if(enif_prepared->prepared != NULL)
         cass_prepared_free(enif_prepared->prepared);
-    
-    if(enif_prepared->columns_map)
-        delete enif_prepared->columns_map;
 }
 
 ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = (cassandra_data*) enif_priv_data(env);
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_prepared * enif_prep = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassPrepared, (void**) &enif_prep))
         return enif_make_badarg(env);
     
-    ERL_NIF_TERM term = nif_cass_statement_new(env, data->resCassStatement, enif_prep->prepared, enif_prep->consistency_level, enif_prep->columns_map);
+    ERL_NIF_TERM term = nif_cass_statement_new(env, data->resCassStatement, enif_prep->prepared, enif_prep->consistency_level);
     
     if(enif_is_tuple(env, term))
         return term;

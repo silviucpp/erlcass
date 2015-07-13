@@ -9,7 +9,6 @@
 #include "nif_collection.h"
 #include "nif_utils.h"
 #include "erlcass.h"
-#include "schema.h"
 #include "uuid_serialization.h"
 
 bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value, CassError* cass_error)
@@ -61,7 +60,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(!get_string(env, value, str_value))
                 return false;
             
-            *cass_error = cass_collection_append_bytes(collection, (cass_byte_t*)str_value.data(), str_value.size());
+            *cass_error = cass_collection_append_bytes(collection, reinterpret_cast<const cass_byte_t*>(str_value.data()), str_value.size());
             break;
         }
             
@@ -131,7 +130,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
                 return false;
             
-            *cass_error = cass_collection_append_decimal(collection, (cass_byte_t*)varint.data(), varint.size(), scale);
+            *cass_error = cass_collection_append_decimal(collection, reinterpret_cast<const cass_byte_t*>(varint.data()), varint.size(), scale);
             break;
         }
             

@@ -8,14 +8,14 @@ KERNEL=$(echo $(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | h
 case $OS in
   Linux)
      case $KERNEL in
-       CentOS) 
+       CentOS)
           echo "Linux, CentOS"
-          sudo yum install automake cmake gcc-c++ git libtool openssl-devel wget
+          sudo yum -y install automake cmake gcc-c++ git libtool openssl-devel wget
           if echo "$(ldconfig -p | grep libuv)"
             then echo "libuv has already been installed"
           else
            pushd /tmp
-           wget http://libuv.org/dist/v1.4.2/libuv-v1.4.2.tar.gz
+           wget http://dist.libuv.org/dist/v1.4.2/libuv-v1.4.2.tar.gz
            tar xzf libuv-v1.4.2.tar.gz
            pushd libuv-v1.4.2
            sh autogen.sh
@@ -24,11 +24,12 @@ case $OS in
            popd
            popd
            sudo grep -q -F '/usr/local/lib' /etc/ld.so.conf.d/usrlocal.conf || echo '/usr/local/lib' | sudo tee --append /etc/ld.so.conf.d/usrlocal.conf > /dev/null
-           fi          
+           ldconfig -v
+           fi
           ;;
        Ubuntu)
          echo "Linux, Ubuntu"
-         
+
          sudo apt-add-repository -y ppa:linuxjedi/ppa
          sudo apt-get -y update
          sudo apt-get -y install g++ make cmake libuv-dev libssl-dev
@@ -37,12 +38,12 @@ case $OS in
      esac
      ;;
   Darwin)
-     sudo brew install libuv cmake
+     brew install libuv cmake
      ;;
   *) echo "Your system $OS is not supported"
 esac
 
-mkdir -p deps/cpp-driver/build
-cd deps/cpp-driver/build
+mkdir -p ../cpp-driver/build
+cd ../cpp-driver/build
 cmake ..
 make

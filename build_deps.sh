@@ -11,7 +11,7 @@ case $OS in
        CentOS)
           echo "Linux, CentOS"
           sudo yum -y install automake cmake gcc-c++ git libtool openssl-devel wget
-          OUTPUT=`ldconfig -p | grep slibuv`
+          OUTPUT=`ldconfig -p | grep libuv`
           if [[ $(echo $OUTPUT) != "" ]]
             then echo "libuv has already been installed"
           else

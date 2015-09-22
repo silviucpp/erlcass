@@ -80,11 +80,11 @@ connect(_Config) ->
     ok = erlcass:create_session([]).
 
 create_keyspace(_Config) ->
-    erlcass:execute(<<"DROP KEYSPACE erlang_driver_test">>,[]),
-    {ok, []} = erlcass:execute(<<"CREATE KEYSPACE erlang_driver_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}">>,[]).
+    erlcass:execute(<<"DROP KEYSPACE erlang_driver_test">>),
+    {ok, []} = erlcass:execute(<<"CREATE KEYSPACE erlang_driver_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}">>).
 
 create_table(_Config) ->
-    {ok, []} = erlcass:execute(<<"CREATE TABLE erlang_driver_test.entries1 (id varchar, age int, email varchar, PRIMARY KEY(id))">>, []).
+    {ok, []} = erlcass:execute(<<"CREATE TABLE erlang_driver_test.entries1 (id varchar, age int, email varchar, PRIMARY KEY(id))">>).
 
 simple_insertion_roundtrip(_Config) ->
 
@@ -98,15 +98,15 @@ simple_insertion_roundtrip(_Config) ->
                                 {?CASS_TEXT, Email}
     ]),
 
-    {ok, [{Id, Age, Email}]} = erlcass:execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>,[]).
+    {ok, [{Id, Age, Email}]} = erlcass:execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>).
 
 emptiness(_Config) ->
 
-    {ok, []} = erlcass:execute(<<"update erlang_driver_test.entries1 set email = null where id = 'hello';">>,[]),
-    {ok, [{null}]} = erlcass:execute(<<"select email from erlang_driver_test.entries1 where id = 'hello';">>, []),
+    {ok, []} = erlcass:execute(<<"update erlang_driver_test.entries1 set email = null where id = 'hello';">>),
+    {ok, [{null}]} = erlcass:execute(<<"select email from erlang_driver_test.entries1 where id = 'hello';">>),
 
     {ok, []} = erlcass:execute(<<"update erlang_driver_test.entries1 set age = ? where id = 'hello';">>,[{?CASS_INT, null}]),
-    {ok, [{null}]} = erlcass:execute(<<"select age from erlang_driver_test.entries1 where id = 'hello';">>, []).
+    {ok, [{null}]} = erlcass:execute(<<"select age from erlang_driver_test.entries1 where id = 'hello';">>).
 
 async_insertion_roundtrip(_Config) ->
 
@@ -128,7 +128,7 @@ async_insertion_roundtrip(_Config) ->
             ct:fail("Timeout on executing query ~n", [])
     end,
 
-    {ok, Tag2} = erlcass:async_execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>,[]),
+    {ok, Tag2} = erlcass:async_execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>),
 
     receive
         {execute_statement_result, Tag2, Result2} ->
@@ -153,7 +153,7 @@ datatypes_columns(I, [ColumnType|Rest], Bin) ->
 all_datatypes(_Config) ->
     Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet]),
     CreationQ = <<"CREATE TABLE erlang_driver_test.entries2(",  Cols/binary, " PRIMARY KEY(col1));">>,
-    {ok, []} = erlcass:execute(CreationQ, []),
+    {ok, []} = erlcass:execute(CreationQ),
 
     AsciiValBin = <<"hello">>,
     BigIntPositive = 9223372036854775807,
@@ -233,7 +233,7 @@ all_datatypes(_Config) ->
 
 prepared_bind_by_name_index(_Config) ->
     CreationQ = <<"CREATE TABLE erlang_driver_test.test_map(key int PRIMARY KEY, value map<text,text>)">>,
-    {ok, []} = erlcass:execute(CreationQ, []),
+    {ok, []} = erlcass:execute(CreationQ),
 
     CollectionIndex1 = <<"my_index">>,
     CollectionValue1 = <<"my_value">>,
@@ -261,7 +261,7 @@ prepared_bind_by_name_index(_Config) ->
 collection_types(_Config) ->
     CreationQ = <<"CREATE TABLE erlang_driver_test.entries3(key varchar, numbers list<int>, names set<varchar>, phones map<int, varchar>, PRIMARY KEY(key));">>,
     ct:log("Executing : ~s~n", [CreationQ]),
-    {ok, []} = erlcass:execute(CreationQ, []),
+    {ok, []} = erlcass:execute(CreationQ),
 
     Key1 = <<"somekeyhere_1">>,
     Key2 = <<"somekeyhere_2">>,
@@ -303,7 +303,7 @@ collection_types(_Config) ->
     ok.
 
 batches(_Config) ->
-    {ok, []} = erlcass:execute(<<"TRUNCATE erlang_driver_test.entries1;">>, []),
+    {ok, []} = erlcass:execute(<<"TRUNCATE erlang_driver_test.entries1;">>),
 
     InsertStatement = <<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES (?, ?, ?)">>,
     Id1 = <<"id_1">>,
@@ -321,7 +321,7 @@ batches(_Config) ->
 
     {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]),
 
-    {ok, Result} = erlcass:execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>,[]),
+    {ok, Result} = erlcass:execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>),
     ListLength = 2,
     ListLength = length(Result),
     ok.
@@ -342,6 +342,6 @@ get_metrics(_Config) ->
     ok.
 
 drop_keyspace(_Config) ->
-    {ok, []} = erlcass:execute(<<"DROP KEYSPACE erlang_driver_test">>,[]).
+    {ok, []} = erlcass:execute(<<"DROP KEYSPACE erlang_driver_test">>).
 
 

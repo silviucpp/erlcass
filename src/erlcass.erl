@@ -18,11 +18,14 @@
     get_metrics/0,
     add_prepare_statement/2,
 
+    async_execute/1,
     async_execute/2,
+    execute/1,
     execute/2,
     batch_execute/3,
     batch_async_execute/3,
 
+    create_statement/1,
     create_statement/2,
     bind_prepared_statement/1,
     bind_prepared_params/2,
@@ -65,6 +68,12 @@ get_metrics() ->
 
 create_statement(Query, BindParams) ->
     nif_cass_statement_new(Query, BindParams).
+
+-spec(create_statement(Query :: binary() | {binary(), integer()}) ->
+    {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
+
+create_statement(Query) ->
+    nif_cass_statement_new(Query).
 
 -spec(add_prepare_statement(Identifier :: atom(), Query :: binary() | {binary(), integer()}) ->
     ok | already_exist | badarg | {error, Reason :: binary()}).
@@ -112,11 +121,31 @@ async_execute(Identifier, Params) ->
 
     async_execute_statement(Statement).
 
+-spec(async_execute(Identifier :: atom() | binary()) ->
+    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
+
+async_execute(Identifier) ->
+    if
+        is_atom(Identifier) ->
+            {ok, Statement} = bind_prepared_statement(Identifier);
+        true ->
+            {ok, Statement} = create_statement(Identifier)
+    end,
+
+    async_execute_statement(Statement).
+
 -spec(execute(Identifier :: atom() | binary(), Params :: list()) ->
     {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
 
 execute(Identifier, Params) ->
     {ok, Tag} = async_execute(Identifier, Params),
+    receive_response(Tag).
+
+-spec(execute(Identifier :: atom() | binary()) ->
+    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+
+execute(Identifier) ->
+    {ok, Tag} = async_execute(Identifier),
     receive_response(Tag).
 
 -spec(batch_async_execute(BatchType :: integer(), StmList :: list(), Options :: list()) ->
@@ -412,6 +441,9 @@ nif_cass_prepared_bind(_PrepStatementRef) ->
     ?NOT_LOADED.
 
 nif_cass_statement_new(_Query, _Params) ->
+    ?NOT_LOADED.
+
+nif_cass_statement_new(_Query) ->
     ?NOT_LOADED.
 
 nif_cass_statement_bind_parameters(_StatementRef, _Args)->

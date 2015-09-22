@@ -301,11 +301,13 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     if(!get_string(env, queryTerm, query))
         return enif_make_badarg(env);
     
-    ERL_NIF_TERM paramslist = argv[1];
-    unsigned int params_length;
+    unsigned int params_length = 0;
     
-    if(!enif_get_list_length(env, paramslist, &params_length))
-        return enif_make_badarg(env);
+    if(argc == 2)
+    {
+        if(!enif_get_list_length(env, argv[1], &params_length))
+            return enif_make_badarg(env);
+    }
 
     CassStatement* stm = cass_statement_new_n(query.c_str(), query.length(), params_length);
     
@@ -316,6 +318,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     
     if(params_length)
     {
+        ERL_NIF_TERM paramslist = argv[1];
         ERL_NIF_TERM head;
         const ERL_NIF_TERM *items;
         int arity;

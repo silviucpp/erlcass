@@ -12,6 +12,7 @@
 
 %consistency level
 
+-define(CASS_CONSISTENCY_UNKNOWN, 65535).
 -define(CASS_CONSISTENCY_ANY, 0).
 -define(CASS_CONSISTENCY_ONE, 1).
 -define(CASS_CONSISTENCY_TWO, 2).

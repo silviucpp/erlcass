@@ -388,7 +388,7 @@ Example: {tcp_nodelay, false}
 
 Enable/Disable Nagel's algorithm on connections.
 
-Default: false (disabled).
+Default: true (disabled).
 
 ##### tcp_keepalive
 

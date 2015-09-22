@@ -221,11 +221,11 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             if(!get_string(env, items[0], column_name))
                 return enif_make_badarg(env);
             
-            cass::HashIndex::IndexVec indices;
+            cass::IndexVec indices;
             
             result->metadata()->get_indices(column_name, &indices);
             
-            for (cass::HashIndex::IndexVec::const_iterator it = indices.begin(); it != indices.end(); ++it)
+            for (cass::IndexVec::const_iterator it = indices.begin(); it != indices.end(); ++it)
             {
                 SchemaColumn sc = get_schema_column(result->metadata()->get_column_definition(*it));
                                 

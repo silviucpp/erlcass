@@ -515,7 +515,7 @@ erlcass:execute(<<"select * from blogposts where domain = ? LIMIT 1">>,
 or:
 
 ```erlang
-erlcass:execute(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>, []).
+erlcass:execute(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>).
 ```
 
 ### Batched queries

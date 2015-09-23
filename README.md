@@ -32,7 +32,7 @@
 
 ##### v1.0
 
--Initial implementation supporting most of basic features available in Cpp Driver
+- Initial implementation supporting most of basic features available in Cpp Driver
 - Based on cpp driver 1.0.3
 
 ### Getting starting:

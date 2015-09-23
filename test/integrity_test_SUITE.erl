@@ -75,6 +75,8 @@ set_cluster_options(_Config) ->
             {latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}},
             {tcp_nodelay, true},
             {tcp_keepalive, {true, 60}},
+            {heartbeat_interval, 30},
+            {idle_timeout, 60},
             {default_consistency_level, ?CASS_CONSISTENCY_ONE}
         ]).
 

@@ -1,7 +1,7 @@
 {application, erlcass,
  [
   {description, ""},
-  {vsn, "1"},
+  {vsn, "2.0"},
   {registered, []},
   {applications, [
                   kernel,

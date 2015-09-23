@@ -1,6 +1,5 @@
 #include "nif_utils.h"
 #include "erlcass.h"
-#include "serialization.hpp"
 
 #include <string.h>
 

@@ -24,6 +24,7 @@ ERL_NIF_TERM float_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM double_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM int_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value);
+ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 
 ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
 {
@@ -71,6 +72,9 @@ ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
         case CASS_VALUE_TYPE_LIST:
         case CASS_VALUE_TYPE_MAP:
             return collection_to_erlang_term(env, value);
+            
+        case CASS_VALUE_TYPE_TUPLE:
+            return tuple_to_erlang_term(env, value);
 
         default:
             //unsuported types and null values
@@ -195,6 +199,26 @@ ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     }
 
     return enif_make_list_from_array(env, itemsList, static_cast<unsigned>(itemsCount));
+}
+
+ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value)
+{
+    size_t itemsCount = cass_value_item_count(value);
+    
+    if(itemsCount == 0)
+        return enif_make_tuple(env, 0);
+    
+    ERL_NIF_TERM itemsList[itemsCount];
+    size_t rowIndex = 0;
+    
+    CassIterator* iterator = cass_iterator_from_tuple(value);
+    
+    while (cass_iterator_next(iterator))
+        itemsList[rowIndex++] = cass_value_to_nif_term(env, cass_iterator_get_value(iterator));
+    
+    cass_iterator_free(iterator);
+    
+    return enif_make_tuple_from_array(env, itemsList, static_cast<unsigned>(itemsCount));
 }
 
 //convert CassResult into erlang term

@@ -10,6 +10,7 @@
 #include "nif_utils.h"
 #include "metadata.h"
 #include "nif_collection.h"
+#include "nif_tuple.h"
 #include "uuid_serialization.h"
 #include "types.hpp"
 #include "execute_request.hpp"
@@ -28,9 +29,9 @@ SchemaColumn get_schema_column(const cass::DataType* data_type)
 {
     SchemaColumn sc(data_type->value_type());
     
-    if(data_type->is_collection())
+    if(data_type->is_collection() || data_type->is_tuple())
     {
-        const cass::CollectionType* collection_type = static_cast<const cass::CollectionType*>(data_type);
+        const cass::SubTypesDataType* collection_type = static_cast<const cass::SubTypesDataType*>(data_type);
         
         for(cass::DataTypeVec::const_iterator it = collection_type->types().begin(); it != collection_type->types().end(); ++it)
             sc.subtypes.push_back(get_schema_column((*it).get()));
@@ -189,6 +190,24 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             
             cass_collection_free(collection);
             
+            break;
+        }
+            
+        case CASS_VALUE_TYPE_TUPLE:
+        {
+            CassError error = CASS_OK;
+            
+            CassTuple* tuple = nif_term_to_cass_tuple(env, value, type, &error);
+            
+            if(!tuple)
+                return enif_make_badarg(env);
+            
+            if(error == CASS_OK)
+                cass_error = cass_statement_bind_tuple(statement, index, tuple);
+            else
+                cass_error = error;
+            
+            cass_tuple_free(tuple);
             break;
         }
             

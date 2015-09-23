@@ -35,6 +35,7 @@ const char kAtomDecimal[] = "decimal";
 const char kAtomList[] = "list";
 const char kAtomSet[] = "set";
 const char kAtomMap[] = "map";
+const char kAtomTuple[] = "tuple";
 
 //cluster settings atoms
 
@@ -112,6 +113,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomList = make_atom(env, kAtomList);
     ATOMS.atomSet = make_atom(env, kAtomSet);
     ATOMS.atomMap = make_atom(env, kAtomMap);
+    ATOMS.atomTuple = make_atom(env, kAtomTuple);
     
     //cluster settings atoms
     

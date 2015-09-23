@@ -52,6 +52,7 @@
 -define(CASS_LIST(ValueType), {list, ValueType}).                   %use for list
 -define(CASS_SET(ValueType), {set, ValueType}).                     %use for set
 -define(CASS_MAP(KeyType, ValueType), {map, KeyType, ValueType}).   %use for map
+-define(CASS_TUPLE(Types), {tuple, Types}).                         %use for tuples
 
 %binding type
 

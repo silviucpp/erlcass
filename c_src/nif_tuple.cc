@@ -1,18 +1,18 @@
 //
-//  collection.cpp
+//  nif_tuple.cpp
 //  erlcass
 //
-//  Created by silviu on 5/28/15.
+//  Created by silviu on 9/23/15.
 //
 //
 
-#include "nif_collection.h"
-#include "nif_utils.h"
 #include "nif_tuple.h"
+#include "nif_utils.h"
+#include "nif_collection.h"
 #include "erlcass.h"
 #include "uuid_serialization.h"
 
-bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value, CassError* cass_error)
+bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const SchemaColumn& type, ERL_NIF_TERM value, CassError* cass_error)
 {
     switch (type.type)
     {
@@ -25,7 +25,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(!get_string(env, value, str_value))
                 return false;
             
-            *cass_error = cass_collection_append_string_n(collection, str_value.c_str(), str_value.length());
+            *cass_error = cass_tuple_set_string_n(tuple, index, str_value.c_str(), str_value.length());
             break;
         }
             
@@ -36,7 +36,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(!enif_get_int(env, value, &int_value ))
                 return false;
             
-            *cass_error = cass_collection_append_int32(collection, int_value);
+            *cass_error = cass_tuple_set_int32(tuple, index, int_value);
             break;
         }
             
@@ -49,11 +49,11 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(!enif_get_int64(env, value, &long_value ))
                 return false;
             
-            *cass_error = cass_collection_append_int64(collection, long_value);
+            *cass_error = cass_tuple_set_int64(tuple, index, long_value);
             break;
         }
             
-        case CASS_VALUE_TYPE_VARINT:            
+        case CASS_VALUE_TYPE_VARINT:
         case CASS_VALUE_TYPE_BLOB:
         {
             std::string str_value;
@@ -61,14 +61,14 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(!get_string(env, value, str_value))
                 return false;
             
-            *cass_error = cass_collection_append_bytes(collection, reinterpret_cast<const cass_byte_t*>(str_value.data()), str_value.size());
+            *cass_error = cass_tuple_set_bytes(tuple, index, reinterpret_cast<const cass_byte_t*>(str_value.data()), str_value.size());
             break;
         }
             
         case CASS_VALUE_TYPE_BOOLEAN:
         {
             cass_bool_t bool_value = enif_is_identical(ATOMS.atomTrue, value) ? cass_true : cass_false;
-            *cass_error = cass_collection_append_bool(collection, bool_value);
+            *cass_error = cass_tuple_set_bool(tuple, index, bool_value);
             break;
         }
             
@@ -80,9 +80,9 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
                 return false;
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
-                *cass_error = cass_collection_append_float(collection, static_cast<float>(val_double));
+                *cass_error = cass_tuple_set_float(tuple, index, static_cast<float>(val_double));
             else
-                *cass_error = cass_collection_append_double(collection, val_double);
+                *cass_error = cass_tuple_set_double(tuple, index, val_double);
             break;
         }
             
@@ -97,7 +97,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
                 return false;
             
-            *cass_error = cass_collection_append_inet(collection, inet);
+            *cass_error = cass_tuple_set_inet(tuple, index, inet);
             break;
         }
             
@@ -113,7 +113,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
                 return false;
             
-            *cass_error = cass_collection_append_uuid(collection, uuid);
+            *cass_error = cass_tuple_set_uuid(tuple, index, uuid);
             break;
         }
             
@@ -131,7 +131,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
                 return false;
             
-            *cass_error = cass_collection_append_decimal(collection, reinterpret_cast<const cass_byte_t*>(varint.data()), varint.size(), scale);
+            *cass_error = cass_tuple_set_decimal(tuple, index, reinterpret_cast<const cass_byte_t*>(varint.data()), varint.size(), scale);
             break;
         }
             
@@ -145,7 +145,7 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
                 return false;
             
             if(*cass_error == CASS_OK)
-                *cass_error = cass_collection_append_collection(collection, nested_collection);
+                *cass_error = cass_tuple_set_collection(tuple, index, nested_collection);
             
             cass_collection_free(nested_collection);
             
@@ -154,15 +154,15 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             
         case CASS_VALUE_TYPE_TUPLE:
         {
-            CassTuple* tuple = nif_term_to_cass_tuple(env, value, type, cass_error);
+            CassTuple* nested_tuple = nif_term_to_cass_tuple(env, value, type, cass_error);
             
-            if(!tuple)
+            if(!nested_tuple)
                 return false;
             
             if(*cass_error == CASS_OK)
-                *cass_error = cass_collection_append_tuple(collection, tuple);
+                *cass_error = cass_tuple_set_tuple(tuple, index, nested_tuple);
             
-            cass_tuple_free(tuple);
+            cass_tuple_free(nested_tuple);
             
             break;
         }
@@ -174,80 +174,27 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
     return true;
 }
 
-CassCollectionType value_type_to_collection_type(CassValueType type)
+CassTuple* nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const SchemaColumn & type, CassError* error)
 {
-    return static_cast<CassCollectionType>(type);
-}
-
-bool populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn &type, CassError* error)
-{
-    ERL_NIF_TERM head;
-    
-    while(enif_get_list_cell(env, list, &head, &list))
-    {
-        if(!cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], head, error))
-            return false;
-        
-        if(*error != CASS_OK)
-            break;
-    }
-    
-    return true;
-}
-
-bool populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn& type, CassError* error)
-{
-    ERL_NIF_TERM head;
     const ERL_NIF_TERM *items;
     int arity;
     
-    while(enif_get_list_cell(env, list, &head, &list))
-    {
-        if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return false;
-        
-        //add key
-        
-        if(!cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], items[0], error))
-            return false;
-        
-        if(*error != CASS_OK)
-            break;
-        
-        //add value
-        
-        if(!cass_collection_append_from_nif(env, collection, type.subtypes[VAL_INDEX], items[1], error))
-            return false;
-        
-        if(*error != CASS_OK)
-            break;
-    }
-    
-    return true;
-}
-
-CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const  SchemaColumn& type, CassError * error)
-{
-    unsigned int length;
-    
-    if(!enif_get_list_length(env, list, &length))
+    if(!enif_get_tuple(env, term, &arity, &items) || arity == 0 || static_cast<size_t>(arity) != type.subtypes.size())
         return NULL;
     
-    CassCollection* collection = cass_collection_new(value_type_to_collection_type(type.type), length);
+    CassTuple* tuple = cass_tuple_new(arity);
     
-    bool success;
-    
-    if(type.type != CASS_VALUE_TYPE_MAP)
-        success = populate_list_set_collection(env, list, collection, type, error);
-    else
-        success = populate_map_collection(env, list, collection, type, error);
-
-    if(!success)
+    for (int i = 0; i < arity; i++)
     {
-        cass_collection_free(collection);
-        collection = NULL;
+        if(!cass_tuple_set_from_nif(env, tuple, i, type.subtypes.at(i), items[i], error))
+        {
+            cass_tuple_free(tuple);
+            return NULL;
+        }
+        
+        if(*error != CASS_OK)
+            break;
     }
     
-    return collection;
+    return tuple;
 }
-

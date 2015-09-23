@@ -77,6 +77,35 @@ SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value)
                         return ss;
                     }
                 }
+                
+                if(enif_is_identical(ATOMS.atomTuple, items[0]))
+                {
+                    if(enif_is_list(env, items[1]))
+                    {
+                        ERL_NIF_TERM list = items[1];
+                        ERL_NIF_TERM head;
+                        
+                        SchemaColumn ss(CASS_VALUE_TYPE_TUPLE);
+                        bool failed = false;
+                        
+                        while(enif_get_list_cell(env, list, &head, &list))
+                        {
+                            SchemaColumn subtype = atom_to_schema_column(env, head);
+                            
+                            if(subtype.type == CASS_VALUE_TYPE_UNKNOWN)
+                            {
+                                failed = true;
+                                break;
+                            }
+
+                            ss.subtypes.push_back(subtype);
+                        }
+                        
+                        if(!failed && !ss.subtypes.empty())
+                            return ss;
+                    }
+                }
+
             }
             else if (arity == 3 && enif_is_identical(ATOMS.atomMap, items[0]))
             {

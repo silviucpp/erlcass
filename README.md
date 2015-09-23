@@ -80,6 +80,7 @@ uuid                       | binary                                       | <<"6
 varint                     | binary                                       | <<"1928301970128391280192830198049113123">>
 timeuuid                   | binary                                       | <<"076a46c0-0ad7-11e5-b314-3d7bf89b87a1">>
 inet                       | binary                                       | <<"127.0.0.1">>
+tuple                      | erlang tuple                                 | {<<"aaa">>, 1}
 
 In order to generate a uuid v4 you can use `erlcass:uuid_gen_random()` for uuid v1 you can use `erlcass:uuid_gen_time()`.
 For more details please see the section dedicated to uuid's
@@ -505,6 +506,7 @@ The datatypes can be found into *erlcass.hrl* file as follow:
 -define(CASS_LIST(ValueType), {list, ValueType}). %use for list
 -define(CASS_SET(ValueType), {set, ValueType}).   %use for set
 -define(CASS_MAP(KeyType, ValueType), {map, KeyType, ValueType}). %use for map
+-define(CASS_TUPLE(Types), {tuple, Types}).       %use for tuples
 ```
 
 The same rules apply for setting the desired consistency level as on prepared statements (see Add prepare statement section).

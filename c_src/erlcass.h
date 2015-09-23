@@ -25,6 +25,7 @@ struct atoms
     ERL_NIF_TERM atomList;
     ERL_NIF_TERM atomSet;
     ERL_NIF_TERM atomMap;
+    ERL_NIF_TERM atomTuple;
     ERL_NIF_TERM atomText;
     ERL_NIF_TERM atomInt;
     ERL_NIF_TERM atomBigInt;

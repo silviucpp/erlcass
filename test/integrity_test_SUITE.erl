@@ -31,6 +31,7 @@ groups() ->
             prepared_bind_by_name_index,
             collection_types,
             nested_collections,
+            tuples,
             batches,
             uuid_testing,
             get_metrics,
@@ -336,6 +337,44 @@ nested_collections(_Config) ->
     {ok, [{Key1, List}]} = erlcass:execute(SelectQ, [{?CASS_TEXT, Key1}]),
     {ok, [{Key2, List}]} = erlcass:execute(nest_select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
     {ok, [{Key3, List}]} = erlcass:execute(nest_select_collection_types, ?BIND_BY_INDEX, [Key3]),
+    ok.
+
+tuples(_Config) ->
+    CreationQ = <<"CREATE TABLE erlang_driver_test.tuples (key varchar, item1 frozen<tuple<text, list<int>>>, item2 frozen< tuple< tuple<text, bigint> > >, PRIMARY KEY(key));">>,
+    ct:log("Executing : ~s~n", [CreationQ]),
+    {ok, []} = erlcass:execute(CreationQ),
+
+    Key1 = <<"somekeyhere_1">>,
+    Key2 = <<"somekeyhere_2">>,
+    Key3 = <<"somekeyhere_3">>,
+
+    Item1 = {<<"sss">>, [1,2,3]},
+    Item2 = {{<<"a">>, 1}},
+
+    InsertQ = <<"INSERT INTO erlang_driver_test.tuples(key, item1, item2) values (?, ?, ?)">>,
+    SelectQ = <<"SELECT key, item1, item2 FROM erlang_driver_test.tuples WHERE key = ?">>,
+
+    ok = erlcass:add_prepare_statement(insert_tuple_types, InsertQ),
+    ok = erlcass:add_prepare_statement(select_tuple_types, SelectQ),
+
+    {ok, []} = erlcass:execute(InsertQ,
+        [
+            {?CASS_TEXT, Key1},
+            {?CASS_TUPLE([?CASS_TEXT, ?CASS_LIST(?CASS_INT)]), Item1},
+            {?CASS_TUPLE([?CASS_TUPLE([?CASS_TEXT, ?CASS_BIGINT])]), Item2}]),
+
+    {ok, []} = erlcass:execute(insert_tuple_types, ?BIND_BY_NAME,
+        [
+            {<<"key">>, Key2},
+            {<<"item1">>, Item1},
+            {<<"item2">>, Item2}
+        ]),
+
+    {ok, []} = erlcass:execute(insert_tuple_types, [Key3, Item1, Item2]),
+
+    {ok, [{Key1, Item1, Item2}]} = erlcass:execute(SelectQ, [{?CASS_TEXT, Key1}]),
+    {ok, [{Key2, Item1, Item2}]} = erlcass:execute(select_tuple_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
+    {ok, [{Key3, Item1, Item2}]} = erlcass:execute(select_tuple_types, ?BIND_BY_INDEX, [Key3]),
     ok.
 
 batches(_Config) ->

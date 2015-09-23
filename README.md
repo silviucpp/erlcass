@@ -306,6 +306,23 @@ Sets the timeout for connecting to a node.
 
 Default: 5000 milliseconds
 
+##### heartbeat_interval
+
+Example: {heartbeat_interval, 30}
+
+Sets the amount of time between heartbeat messages and controls the amount of time the connection must be idle before sending heartbeat messages.
+This is useful for preventing intermediate network devices from dropping connections.
+
+Default: 30 seconds
+
+##### idle_timeout
+
+Example: {idle_timeout, 60}
+
+Sets the amount of time a connection is allowed to be without a successful hearbeat response before being terminated and scheduled for reconnection.
+
+Default: 60 seconds
+
 ##### request_timeout
 
 Example: {request_timeout, 12000}

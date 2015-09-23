@@ -77,6 +77,18 @@ CassError internal_cass_cluster_set_request_timeout(CassCluster* cluster, unsign
     return CASS_OK;
 }
 
+CassError internal_cass_cluster_set_connection_heartbeat_interval(CassCluster* cluster, unsigned interval)
+{
+    cass_cluster_set_connection_heartbeat_interval(cluster, interval);
+    return CASS_OK;
+}
+
+CassError internal_cass_cluster_set_connection_idle_timeout(CassCluster* cluster, unsigned timeout)
+{
+    cass_cluster_set_connection_idle_timeout(cluster, timeout);
+    return CASS_OK;
+}
+
 ERL_NIF_TERM internal_cass_cluster_set_token_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     cass_bool_t value = enif_is_identical(term_value, ATOMS.atomTrue) ? cass_true : cass_false;
@@ -338,6 +350,8 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_N
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingPendingRequestsLowWaterMark, cass_cluster_set_pending_requests_low_water_mark);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingConnectTimeout, internal_cass_cluster_set_connect_timeout);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingRequestTimeout, internal_cass_cluster_set_request_timeout);
+    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingHeartbeatInterval, internal_cass_cluster_set_connection_heartbeat_interval);
+    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingIdleTimeout, internal_cass_cluster_set_connection_idle_timeout);
     CUSTOM_SETTING(ATOMS.atomClusterSettingCredentials, internal_cass_cluster_set_credentials);
     CUSTOM_SETTING(ATOMS.atomClusterSettingLoadBalanceRoundRobin, internal_cass_cluster_set_load_balance_round_robin);
     CUSTOM_SETTING(ATOMS.atomClusterSettingLoadBalanceDcAware, internal_cass_cluster_set_load_balance_dc_aware);

@@ -65,6 +65,8 @@ struct atoms
     ERL_NIF_TERM atomClusterSetringLatencyAwareRouting;
     ERL_NIF_TERM atomClusterSettingTcpNodelay;
     ERL_NIF_TERM atomClusterSettingTcpKeepalive;
+    ERL_NIF_TERM atomClusterSettingHeartbeatInterval;
+    ERL_NIF_TERM atomClusterSettingIdleTimeout;
     ERL_NIF_TERM atomClusterSettingSsl;
     ERL_NIF_TERM atomClusterSettingSslTrustedCerts;
     ERL_NIF_TERM atomClusterSettingSslVerifyFlags;

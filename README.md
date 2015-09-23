@@ -445,15 +445,17 @@ ok = erlcass:add_prepare_statement(
 ### Run a prepared statement query
 
 In case the first parameter for *erlcass:execute* is an atom then the driver will try to find the associated prepared statement and to run it.
-You can bind the parameters in 2 ways: by name and by index.
+You can bind the parameters in 2 ways: by name and by index. You can use `?BIND_BY_INDEX` and `?BIND_BY_NAME` from execute/3 in order to specify the desired method. By default is binding by index
 
 Example:
 
 ```erlang
 %bind by name
-erlcass:execute(select_blogpost, [{<<"domain">>, <<"Domain_1">>}]).
+erlcass:execute(select_blogpost, ?BIND_BY_NAME, [{<<"domain">>, <<"Domain_1">>}]).
 %bind by index
 erlcass:execute(select_blogpost, [<<"Domain_1">>]).
+%bind by index
+erlcass:execute(select_blogpost, ?BIND_BY_INDEX, [<<"Domain_1">>]).
 ```
 
 In case of maps you can use `key(field)` and `value(field)` in order to bind by name.
@@ -464,7 +466,7 @@ In case of maps you can use `key(field)` and `value(field)` in order to bind by 
 %bind by index
 erlcass:execute(identifier, [<<"collection_key_here">>, <<"collection_value_here">>, <<"key_here">>]).
 %bind by name
-erlcass:execute(insert_test_bind, [{<<"key(value)">>, CollectionIndex1}, {<<"value(value)">>, CollectionValue1}, {<<"key">>, Key1}]),
+erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [{<<"key(value)">>, CollectionIndex1}, {<<"value(value)">>, CollectionValue1}, {<<"key">>, Key1}]),
 ```
 
 ### Async queries and blocking queries
@@ -542,7 +544,7 @@ InsertStatement = <<"INSERT INTO erlang_driver_test.entries1(id, age, email) VAL
 ok = erlcass:add_prepare_statement(insert_prep, InsertStatement),
 {ok, Stm1} = erlcass:create_statement(InsertStatement, [{?CASS_TEXT, Id1}, {?CASS_INT, Age1}, {?CASS_TEXT, Email1}]),
 {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
-ok = erlcass:bind_prepared_params(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
+ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
 {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]).
 ```
 
@@ -612,9 +614,9 @@ performed in the same process.
 
 ```erlang
 %bind by name
-ok = erlcass:bind_prepared_params(select_blogpost, [{<<"domain">>, <<"Domain_1">>}]);
+ok = erlcass:bind_prepared_params_by_name(select_blogpost, [{<<"domain">>, <<"Domain_1">>}]);
 %bind by index
-ok = erlcass:bind_prepared_params(select_blogpost, [<<"Domain_1">>]);
+ok = erlcass:bind_prepared_params_by_index(select_blogpost, [<<"Domain_1">>]);
 ```
 
 For mode details about bind by index and name please see: 'Run a prepared statement query' section

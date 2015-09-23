@@ -208,7 +208,7 @@ all_datatypes(_Config) ->
     Varchar2 = <<"åäö"/utf8>>,
     Varint2 = erlang:integer_to_binary(123124211928301970128391280192830198049113123),
 
-    {ok, []} = erlcass:execute(insert_all_datatypes, [
+    {ok, []} = erlcass:execute(insert_all_datatypes, ?BIND_BY_NAME, [
         {<<"col1">>, AsciiString},
         {<<"col2">>, BigIntNegative},
         {<<"col3">>, Blob},
@@ -225,7 +225,7 @@ all_datatypes(_Config) ->
         {<<"col14">>, Inet}
     ]),
 
-    {ok, [Result2]} = erlcass:execute(select_all_datatypes, [{<<"col1">>, AsciiString}]),
+    {ok, [Result2]} = erlcass:execute(select_all_datatypes, ?BIND_BY_NAME, [{<<"col1">>, AsciiString}]),
 
     BinAsciiString = list_to_binary(AsciiString),
     {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet} = Result2,
@@ -247,14 +247,14 @@ prepared_bind_by_name_index(_Config) ->
     ok = erlcass:add_prepare_statement(insert_test_bind, QueryInsert),
     ok = erlcass:add_prepare_statement(select_test_bind, QuerySelect),
 
-    {ok, []} = erlcass:execute(insert_test_bind, [
+    {ok, []} = erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [
         {<<"key(value)">>, CollectionIndex1},
         {<<"value(value)">>, CollectionValue1},
         {<<"key">>, Key1}
     ]),
 
     {ok, []} = erlcass:execute(insert_test_bind, [CollectionIndex2, CollectionValue2, Key2]),
-    {ok, [{[{CollectionIndex1, CollectionValue1}]}]} = erlcass:execute(select_test_bind, [{<<"key">>, Key1}]),
+    {ok, [{[{CollectionIndex1, CollectionValue1}]}]} = erlcass:execute(select_test_bind, ?BIND_BY_NAME, [{<<"key">>, Key1}]),
     {ok, [{[{CollectionIndex2, CollectionValue2}]}]} = erlcass:execute(select_test_bind, [Key2]),
     ok.
 
@@ -285,7 +285,7 @@ collection_types(_Config) ->
             {?CASS_MAP(?CASS_INT, ?CASS_TEXT), Map}
         ]),
 
-    {ok, []} = erlcass:execute(insert_collection_types,
+    {ok, []} = erlcass:execute(insert_collection_types, ?BIND_BY_NAME,
         [
             {<<"key">>, Key2},
             {<<"numbers">>, List},
@@ -297,8 +297,8 @@ collection_types(_Config) ->
 
     {ok, [Rs]} = erlcass:execute(SelectQ, [{?CASS_TEXT, Key1}]),
     {Key1, List, Set, Map} = Rs,
-    {ok, [{Key2, List, Set, Map}]} = erlcass:execute(select_collection_types, [{<<"key">>, Key2}]),
-    {ok, [{Key3, List, Set, Map}]} = erlcass:execute(select_collection_types, [Key3]),
+    {ok, [{Key2, List, Set, Map}]} = erlcass:execute(select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
+    {ok, [{Key3, List, Set, Map}]} = erlcass:execute(select_collection_types, ?BIND_BY_INDEX, [Key3]),
 
     ok.
 
@@ -317,7 +317,7 @@ batches(_Config) ->
     ok = erlcass:add_prepare_statement(insert_prep, InsertStatement),
 
     {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
-    ok = erlcass:bind_prepared_params(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
+    ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
 
     {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]),
 

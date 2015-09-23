@@ -199,7 +199,7 @@ static ErlNifFunc nif_funcs[] =
     {"nif_cass_prepared_bind", 1, nif_cass_prepared_bind},
     {"nif_cass_statement_new", 1, nif_cass_statement_new},
     {"nif_cass_statement_new", 2, nif_cass_statement_new},
-    {"nif_cass_statement_bind_parameters", 2, nif_cass_statement_bind_parameters},
+    {"nif_cass_statement_bind_parameters", 3, nif_cass_statement_bind_parameters},
     {"nif_cass_session_execute", 4, nif_cass_session_execute},
     {"nif_cass_session_execute_batch", 5, nif_cass_session_execute_batch},
     {"nif_cass_session_get_metrics", 1, nif_cass_session_get_metrics},

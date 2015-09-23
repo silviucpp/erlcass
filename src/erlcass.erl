@@ -1,6 +1,8 @@
 -module(erlcass).
 -author("silviu.caragea").
 
+-include("erlcass.hrl").
+
 -define(NOT_LOADED, not_loaded(?LINE)).
 -define(TIMEOUT, 20000).
 -define(CONNECT_TIMEOUT, 5000).
@@ -20,15 +22,18 @@
 
     async_execute/1,
     async_execute/2,
+    async_execute/3,
     execute/1,
     execute/2,
+    execute/3,
     batch_execute/3,
     batch_async_execute/3,
 
     create_statement/1,
     create_statement/2,
     bind_prepared_statement/1,
-    bind_prepared_params/2,
+    bind_prepared_params_by_name/2,
+    bind_prepared_params_by_index/2,
     async_execute_statement/1,
     execute_statement/1,
 
@@ -87,11 +92,17 @@ add_prepare_statement(Identifier, Query) ->
 bind_prepared_statement(Identifier) ->
     gen_server:call(?MODULE, {bind_prepare_statement, Identifier}).
 
--spec(bind_prepared_params(StatementRef :: reference(), Params :: list()) ->
+-spec(bind_prepared_params_by_name(StatementRef :: reference(), Params :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
 
-bind_prepared_params(StatementRef, Params) ->
-    nif_cass_statement_bind_parameters(StatementRef, Params).
+bind_prepared_params_by_name(StatementRef, Params) ->
+    nif_cass_statement_bind_parameters(StatementRef, ?BIND_BY_NAME, Params).
+
+-spec(bind_prepared_params_by_index(StatementRef :: reference(), Params :: list()) ->
+    ok | badarg | {error, Reason :: binary()}).
+
+bind_prepared_params_by_index(StatementRef, Params) ->
+    nif_cass_statement_bind_parameters(StatementRef, ?BIND_BY_INDEX, Params).
 
 -spec(async_execute_statement(StatementRef :: reference()) ->
     {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
@@ -106,20 +117,6 @@ execute_statement(StatementRef) ->
     {ok, Tag} = async_execute_statement(StatementRef),
     receive_response(Tag).
 
--spec(async_execute(Identifier :: atom() | binary(), Params :: list()) ->
-    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
-
-async_execute(Identifier, Params) ->
-    if
-        is_atom(Identifier) ->
-            {ok, Statement} = bind_prepared_statement(Identifier),
-            ok = bind_prepared_params(Statement, Params);
-
-        true ->
-            {ok, Statement} = create_statement(Identifier, Params)
-    end,
-
-    async_execute_statement(Statement).
 
 -spec(async_execute(Identifier :: atom() | binary()) ->
     {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
@@ -134,18 +131,45 @@ async_execute(Identifier) ->
 
     async_execute_statement(Statement).
 
--spec(execute(Identifier :: atom() | binary(), Params :: list()) ->
-    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+-spec(async_execute(Identifier :: atom() | binary(), Params :: list()) ->
+    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
 
-execute(Identifier, Params) ->
-    {ok, Tag} = async_execute(Identifier, Params),
-    receive_response(Tag).
+async_execute(Identifier, Params) ->
+    async_execute(Identifier, ?BIND_BY_INDEX, Params).
+
+-spec(async_execute(Identifier :: atom() | binary(), BindType :: integer(), Params :: list()) ->
+    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
+
+async_execute(Identifier, BindType, Params) ->
+    if
+        is_atom(Identifier) ->
+            {ok, Statement} = bind_prepared_statement(Identifier),
+            ok = nif_cass_statement_bind_parameters(Statement, BindType, Params);
+
+        true ->
+            {ok, Statement} = create_statement(Identifier, Params)
+    end,
+
+    async_execute_statement(Statement).
 
 -spec(execute(Identifier :: atom() | binary()) ->
     {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
 
 execute(Identifier) ->
     {ok, Tag} = async_execute(Identifier),
+    receive_response(Tag).
+
+-spec(execute(Identifier :: atom() | binary(), Params :: list()) ->
+    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+
+execute(Identifier, Params) ->
+    execute(Identifier, ?BIND_BY_INDEX, Params).
+
+-spec(execute(Identifier :: atom() | binary(), BindType :: integer(), Params :: list()) ->
+    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+
+execute(Identifier, BindType, Params) ->
+    {ok, Tag} = async_execute(Identifier, BindType, Params),
     receive_response(Tag).
 
 -spec(batch_async_execute(BatchType :: integer(), StmList :: list(), Options :: list()) ->
@@ -446,7 +470,7 @@ nif_cass_statement_new(_Query, _Params) ->
 nif_cass_statement_new(_Query) ->
     ?NOT_LOADED.
 
-nif_cass_statement_bind_parameters(_StatementRef, _Args)->
+nif_cass_statement_bind_parameters(_StatementRef, _BindType, _Args)->
     ?NOT_LOADED.
 
 nif_cass_session_execute(_SessionRef, _StatementRef, _FromPid, _Tag) ->

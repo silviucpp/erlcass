@@ -16,6 +16,9 @@
 #include "data_type.hpp"
 #include "external_types.hpp"
 
+#define BIND_BY_INDEX 1
+#define BIND_BY_NAME  2
+
 struct enif_cass_statement
 {
     CassStatement* statement;
@@ -197,24 +200,23 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
     return cass_error_to_nif_term(env, cass_error);
 }
 
-ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* statement, ERL_NIF_TERM list)
+ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* statement, int type, ERL_NIF_TERM list)
 {
     ERL_NIF_TERM head;
-    const ERL_NIF_TERM *items;
-    int arity;
-    
-    std::string column_name;
-    cass::Statement* stm = static_cast<cass::Statement*>(statement);
-    
-    const cass::ResultResponse* result = static_cast<cass::ExecuteRequest*>(stm)->prepared()->result().get();
-    size_t index = 0;
 
-    while(enif_get_list_cell(env, list, &head, &list))
+    cass::Statement* stm = static_cast<cass::Statement*>(statement);
+    const cass::ResultResponse* result = static_cast<cass::ExecuteRequest*>(stm)->prepared()->result().get();
+    
+    if(type == BIND_BY_NAME)
     {
-        if(enif_is_tuple(env, head))
+        //bind by name -> {name, value}
+        
+        std::string column_name;
+        const ERL_NIF_TERM *items;
+        int arity;
+        
+        while(enif_get_list_cell(env, list, &head, &list))
         {
-            //bind by name -> {name, value}
-            
             if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
                 return enif_make_badarg(env);
             
@@ -228,17 +230,22 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             for (cass::IndexVec::const_iterator it = indices.begin(); it != indices.end(); ++it)
             {
                 SchemaColumn sc = get_schema_column(result->metadata()->get_column_definition(*it));
-                                
+                
                 ERL_NIF_TERM result = bind_param_by_index(env, statement, *it, sc, items[1]);
                 
                 if(!enif_is_identical(result, ATOMS.atomOk))
                     return result;
             }
         }
-        else
+    }
+    else
+    {
+        //bind by index
+        
+        size_t index = 0;
+        
+        while(enif_get_list_cell(env, list, &head, &list))
         {
-            //bind by index
-            
             if(index > result->metadata()->column_count())
                 return enif_make_badarg(env);
             
@@ -392,8 +399,13 @@ ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const 
     
     enif_cass_statement * enif_stm = NULL;
     
-    if(!enif_get_resource(env, argv[0], data->resCassStatement, (void**) &enif_stm) || !enif_is_list(env, argv[1]))
+    if(!enif_get_resource(env, argv[0], data->resCassStatement, (void**) &enif_stm) || !enif_is_list(env, argv[2]))
+        return enif_make_badarg(env);
+    
+    int bind_type;
+    
+    if(!enif_get_int(env, argv[1], &bind_type) || (bind_type != BIND_BY_INDEX && bind_type != BIND_BY_NAME))
         return enif_make_badarg(env);
 
-    return bind_prepared_statement_params(env, enif_stm->statement, argv[1]);
+    return bind_prepared_statement_params(env, enif_stm->statement, bind_type, argv[2]);
 }

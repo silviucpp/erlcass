@@ -9,6 +9,31 @@
 - Add support for Setting serial consistency,
 - Add support for pagination,
 - Add support for setting log level and custom handler
+- Add support for UDT
+- Add support for Cassandra 2.2 data types `tinyint` and `smallint`
+- Add support for the Cassandra 2.2 `date` data type
+- Add support for functions to convert from Unix Epoch time (in seconds) to and from the Cassandra `date` and `time` types
+- Add support for sending and relieving custom payloads to and from Cassandra
+- Add support for server-side warnings
+- Add support for retry policies settings
+- Add support for client-side timestamps settings
+
+### Changelog:
+
+##### v2.0
+
+- Added support for tuples
+- Added support for nested collections
+- Based on cpp driver 2.2.0-beta1
+- Interfaces changes: `bind_prepared_params` replaced by `bind_prepared_params_by_name` and `bind_prepared_params_by_index`
+- Add support for `async_execute/1` and `execute/1` (should be used when no binding params available)
+- Add support for `async_execute/3` and `execute/3` (second parameter should be used to specify the binding type - by name or index)
+- By default `async_execute/2` and `execute/2` are binding the params by index
+
+##### v1.0
+
+-Initial implementation supporting most of basic features available in Cpp Driver
+- Based on cpp driver 1.0.3
 
 ### Getting starting:
 

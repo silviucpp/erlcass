@@ -20,10 +20,10 @@
 struct SchemaColumn
 {
     SchemaColumn() : type(CASS_VALUE_TYPE_UNKNOWN){}
-    SchemaColumn(CassValueType vt) : type(vt){}
+    explicit SchemaColumn(CassValueType vt) : type(vt){}
     
     CassValueType type;
-    std::vector<CassValueType> subtypes;
+    std::vector<SchemaColumn> subtypes;
 };
 
 SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value);

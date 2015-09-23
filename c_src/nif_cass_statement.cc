@@ -24,18 +24,18 @@ struct enif_cass_statement
     CassStatement* statement;
 };
 
-SchemaColumn get_schema_column(const cass::ColumnDefinition& def)
+SchemaColumn get_schema_column(const cass::DataType* data_type)
 {
-    SchemaColumn sc(def.data_type->value_type());
+    SchemaColumn sc(data_type->value_type());
     
-    if(def.data_type->is_collection())
+    if(data_type->is_collection())
     {
-        const cass::CollectionType* collection_type = static_cast<const cass::CollectionType*>(def.data_type.get());
+        const cass::CollectionType* collection_type = static_cast<const cass::CollectionType*>(data_type);
         
-        for(size_t i = 0; i < collection_type->types().size(); i++)
-            sc.subtypes.push_back(collection_type->types().at(i)->value_type());
+        for(cass::DataTypeVec::const_iterator it = collection_type->types().begin(); it != collection_type->types().end(); ++it)
+            sc.subtypes.push_back(get_schema_column((*it).get()));
     }
-    
+
     return sc;
 }
 
@@ -229,7 +229,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             
             for (cass::IndexVec::const_iterator it = indices.begin(); it != indices.end(); ++it)
             {
-                SchemaColumn sc = get_schema_column(result->metadata()->get_column_definition(*it));
+                SchemaColumn sc = get_schema_column(result->metadata()->get_column_definition(*it).data_type.get());
                 
                 ERL_NIF_TERM result = bind_param_by_index(env, statement, *it, sc, items[1]);
                 
@@ -251,7 +251,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             
             const cass::ColumnDefinition def = result->metadata()->get_column_definition(index);
             
-            SchemaColumn sc = get_schema_column(def);
+            SchemaColumn sc = get_schema_column(def.data_type.get());
             
             ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, head);
             

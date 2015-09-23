@@ -30,6 +30,7 @@ groups() ->
             all_datatypes,
             prepared_bind_by_name_index,
             collection_types,
+            nested_collections,
             batches,
             uuid_testing,
             get_metrics,
@@ -50,7 +51,7 @@ set_cluster_options(_Config) ->
         [
             {contact_points, ?CONTACT_POINTS},
             {port, 9042},
-            {protocol_version, 2},
+            {protocol_version, 3},
             {number_threads_io, 1},
             {queue_size_io, 4096},
             {queue_size_event, 4096},
@@ -300,6 +301,41 @@ collection_types(_Config) ->
     {ok, [{Key2, List, Set, Map}]} = erlcass:execute(select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
     {ok, [{Key3, List, Set, Map}]} = erlcass:execute(select_collection_types, ?BIND_BY_INDEX, [Key3]),
 
+    ok.
+
+nested_collections(_Config) ->
+    CreationQ = <<"CREATE TABLE erlang_driver_test.nested_collections(key varchar, numbers list<frozen<map<int, varchar>>>, PRIMARY KEY(key))">>,
+    ct:log("Executing : ~s~n", [CreationQ]),
+    {ok, []} = erlcass:execute(CreationQ),
+
+    Key1 = <<"somekeyhere_1">>,
+    Key2 = <<"somekeyhere_2">>,
+    Key3 = <<"somekeyhere_3">>,
+    List = [[{100, <<"418-123-4545">>}, {200, <<"555-555-5555">>}], [{101, <<"1418-123">>}, {201, <<"5555-111">>}]],
+    InsertQ = <<"INSERT INTO erlang_driver_test.nested_collections(key, numbers) values (?, ?)">>,
+    SelectQ = <<"SELECT key, numbers FROM erlang_driver_test.nested_collections WHERE key = ?">>,
+
+    ok = erlcass:add_prepare_statement(nest_insert_collection_types, InsertQ),
+    ok = erlcass:add_prepare_statement(nest_select_collection_types, SelectQ),
+
+    %%insert using normal query, prepapred query (bind by name and bind by index)
+
+    {ok, []} = erlcass:execute(InsertQ,
+        [
+            {?CASS_TEXT, Key1},
+            {?CASS_LIST(?CASS_MAP(?CASS_INT, ?CASS_TEXT)), List}]),
+
+    {ok, []} = erlcass:execute(nest_insert_collection_types, ?BIND_BY_NAME,
+        [
+            {<<"key">>, Key2},
+            {<<"numbers">>, List}
+        ]),
+
+    {ok, []} = erlcass:execute(nest_insert_collection_types, [Key3, List]),
+
+    {ok, [{Key1, List}]} = erlcass:execute(SelectQ, [{?CASS_TEXT, Key1}]),
+    {ok, [{Key2, List}]} = erlcass:execute(nest_select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
+    {ok, [{Key3, List}]} = erlcass:execute(nest_select_collection_types, ?BIND_BY_INDEX, [Key3]),
     ok.
 
 batches(_Config) ->

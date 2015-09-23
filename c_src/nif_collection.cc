@@ -134,6 +134,23 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             break;
         }
             
+        case CASS_VALUE_TYPE_MAP:
+        case CASS_VALUE_TYPE_LIST:
+        case CASS_VALUE_TYPE_SET:
+        {
+            CassCollection* nested_collection = nif_list_to_cass_collection(env, value, type, cass_error);
+            
+            if(!nested_collection)
+                return false;
+            
+            if(*cass_error == CASS_OK)
+                *cass_error = cass_collection_append_collection(collection, nested_collection);
+            
+            cass_collection_free(nested_collection);
+            
+            break;
+        }
+            
         default:
             return false;
     }

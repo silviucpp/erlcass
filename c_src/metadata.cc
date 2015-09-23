@@ -57,9 +57,9 @@ SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value)
             {
                 if(enif_is_identical(ATOMS.atomList, items[0]))
                 {
-                    CassValueType subtype = atom_to_cass_value_type(items[1]);
+                    SchemaColumn subtype = atom_to_schema_column(env, items[1]);
                     
-                    if(subtype != CASS_VALUE_TYPE_UNKNOWN)
+                    if(subtype.type != CASS_VALUE_TYPE_UNKNOWN)
                     {
                         SchemaColumn ss(CASS_VALUE_TYPE_LIST);
                         ss.subtypes.push_back(subtype);
@@ -68,9 +68,9 @@ SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value)
                 }
                 else if(enif_is_identical(ATOMS.atomSet, items[0]))
                 {
-                    CassValueType subtype = atom_to_cass_value_type(items[1]);
+                    SchemaColumn subtype = atom_to_schema_column(env, items[1]);
                     
-                    if(subtype != CASS_VALUE_TYPE_UNKNOWN)
+                    if(subtype.type != CASS_VALUE_TYPE_UNKNOWN)
                     {
                         SchemaColumn ss(CASS_VALUE_TYPE_SET);
                         ss.subtypes.push_back(subtype);
@@ -80,10 +80,10 @@ SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value)
             }
             else if (arity == 3 && enif_is_identical(ATOMS.atomMap, items[0]))
             {
-                CassValueType subtype_key = atom_to_cass_value_type(items[1]);
-                CassValueType subtype_value = atom_to_cass_value_type(items[2]);
+                SchemaColumn subtype_key = atom_to_schema_column(env, items[1]);
+                SchemaColumn subtype_value= atom_to_schema_column(env, items[2]);
                 
-                if(subtype_key != CASS_VALUE_TYPE_UNKNOWN && subtype_value != CASS_VALUE_TYPE_UNKNOWN)
+                if(subtype_key.type != CASS_VALUE_TYPE_UNKNOWN && subtype_value.type != CASS_VALUE_TYPE_UNKNOWN)
                 {
                     SchemaColumn ss(CASS_VALUE_TYPE_MAP);
                     ss.subtypes.push_back(subtype_key);

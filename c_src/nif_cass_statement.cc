@@ -42,13 +42,10 @@ SchemaColumn get_schema_column(const cass::DataType* data_type)
 
 ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const SchemaColumn& type, ERL_NIF_TERM value)
 {
-    CassError cass_error;
-    
     if(enif_is_identical(value, ATOMS.atomNull))
-    {
-        cass_error = cass_statement_bind_null(statement, index);
-        return ATOMS.atomOk;
-    }
+        return cass_error_to_nif_term(env, cass_statement_bind_null(statement, index));
+
+    CassError cass_error;
     
     switch (type.type)
     {

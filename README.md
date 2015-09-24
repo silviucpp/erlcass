@@ -2,8 +2,6 @@
 
 *An Erlang Cassandra driver, based on Datastax cpp driver focused on performance.*
 
-#####The project is under development.
-
 ### TODO List:
 
 - Add support for Setting serial consistency,

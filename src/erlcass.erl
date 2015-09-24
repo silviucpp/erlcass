@@ -17,6 +17,7 @@
 -export([
     set_cluster_options/1,
     create_session/1,
+    set_log_function/1,
     get_metrics/0,
     add_prepare_statement/2,
 
@@ -48,7 +49,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {session, connected, ets_prep, uuid_generator}).
+-record(state, {session, connected, ets_prep, uuid_generator, log_pid}).
 
 -spec(set_cluster_options(OptionList :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
@@ -61,6 +62,17 @@ set_cluster_options(Options) ->
 
 create_session(Args) ->
     gen_server:call(?MODULE, {create_session, Args}, ?CONNECT_TIMEOUT).
+
+-spec(set_log_function(Func :: term()) ->
+    ok | badarg | {error, Reason :: binary()}).
+
+set_log_function(Func) ->
+    case erlang:is_function(Func, 1) of
+        true ->
+            gen_server:call(?MODULE, {set_log_callback, Func});
+        false ->
+            badarg
+    end.
 
 -spec(get_metrics() ->
     {ok, MetricsList :: list()} | badarg | {error, Reason :: binary()}).
@@ -235,9 +247,18 @@ stop() ->
 
 init([]) ->
     process_flag(trap_exit, true),
-    {ok, UuidGenerator} = nif_cass_uuid_gen_new(),
 
     Tid = ets:new(erlcass_prepared_statements, [set, private, {read_concurrency, true}]),
+
+    LogLevel = case application:get_env(erlcass, log_level) of
+        {ok, Level} ->
+            Level;
+        _ ->
+            ?CASS_LOG_WARN
+    end,
+
+    LogPid = start_logging(LogLevel, fun(X) -> default_log_function(X) end),
+    ok = nif_cass_cluster_create(),
 
     SessionRef = case application:get_env(erlcass, cluster_options) of
         {ok, ClusterOptions} ->
@@ -251,7 +272,7 @@ init([]) ->
             receive
                 {session_connected, _Pid} -> S
             after ?CONNECT_TIMEOUT ->
-                io:format("Session connection timeout~n"),
+                send_erlang_log(LogPid, ?CASS_LOG_ERROR, <<"Session connection timeout">>, []),
                 error
             end;
         _ ->
@@ -260,7 +281,8 @@ init([]) ->
     if SessionRef == error ->
         {stop, session_connect_timeout, shutdown, #state{}};
     true ->
-        {ok, #state{connected = false, ets_prep = Tid, uuid_generator = UuidGenerator, session = SessionRef}}
+        {ok, UuidGenerator} = nif_cass_uuid_gen_new(),
+        {ok, #state{connected = false, ets_prep = Tid, uuid_generator = UuidGenerator, session = SessionRef, log_pid = LogPid}}
     end.
 
 handle_call(gen_time, _From, State) ->
@@ -275,6 +297,10 @@ handle_call({gen_from_time, Ts}, _From, State) ->
 handle_call({set_cluster_options, Options}, _From, State) ->
     Result = nif_cass_cluster_set_options(Options),
     {reply, Result, State};
+
+handle_call({set_log_callback, Level}, _From, State) ->
+    State#state.log_pid ! {update_fun, Level},
+    {reply, ok, State};
 
 handle_call({create_session, Args}, From, State) ->
     {ok, SessionRef} = nif_cass_session_new(),
@@ -335,7 +361,7 @@ handle_cast(_Request, State) ->
 
 handle_info({session_connected, {Status, FromPid}}, State) ->
 
-    io:format("Session connected result : ~p ~n", [Status]),
+    send_erlang_log(State#state.log_pid, ?CASS_LOG_INFO, <<"Session connected result : ~p">>, [Status]),
 
     if
         Status =:= ok ->
@@ -350,7 +376,7 @@ handle_info({session_connected, {Status, FromPid}}, State) ->
 
 handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
 
-    io:format("Prepared statement id: ~p result: ~p ~n", [Identifier, Result]),
+    send_erlang_log(State#state.log_pid, ?CASS_LOG_INFO, <<"Prepared statement id: ~p result: ~p">>, [Identifier, Result]),
 
     case Result of
         {ok, StatementRef} ->
@@ -362,11 +388,11 @@ handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
     {noreply, State};
 
 handle_info(Info, State) ->
-    io:format("driver received: ~p", [Info]),
+    send_erlang_log(State#state.log_pid, ?CASS_LOG_ERROR, <<"driver received: ~p">>, [Info]),
     {noreply, State}.
 
 terminate(Reason, State) ->
-    io:format("Closing driver with reason: ~p ~n", [Reason]),
+    send_erlang_log(State#state.log_pid, ?CASS_LOG_INFO, <<"Closing driver with reason: ~p">>, [Reason]),
 
     if
         State#state.connected =:= true ->
@@ -375,10 +401,10 @@ terminate(Reason, State) ->
 
             receive
                 {session_closed, Tag, Result} ->
-                    io:format("Session closed with result: ~p ~n",[Result])
+                    send_erlang_log(State#state.log_pid, ?CASS_LOG_INFO, <<"Session closed with result: ~p">>,[Result])
 
             after ?TIMEOUT ->
-                io:format("Session closed timeout",[])
+                send_erlang_log(State#state.log_pid, ?CASS_LOG_ERROR, <<"Session closed timeout">>,[])
             end;
 
         true ->
@@ -398,6 +424,46 @@ receive_response(Tag) ->
         after ?TIMEOUT ->
             timeout
     end.
+
+%%log message function
+
+send_erlang_log(LogPid, Severity, Msg, Args) ->
+    LogPid ! {log_message_recv, {Severity, Msg, Args}}.
+
+log_loop(Fun) ->
+    receive
+
+        {log_message_recv, Msg} ->
+            try
+                Fun(Msg)
+            catch
+                _:_ -> ok
+            end,
+            log_loop(Fun);
+
+        {update_fun, NewFun} ->
+            log_loop(NewFun);
+        stop ->
+            true
+    end.
+
+default_log_function({_Severity, Msg, Args}) ->
+    io:format(<<Msg/binary, " ~n">>, Args);
+
+default_log_function(Msg) ->
+    io:format(<<"Log received ts: ~p severity: ~s (~p) file: ~s line: ~p function: ~s message: ~s ~n">>, [
+        Msg#log_msg.ts,
+        Msg#log_msg.severity_str,
+        Msg#log_msg.severity,
+        Msg#log_msg.file,
+        Msg#log_msg.line,
+        Msg#log_msg.function,
+        Msg#log_msg.message]).
+
+start_logging(LogLevel, Fun) ->
+    LogPid = spawn_link(fun() -> log_loop(Fun) end),
+    ok = nif_cass_log_set_level_and_callback(LogLevel, LogPid),
+    LogPid.
 
 %% helper functions to store prepare statements
 
@@ -424,7 +490,7 @@ prepare_statement_exist(EtsTid, Identifier) ->
 
 load_nif() ->
     SoName = get_nif_library_path(),
-    io:format("Loading library: ~p ~n", [SoName]),
+    io:format(<<"Loading library: ~p ~n">>, [SoName]),
     ok = erlang:load_nif(SoName, 0).
 
 get_nif_library_path() ->
@@ -442,6 +508,12 @@ get_nif_library_path() ->
 
 not_loaded(Line) ->
     erlang:nif_error({not_loaded, [{module, ?MODULE}, {line, Line}]}).
+
+nif_cass_cluster_create() ->
+    ?NOT_LOADED.
+
+nif_cass_log_set_level_and_callback(_Level, _LogPid) ->
+    ?NOT_LOADED.
 
 nif_cass_cluster_set_options(_OptionList) ->
     ?NOT_LOADED.

@@ -12,6 +12,7 @@ const char kAtomTrue[] = "true";
 const char kAtomFalse[] = "false";
 const char kAtomNull[] = "null";
 const char kAtomConsistencyLevel[] = "consistency_level";
+const char kAtomLogMsgRecord[] = "log_msg";
 
 //events atoms
 
@@ -19,6 +20,7 @@ const char kAtomSessionConnected[] = "session_connected";
 const char kAtomSessionClosed[] = "session_closed";
 const char kAtomPreparedStatementResult[] = "prepared_statememt_result";
 const char kAtomExecuteStatementResult[] = "execute_statement_result";
+const char kAtomLogMessageReceived[] = "log_message_recv";
 
 //data types
 
@@ -92,6 +94,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomFalse = make_atom(env, kAtomFalse);
     ATOMS.atomNull = make_atom(env, kAtomNull);
     ATOMS.atomConsistencyLevel = make_atom(env, kAtomConsistencyLevel);
+    ATOMS.atomLogMsgRecord = make_atom(env, kAtomLogMsgRecord);
     
     //events atoms
     
@@ -99,6 +102,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomSessionClosed = make_atom(env, kAtomSessionClosed);
     ATOMS.atomPreparedStatementResult = make_atom(env, kAtomPreparedStatementResult);
     ATOMS.atomExecuteStatementResult = make_atom(env, kAtomExecuteStatementResult);
+    ATOMS.atomLogMessageReceived = make_atom(env, kAtomLogMessageReceived);
     
     //data types
     
@@ -154,7 +158,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingSslPrivateKey = make_atom(env, kAtomClusterSettingSslPrivateKey);
     
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
-    data->cluster = cass_cluster_new();
+    data->cluster = NULL;
     data->defaultConsistencyLevel = CASS_CONSISTENCY_ONE;
     
     open_resources(env, data);
@@ -192,6 +196,8 @@ static ErlNifFunc nif_funcs[] =
 {
     //CassCluster
     
+    {"nif_cass_cluster_create", 0, nif_cass_cluster_create},
+    {"nif_cass_log_set_level_and_callback", 2, nif_cass_log_set_level_and_callback},
     {"nif_cass_cluster_set_options", 1, nif_cass_cluster_set_options},
     
     //CassSession

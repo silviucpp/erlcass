@@ -8,7 +8,6 @@
 
 - Add support for Setting serial consistency,
 - Add support for pagination,
-- Add support for setting log level and custom handler
 - Add support for UDT
 - Add support for Cassandra 2.2 data types `tinyint` and `smallint`
 - Add support for the Cassandra 2.2 `date` data type
@@ -22,6 +21,7 @@
 
 ##### v2.0
 
+- Added support for logs from native driver
 - Added support for tuples
 - Added support for nested collections
 - Based on cpp driver 2.2.0-beta1
@@ -115,6 +115,40 @@ For more details please see the section dedicated to uuid's
 ```erlang
 application:start(erlcass).
 ```
+
+### Enable logs and setting custom log handler
+
+Available Log levels are:
+
+```erlang
+-define(CASS_LOG_DISABLED, 0).
+-define(CASS_LOG_CRITICAL, 1).
+-define(CASS_LOG_ERROR, 2).
+-define(CASS_LOG_WARN, 3). (default)
+-define(CASS_LOG_INFO, 4).
+-define(CASS_LOG_DEBUG,5).
+-define(CASS_LOG_TRACE, 6).
+```
+
+In order to change the log level for the native driver you need to set the `log_level` environment variable for erlcass into your config file.
+By default the logs are printed to console. In order to print them into an external log system you can use the `set_log_function` method.
+The callback should be a function with arity 1 which will receive a record of `log_msg` type defined as
+
+`
+-record(log_msg, {ts, severity, severity_str, file, line, function, message}).
+`
+
+where
+
+- `ts` is The millisecond timestamp (since the Epoch) when the message was logged (int)
+- `severity` The severity of the log message (int value from 1 to 6)
+- `severity_str` The severity of the log message as a string value (binary string)
+- `file` The file where the message was logged (binary string)
+- `line` The line in the file where the message was logged (int)
+- `function` The function where the message was logged (binary string)
+- `message` The message (binary string)
+
+or under `{_Severity, Msg, Args}` format (for all messages generated from Erlang code)
 
 ### Setting the cluster options
 

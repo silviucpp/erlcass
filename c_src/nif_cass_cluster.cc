@@ -363,6 +363,21 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_N
     return enif_make_badarg(env);
 }
 
+ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
+    
+    if(data->cluster)
+        return make_error(env, "Cluster object already exist");
+    
+    data->cluster = cass_cluster_new();
+    
+    if(data->cluster == NULL)
+        return make_error(env, "Failed to create the cluster object");
+    
+    return ATOMS.atomOk;
+}
+
 ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     if(!enif_is_list(env, argv[0]))
@@ -393,3 +408,46 @@ ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NI
     return ATOMS.atomOk;
 }
 
+void cass_log_callback(const CassLogMessage* message, void* data)
+{
+    ErlNifPid* pid = reinterpret_cast<ErlNifPid*>(data);
+    
+    ErlNifEnv* env = enif_alloc_env();
+    
+    const char* severity_str = cass_log_level_string(message->severity);
+    
+    ERL_NIF_TERM log_record = enif_make_tuple8(env,
+                                               ATOMS.atomLogMsgRecord,
+                                               enif_make_long(env, message->time_ms),
+                                               enif_make_int(env, message->severity),
+                                               make_binary(env, severity_str, strlen(severity_str)),
+                                               make_binary(env, message->file, strlen(message->file)),
+                                               enif_make_int(env, message->line),
+                                               make_binary(env, message->function, strlen(message->function)),
+                                               make_binary(env, message->message, strlen(message->message)));
+    
+    enif_send(NULL, pid, env, enif_make_tuple2(env, ATOMS.atomLogMessageReceived, log_record));
+    
+    enif_free_env(env);
+}
+
+ERL_NIF_TERM nif_cass_log_set_level_and_callback(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
+    
+    if(data->cluster)
+        return make_error(env, "Log level and callback should be set before any other function");
+    
+    int log_level;
+    
+    if(!enif_get_int(env, argv[0], &log_level))
+        return enif_make_badarg(env);
+
+    if(!enif_get_local_pid(env, argv[1], &data->log_pid))
+        return enif_make_badarg(env);
+
+    cass_log_set_level(static_cast<CassLogLevel>(log_level));
+    cass_log_set_callback(cass_log_callback, &data->log_pid);
+    
+    return ATOMS.atomOk;
+}

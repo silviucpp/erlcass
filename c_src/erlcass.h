@@ -12,6 +12,7 @@ struct atoms
     ERL_NIF_TERM atomFalse;
     ERL_NIF_TERM atomNull;
     ERL_NIF_TERM atomConsistencyLevel;
+    ERL_NIF_TERM atomLogMsgRecord;
     
     //events atoms
     
@@ -19,6 +20,7 @@ struct atoms
     ERL_NIF_TERM atomSessionClosed;
     ERL_NIF_TERM atomPreparedStatementResult;
     ERL_NIF_TERM atomExecuteStatementResult;
+    ERL_NIF_TERM atomLogMessageReceived;
     
     //data types
     
@@ -77,6 +79,8 @@ struct atoms
 struct cassandra_data
 {
     CassCluster* cluster;
+    ErlNifPid log_pid;
+    
     CassConsistency defaultConsistencyLevel;
     ErlNifResourceType* resCassSession;
     ErlNifResourceType* resCassPrepared;

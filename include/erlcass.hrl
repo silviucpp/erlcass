@@ -58,3 +58,15 @@
 
 -define(BIND_BY_INDEX, 1).
 -define(BIND_BY_NAME, 2).
+
+%log level
+
+-define(CASS_LOG_DISABLED, 0).
+-define(CASS_LOG_CRITICAL, 1).
+-define(CASS_LOG_ERROR, 2).
+-define(CASS_LOG_WARN, 3).
+-define(CASS_LOG_INFO, 4).
+-define(CASS_LOG_DEBUG,5).
+-define(CASS_LOG_TRACE, 6).
+
+-record(log_msg, {ts, severity, severity_str, file, line, function, message}).

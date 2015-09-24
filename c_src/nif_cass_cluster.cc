@@ -10,6 +10,7 @@
 #include "erlcass.h"
 #include "nif_utils.h"
 
+#include <string.h>
 #include <vector>
 
 //CassCluster

@@ -174,11 +174,6 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
     return true;
 }
 
-CassCollectionType value_type_to_collection_type(CassValueType type)
-{
-    return static_cast<CassCollectionType>(type);
-}
-
 bool populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn &type, CassError* error)
 {
     ERL_NIF_TERM head;
@@ -233,7 +228,7 @@ CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, c
     if(!enif_get_list_length(env, list, &length))
         return NULL;
     
-    CassCollection* collection = cass_collection_new(value_type_to_collection_type(type.type), length);
+    CassCollection* collection = cass_collection_new(static_cast<CassCollectionType>(type.type), length);
     
     bool success;
     

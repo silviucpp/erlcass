@@ -26,17 +26,6 @@ ERL_NIF_TERM make_error(ErlNifEnv* env, const char* error)
     return enif_make_tuple2(env, ATOMS.atomError, make_binary(env, error, strlen(error)));
 }
 
-bool get_atom(ErlNifEnv* env, ERL_NIF_TERM term, std::string & value)
-{
-    unsigned len;
-    
-    if(!enif_get_atom_length(env, term, &len, ERL_NIF_LATIN1))
-        return false;
-    
-    value.resize(len+1);
-    return enif_get_atom(env, term, &*(value.begin()), len+1, ERL_NIF_LATIN1);
-}
-
 bool get_string(ErlNifEnv* env, ERL_NIF_TERM term, std::string & value)
 {
     if(enif_is_binary(env, term))

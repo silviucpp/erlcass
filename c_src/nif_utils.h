@@ -21,6 +21,5 @@ ERL_NIF_TERM cass_error_to_nif_term(ErlNifEnv* env, CassError error);
 ERL_NIF_TERM cass_future_error_to_nif_term(ErlNifEnv* env, CassFuture* future);
 
 bool get_string(ErlNifEnv* env, ERL_NIF_TERM term, std::string & value);
-bool get_atom(ErlNifEnv* env, ERL_NIF_TERM term, std::string & value);
 
 #endif

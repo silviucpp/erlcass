@@ -25,7 +25,7 @@ case $OS in
            popd
            popd
            sudo grep -q -F '/usr/local/lib' /etc/ld.so.conf.d/usrlocal.conf || echo '/usr/local/lib' | sudo tee --append /etc/ld.so.conf.d/usrlocal.conf > /dev/null
-           ldconfig -v
+           sudo ldconfig -v
            fi
           ;;
        Ubuntu)

@@ -42,18 +42,17 @@ bool get_string(ErlNifEnv* env, ERL_NIF_TERM term, std::string & value)
     else
     {
         unsigned len;
-        bool ret = enif_get_list_length(env, term, &len);
         
-        if(ret)
+        if(enif_get_list_length(env, term, &len))
         {
             value.resize(len+1);
-            ret =  enif_get_string(env, term, &*(value.begin()), value.size(), ERL_NIF_LATIN1);
             
-            if(ret > 0)
-                value.resize(len); //trim null terminated char.
+            if(enif_get_string(env, term, &*(value.begin()), value.size(), ERL_NIF_LATIN1) > 0)
+            {
+            	value.resize(len); //trim null terminated char.
+            	return true;
+            }
         }
-        
-        return ret;
     }
     
     return false;

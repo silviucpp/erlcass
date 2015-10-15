@@ -264,9 +264,12 @@ init([]) ->
         {ok, ClusterOptions} ->
             nif_cass_cluster_set_options(ClusterOptions),
             {ok, S} = nif_cass_session_new(),
+
             case application:get_env(erlcass, keyspace) of
-                {ok, Keyspace} -> nif_cass_session_connect_keyspace(S, self(), Keyspace);
-                _ -> nif_cass_session_connect(S, self())
+                {ok, Keyspace} ->
+                    nif_cass_session_connect_keyspace(S, self(), Keyspace);
+                _ ->
+                    nif_cass_session_connect(S, self())
             end,
 
             receive
@@ -411,7 +414,7 @@ terminate(Reason, State) ->
             ok
     end,
 
-    ok.
+    ok = nif_cass_cluster_release().
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
@@ -510,6 +513,9 @@ not_loaded(Line) ->
     erlang:nif_error({not_loaded, [{module, ?MODULE}, {line, Line}]}).
 
 nif_cass_cluster_create() ->
+    ?NOT_LOADED.
+
+nif_cass_cluster_release() ->
     ?NOT_LOADED.
 
 nif_cass_log_set_level_and_callback(_Level, _LogPid) ->

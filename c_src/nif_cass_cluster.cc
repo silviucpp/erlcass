@@ -379,6 +379,19 @@ ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TER
     return ATOMS.atomOk;
 }
 
+ERL_NIF_TERM nif_cass_cluster_release(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
+    
+    if(!data->cluster)
+        return make_error(env, "Cluster object doesn't exist");
+    
+    cass_cluster_free(data->cluster);
+    data->cluster = NULL;
+    
+    return ATOMS.atomOk;
+}
+
 ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     if(!enif_is_list(env, argv[0]))

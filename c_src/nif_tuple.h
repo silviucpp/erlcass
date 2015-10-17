@@ -13,6 +13,6 @@
 #include "cassandra.h"
 #include "metadata.h"
 
-CassTuple* nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const SchemaColumn & type, CassError* error);
+ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const SchemaColumn & type, CassTuple** tuple);
 
 #endif /* nif_tuple_hpp */

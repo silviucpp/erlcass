@@ -4,6 +4,7 @@
 
 ### TODO List:
 
+- Add support for multiple sessions
 - Add support for Setting serial consistency,
 - Add support for pagination,
 - Add support for UDT
@@ -22,7 +23,7 @@
 - Added support for logs from native driver
 - Added support for tuples
 - Added support for nested collections
-- Based on cpp driver 2.2.0-beta1
+- Based on cpp-driver 2.2.0-beta1
 - Interfaces changes: `bind_prepared_params` replaced by `bind_prepared_params_by_name` and `bind_prepared_params_by_index`
 - Add support for `async_execute/1` and `execute/1` (should be used when no binding params available)
 - Add support for `async_execute/3` and `execute/3` (second parameter should be used to specify the binding type - by name or index)
@@ -30,14 +31,13 @@
 
 ##### v1.0
 
-- Initial implementation supporting most of basic features available in Cpp Driver
-- Based on cpp driver 1.0.3
+- Initial implementation supporting most of the features available in Datastax cpp-driver 1.0.3
 
 ### Getting starting:
 
-*On the most recent driver version the rebar script will install for you all dependencies on Cent OS, Ubuntu and Mac OS. So you can skip this section.*
+*Usually the rebar script will install for you all dependencies on Cent OS, Ubuntu and Mac OS. So you can skip this section.*
 
-Make sure you have all dependencies required to compile the Datastax C++ Driver.
+This dependecies are required to compile the Datastax c++ driver.
 More details [here][1].
 
 For example:
@@ -240,9 +240,9 @@ Default: `CASS_SSL_VERIFY_PEER_CERT`
 
 Example: {protocol_version, 2}
 
-Sets the protocol version. This will automatically downgrade if to protocol version 1.
+Sets the protocol version. This will automatically downgrade to the lowest protocol version supported.
 
-Default: 2
+Default: 4
 
 ##### number_threads_io
 

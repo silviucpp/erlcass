@@ -7,3 +7,4 @@
 /ebin
 /cpp-driver
 *.iml
+/deps/

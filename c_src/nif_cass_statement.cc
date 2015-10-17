@@ -206,6 +206,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
     {
         //bind by name -> {name, value}
         
+        cass::IndexVec indices;
         std::string column_name;
         const ERL_NIF_TERM *items;
         int arity;
@@ -218,19 +219,16 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             if(!get_string(env, items[0], column_name))
                 return enif_make_badarg(env);
             
-            cass::IndexVec indices;
+            if(result->metadata()->get_indices(column_name, &indices) == 0)
+                return enif_make_badarg(env);
             
-            result->metadata()->get_indices(column_name, &indices);
+            size_t index = indices[0];
             
-            for (cass::IndexVec::const_iterator it = indices.begin(); it != indices.end(); ++it)
-            {
-                SchemaColumn sc = get_schema_column(result->metadata()->get_column_definition(*it).data_type.get());
+            SchemaColumn sc = get_schema_column(result->metadata()->get_column_definition(index).data_type.get());
+            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, items[1]);
                 
-                ERL_NIF_TERM result = bind_param_by_index(env, statement, *it, sc, items[1]);
-                
-                if(!enif_is_identical(result, ATOMS.atomOk))
-                    return result;
-            }
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
         }
     }
     else

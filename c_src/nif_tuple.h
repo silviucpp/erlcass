@@ -10,7 +10,6 @@
 #define nif_tuple_hpp
 
 #include "erl_nif.h"
-#include "cassandra.h"
 #include "metadata.h"
 
 ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const SchemaColumn & type, CassTuple** tuple);

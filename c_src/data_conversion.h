@@ -10,7 +10,8 @@
 #define __erlcass__data_conversion__
 
 #include "erl_nif.h"
-#include "cassandra.h"
+
+typedef struct CassResult_ CassResult;
 
 ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result);
 

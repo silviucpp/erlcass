@@ -9,7 +9,8 @@
 #ifndef __erlcass__nif_cass_prepared__
 #define __erlcass__nif_cass_prepared__
 
-#include "erlcass.h"
+#include "erl_nif.h"
+#include "cassandra.h"
 
 ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency);
 ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);

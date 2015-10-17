@@ -12,9 +12,7 @@
 #include "nif_collection.h"
 #include "nif_tuple.h"
 #include "uuid_serialization.h"
-#include "types.hpp"
 #include "execute_request.hpp"
-#include "data_type.hpp"
 #include "external_types.hpp"
 
 #define BIND_BY_INDEX 1

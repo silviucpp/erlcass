@@ -11,6 +11,7 @@
 #include "nif_collection.h"
 #include "erlcass.h"
 #include "uuid_serialization.h"
+#include "cassandra.h"
 
 ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const SchemaColumn& type, ERL_NIF_TERM value)
 {

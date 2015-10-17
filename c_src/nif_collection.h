@@ -13,6 +13,6 @@
 #include "cassandra.h"
 #include "metadata.h"
 
-CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const SchemaColumn & type, CassError* error);
+ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const  SchemaColumn& type, CassCollection ** col);
 
 #endif /* defined(__erlcass__collection__) */

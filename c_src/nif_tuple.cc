@@ -12,7 +12,7 @@
 #include "erlcass.h"
 #include "uuid_serialization.h"
 
-bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const SchemaColumn& type, ERL_NIF_TERM value, CassError* cass_error)
+ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const SchemaColumn& type, ERL_NIF_TERM value)
 {
     switch (type.type)
     {
@@ -23,10 +23,9 @@ bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const 
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_tuple_set_string_n(tuple, index, str_value.c_str(), str_value.length());
-            break;
+            return cass_error_to_nif_term(env, cass_tuple_set_string_n(tuple, index, str_value.c_str(), str_value.length()));
         }
             
         case CASS_VALUE_TYPE_INT:
@@ -34,10 +33,9 @@ bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const 
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_tuple_set_int32(tuple, index, int_value);
-            break;
+            return cass_error_to_nif_term(env, cass_tuple_set_int32(tuple, index, int_value));
         }
             
         case CASS_VALUE_TYPE_TIMESTAMP:
@@ -47,10 +45,9 @@ bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const 
             long long_value = 0;
             
             if(!enif_get_int64(env, value, &long_value ))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_tuple_set_int64(tuple, index, long_value);
-            break;
+            return cass_error_to_nif_term(env, cass_tuple_set_int64(tuple, index, long_value));
         }
             
         case CASS_VALUE_TYPE_VARINT:
@@ -59,17 +56,16 @@ bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const 
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_tuple_set_bytes(tuple, index, reinterpret_cast<const cass_byte_t*>(str_value.data()), str_value.size());
-            break;
+            const cass_byte_t* bytes = reinterpret_cast<const cass_byte_t*>(str_value.data());
+            return cass_error_to_nif_term(env, cass_tuple_set_bytes(tuple, index, bytes, str_value.size()));
         }
             
         case CASS_VALUE_TYPE_BOOLEAN:
         {
-            cass_bool_t bool_value = enif_is_identical(ATOMS.atomTrue, value) ? cass_true : cass_false;
-            *cass_error = cass_tuple_set_bool(tuple, index, bool_value);
-            break;
+            cass_bool_t bool_value = static_cast<cass_bool_t>(enif_is_identical(ATOMS.atomTrue, value));
+            return cass_error_to_nif_term(env, cass_tuple_set_bool(tuple, index, bool_value));
         }
             
         case CASS_VALUE_TYPE_FLOAT:
@@ -77,13 +73,12 @@ bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const 
         {
             double val_double;
             if(!enif_get_double(env, value, &val_double))
-                return false;
+                return enif_make_badarg(env);
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
-                *cass_error = cass_tuple_set_float(tuple, index, static_cast<float>(val_double));
+                return cass_error_to_nif_term(env, cass_tuple_set_float(tuple, index, static_cast<float>(val_double)));
             else
-                *cass_error = cass_tuple_set_double(tuple, index, val_double);
-            break;
+                return cass_error_to_nif_term(env, cass_tuple_set_double(tuple, index, val_double));
         }
             
         case CASS_VALUE_TYPE_INET:
@@ -91,14 +86,13 @@ bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const 
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
             CassInet inet;
             if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_tuple_set_inet(tuple, index, inet);
-            break;
+            return cass_error_to_nif_term(env, cass_tuple_set_inet(tuple, index, inet));
         }
             
         case CASS_VALUE_TYPE_TIMEUUID:
@@ -107,14 +101,13 @@ bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const 
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
             CassUuid uuid;
             if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_tuple_set_uuid(tuple, index, uuid);
-            break;
+            return cass_error_to_nif_term(env, cass_tuple_set_uuid(tuple, index, uuid));
         }
             
         case CASS_VALUE_TYPE_DECIMAL:
@@ -123,78 +116,75 @@ bool cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const 
             int arity;
             
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
-                return false;
+                return enif_make_badarg(env);
             
             std::string varint;
             int scale;
             
             if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_tuple_set_decimal(tuple, index, reinterpret_cast<const cass_byte_t*>(varint.data()), varint.size(), scale);
-            break;
+            const cass_byte_t* varint_bytes = reinterpret_cast<const cass_byte_t*>(varint.data());
+            return cass_error_to_nif_term(env, cass_tuple_set_decimal(tuple, index, varint_bytes, varint.size(), scale));
         }
             
         case CASS_VALUE_TYPE_MAP:
         case CASS_VALUE_TYPE_LIST:
         case CASS_VALUE_TYPE_SET:
         {
-            CassCollection* nested_collection = nif_list_to_cass_collection(env, value, type, cass_error);
+            CassCollection* collection = NULL;
             
-            if(!nested_collection)
-                return false;
+            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, type, &collection);
             
-            if(*cass_error == CASS_OK)
-                *cass_error = cass_tuple_set_collection(tuple, index, nested_collection);
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
             
-            cass_collection_free(nested_collection);
-            
-            break;
+            CassError error = cass_tuple_set_collection(tuple, index, collection);
+            cass_collection_free(collection);
+            return cass_error_to_nif_term(env, error);
         }
             
         case CASS_VALUE_TYPE_TUPLE:
         {
-            CassTuple* nested_tuple = nif_term_to_cass_tuple(env, value, type, cass_error);
+            CassTuple* nested_tuple = NULL;
             
-            if(!nested_tuple)
-                return false;
+            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, type, &nested_tuple);
             
-            if(*cass_error == CASS_OK)
-                *cass_error = cass_tuple_set_tuple(tuple, index, nested_tuple);
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
             
+            CassError error = cass_tuple_set_tuple(tuple, index, nested_tuple);
             cass_tuple_free(nested_tuple);
-            
-            break;
+            return cass_error_to_nif_term(env, error);
         }
             
         default:
-            return false;
+            return make_error(env, "failed to set unknown type into the tuple");
     }
-    
-    return true;
 }
 
-CassTuple* nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const SchemaColumn & type, CassError* error)
+ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const SchemaColumn & type, CassTuple** tp)
 {
     const ERL_NIF_TERM *items;
     int arity;
     
     if(!enif_get_tuple(env, term, &arity, &items) || arity == 0 || static_cast<size_t>(arity) != type.subtypes.size())
-        return NULL;
+        return enif_make_badarg(env);
     
     CassTuple* tuple = cass_tuple_new(arity);
+    ERL_NIF_TERM item_term;
     
     for (int i = 0; i < arity; i++)
     {
-        if(!cass_tuple_set_from_nif(env, tuple, i, type.subtypes.at(i), items[i], error))
+        item_term = cass_tuple_set_from_nif(env, tuple, i, type.subtypes.at(i), items[i]);
+        
+        if(!enif_is_identical(item_term, ATOMS.atomOk))
         {
             cass_tuple_free(tuple);
-            return NULL;
+            return item_term;
         }
-        
-        if(*error != CASS_OK)
-            break;
     }
     
-    return tuple;
+    *tp = tuple;
+    return ATOMS.atomOk;
 }

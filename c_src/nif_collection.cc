@@ -12,7 +12,7 @@
 #include "erlcass.h"
 #include "uuid_serialization.h"
 
-bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value, CassError* cass_error)
+ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value)
 {
     switch (type.type)
     {
@@ -23,10 +23,9 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_collection_append_string_n(collection, str_value.c_str(), str_value.length());
-            break;
+            return cass_error_to_nif_term(env, cass_collection_append_string_n(collection, str_value.c_str(), str_value.length()));
         }
             
         case CASS_VALUE_TYPE_INT:
@@ -34,10 +33,9 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_collection_append_int32(collection, int_value);
-            break;
+            return cass_error_to_nif_term(env, cass_collection_append_int32(collection, int_value));
         }
             
         case CASS_VALUE_TYPE_TIMESTAMP:
@@ -47,10 +45,9 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             long long_value = 0;
             
             if(!enif_get_int64(env, value, &long_value ))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_collection_append_int64(collection, long_value);
-            break;
+            return cass_error_to_nif_term(env, cass_collection_append_int64(collection, long_value));
         }
             
         case CASS_VALUE_TYPE_VARINT:            
@@ -59,17 +56,16 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_collection_append_bytes(collection, reinterpret_cast<const cass_byte_t*>(str_value.data()), str_value.size());
-            break;
+            const cass_byte_t* bytes = reinterpret_cast<const cass_byte_t*>(str_value.data());
+            return cass_error_to_nif_term(env, cass_collection_append_bytes(collection, bytes, str_value.size()));
         }
             
         case CASS_VALUE_TYPE_BOOLEAN:
         {
-            cass_bool_t bool_value = enif_is_identical(ATOMS.atomTrue, value) ? cass_true : cass_false;
-            *cass_error = cass_collection_append_bool(collection, bool_value);
-            break;
+            cass_bool_t bool_value = static_cast<cass_bool_t>(enif_is_identical(ATOMS.atomTrue, value));
+            return cass_error_to_nif_term(env, cass_collection_append_bool(collection, bool_value));
         }
             
         case CASS_VALUE_TYPE_FLOAT:
@@ -77,13 +73,12 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
         {
             double val_double;
             if(!enif_get_double(env, value, &val_double))
-                return false;
+                return enif_make_badarg(env);
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
-                *cass_error = cass_collection_append_float(collection, static_cast<float>(val_double));
+                return cass_error_to_nif_term(env, cass_collection_append_float(collection, static_cast<float>(val_double)));
             else
-                *cass_error = cass_collection_append_double(collection, val_double);
-            break;
+                return cass_error_to_nif_term(env, cass_collection_append_double(collection, val_double));
         }
             
         case CASS_VALUE_TYPE_INET:
@@ -91,14 +86,13 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
             CassInet inet;
             if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_collection_append_inet(collection, inet);
-            break;
+            return cass_error_to_nif_term(env, cass_collection_append_inet(collection, inet));
         }
             
         case CASS_VALUE_TYPE_TIMEUUID:
@@ -107,14 +101,13 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             std::string str_value;
             
             if(!get_string(env, value, str_value))
-                return false;
+                return enif_make_badarg(env);
             
             CassUuid uuid;
             if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_collection_append_uuid(collection, uuid);
-            break;
+            return cass_error_to_nif_term(env, cass_collection_append_uuid(collection, uuid));
         }
             
         case CASS_VALUE_TYPE_DECIMAL:
@@ -123,126 +116,119 @@ bool cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection,
             int arity;
             
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
-                return false;
+                return enif_make_badarg(env);
             
             std::string varint;
             int scale;
             
             if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
-                return false;
+                return enif_make_badarg(env);
             
-            *cass_error = cass_collection_append_decimal(collection, reinterpret_cast<const cass_byte_t*>(varint.data()), varint.size(), scale);
-            break;
+            const cass_byte_t* varint_bytes = reinterpret_cast<const cass_byte_t*>(varint.data());
+            return cass_error_to_nif_term(env, cass_collection_append_decimal(collection, varint_bytes, varint.size(), scale));
         }
             
         case CASS_VALUE_TYPE_MAP:
         case CASS_VALUE_TYPE_LIST:
         case CASS_VALUE_TYPE_SET:
         {
-            CassCollection* nested_collection = nif_list_to_cass_collection(env, value, type, cass_error);
+            CassCollection* nested_collection = NULL;
             
-            if(!nested_collection)
-                return false;
+            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, type, &nested_collection);
             
-            if(*cass_error == CASS_OK)
-                *cass_error = cass_collection_append_collection(collection, nested_collection);
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
             
+            CassError error = cass_collection_append_collection(collection, nested_collection);
             cass_collection_free(nested_collection);
-            
-            break;
+            return cass_error_to_nif_term(env, error);
         }
             
         case CASS_VALUE_TYPE_TUPLE:
         {
-            CassTuple* tuple = nif_term_to_cass_tuple(env, value, type, cass_error);
+            CassTuple* tuple = NULL;
             
-            if(!tuple)
-                return false;
+            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, type, &tuple);
             
-            if(*cass_error == CASS_OK)
-                *cass_error = cass_collection_append_tuple(collection, tuple);
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
             
+            CassError error = cass_collection_append_tuple(collection, tuple);
             cass_tuple_free(tuple);
-            
-            break;
+            return cass_error_to_nif_term(env, error);
         }
             
+        //not implemented types
         default:
-            return false;
+            return make_error(env, "failed to add unknown type to the collection");
     }
-    
-    return true;
 }
 
-bool populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn &type, CassError* error)
+ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn &type)
 {
     ERL_NIF_TERM head;
+    ERL_NIF_TERM item_term;
     
     while(enif_get_list_cell(env, list, &head, &list))
     {
-        if(!cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], head, error))
-            return false;
+        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], head);
         
-        if(*error != CASS_OK)
-            break;
+        if(!enif_is_identical(item_term, ATOMS.atomOk))
+            return item_term;
     }
     
-    return true;
+    return ATOMS.atomOk;
 }
 
-bool populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn& type, CassError* error)
+ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn& type)
 {
     ERL_NIF_TERM head;
+    ERL_NIF_TERM item_term;
     const ERL_NIF_TERM *items;
     int arity;
     
     while(enif_get_list_cell(env, list, &head, &list))
     {
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return false;
+            return enif_make_badarg(env);
         
         //add key
+        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], items[0]);
         
-        if(!cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], items[0], error))
-            return false;
-        
-        if(*error != CASS_OK)
-            break;
+        if(!enif_is_identical(item_term, ATOMS.atomOk))
+            return item_term;
         
         //add value
         
-        if(!cass_collection_append_from_nif(env, collection, type.subtypes[VAL_INDEX], items[1], error))
-            return false;
+        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[VAL_INDEX], items[1]);
         
-        if(*error != CASS_OK)
-            break;
+        if(!enif_is_identical(item_term, ATOMS.atomOk))
+            return item_term;
     }
     
-    return true;
+    return ATOMS.atomOk;
 }
 
-CassCollection* nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const  SchemaColumn& type, CassError * error)
+ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const  SchemaColumn& type, CassCollection ** col)
 {
     unsigned int length;
     
     if(!enif_get_list_length(env, list, &length))
-        return NULL;
+        return enif_make_badarg(env);
     
     CassCollection* collection = cass_collection_new(static_cast<CassCollectionType>(type.type), length);
     
-    bool success;
+    ERL_NIF_TERM return_value;
     
     if(type.type != CASS_VALUE_TYPE_MAP)
-        success = populate_list_set_collection(env, list, collection, type, error);
+        return_value = populate_list_set_collection(env, list, collection, type);
     else
-        success = populate_map_collection(env, list, collection, type, error);
+        return_value = populate_map_collection(env, list, collection, type);
 
-    if(!success)
-    {
+    if(!enif_is_identical(return_value, ATOMS.atomOk))
         cass_collection_free(collection);
-        collection = NULL;
-    }
+    else
+        *col = collection;
     
-    return collection;
+    return return_value;
 }
-

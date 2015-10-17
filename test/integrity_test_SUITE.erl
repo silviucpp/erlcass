@@ -6,7 +6,7 @@
 
 -compile(export_all).
 
--define(CONTACT_POINTS, <<"172.17.3.129">>).
+-define(CONTACT_POINTS, <<"127.0.0.1">>).
 
 %%ct_run -suite integrity_test_SUITE -pa ebin -include include
 
@@ -245,8 +245,8 @@ prepared_bind_by_name_index(_Config) ->
     CollectionValue2 = <<"my_value_2">>,
     Key1 = 5,
     Key2 = 10,
-    QueryInsert  = <<"UPDATE examples.test_map SET value[?] = ? WHERE key = ?">>,
-    QuerySelect  = <<"SELECT value FROM examples.test_map where key = ?">>,
+    QueryInsert  = <<"UPDATE erlang_driver_test.test_map SET value[?] = ? WHERE key = ?">>,
+    QuerySelect  = <<"SELECT value FROM erlang_driver_test.test_map where key = ?">>,
 
     ok = erlcass:add_prepare_statement(insert_test_bind, QueryInsert),
     ok = erlcass:add_prepare_statement(select_test_bind, QuerySelect),

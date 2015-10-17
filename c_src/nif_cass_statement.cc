@@ -44,8 +44,6 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
 {
     if(enif_is_identical(value, ATOMS.atomNull))
         return cass_error_to_nif_term(env, cass_statement_bind_null(statement, index));
-
-    CassError cass_error;
     
     switch (type.type)
     {
@@ -59,8 +57,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(!get_string(env, value, str_value))
                 return enif_make_badarg(env);
             
-            cass_error = cass_statement_bind_string_n(statement, index, str_value.c_str(), str_value.length());
-            break;
+            return cass_error_to_nif_term(env, cass_statement_bind_string_n(statement, index, str_value.c_str(), str_value.length()));
         }
             
         case CASS_VALUE_TYPE_INT:
@@ -70,8 +67,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(!enif_get_int(env, value, &int_value ))
                 return enif_make_badarg(env);
             
-            cass_error = cass_statement_bind_int32(statement, index, int_value);
-            break;
+            return cass_error_to_nif_term(env, cass_statement_bind_int32(statement, index, int_value));
         }
             
         case CASS_VALUE_TYPE_TIMESTAMP:
@@ -83,8 +79,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(!enif_get_int64(env, value, &long_value ))
                 return enif_make_badarg(env);
             
-            cass_error = cass_statement_bind_int64(statement, index, long_value);
-            break;
+            return cass_error_to_nif_term(env, cass_statement_bind_int64(statement, index, long_value));
         }
          
         case CASS_VALUE_TYPE_VARINT:
@@ -95,15 +90,14 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(!get_string(env, value, str_value))
                 return enif_make_badarg(env);
             
-            cass_error = cass_statement_bind_bytes(statement, index, reinterpret_cast<const cass_byte_t*>(str_value.data()), str_value.size());
-            break;
+            const cass_byte_t* bytes = reinterpret_cast<const cass_byte_t*>(str_value.data());
+            return cass_error_to_nif_term(env, cass_statement_bind_bytes(statement, index, bytes, str_value.size()));
         }
             
         case CASS_VALUE_TYPE_BOOLEAN:
         {
-            cass_bool_t bool_value = enif_is_identical(ATOMS.atomTrue, value) ? cass_true : cass_false;
-            cass_error = cass_statement_bind_bool(statement, index, bool_value);
-            break;
+            cass_bool_t bool_value = static_cast<cass_bool_t>(enif_is_identical(ATOMS.atomTrue, value));
+            return cass_error_to_nif_term(env, cass_statement_bind_bool(statement, index, bool_value));
         }
             
         case CASS_VALUE_TYPE_FLOAT:
@@ -114,10 +108,9 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
                 return enif_make_badarg(env);
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
-                cass_error = cass_statement_bind_float(statement, index, static_cast<float>(val_double));
+                return cass_error_to_nif_term(env, cass_statement_bind_float(statement, index, static_cast<float>(val_double)));
             else
-                cass_error = cass_statement_bind_double(statement, index, val_double);
-            break;
+                return cass_error_to_nif_term(env, cass_statement_bind_double(statement, index, val_double));
         }
             
         case CASS_VALUE_TYPE_INET:
@@ -131,8 +124,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
                 return enif_make_badarg(env);
             
-            cass_error = cass_statement_bind_inet(statement, index, inet);
-            break;
+            return cass_error_to_nif_term(env, cass_statement_bind_inet(statement, index, inet));
         }
             
         case CASS_VALUE_TYPE_TIMEUUID:
@@ -147,8 +139,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
                 return enif_make_badarg(env);
             
-            cass_error = cass_statement_bind_uuid(statement, index, uuid);
-            break;
+            return cass_error_to_nif_term(env, cass_statement_bind_uuid(statement, index, uuid));
         }
             
         case CASS_VALUE_TYPE_DECIMAL:
@@ -165,55 +156,45 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
                 return enif_make_badarg(env);
             
-            cass_error = cass_statement_bind_decimal(statement, index, reinterpret_cast<const cass_byte_t*>(varint.data()), varint.size(), scale);
-            break;
+            const cass_byte_t* variant_bytes = reinterpret_cast<const cass_byte_t*>(varint.data());
+            return cass_error_to_nif_term(env, cass_statement_bind_decimal(statement, index, variant_bytes, varint.size(), scale));
         }
         
         case CASS_VALUE_TYPE_MAP:
         case CASS_VALUE_TYPE_LIST:
         case CASS_VALUE_TYPE_SET:
         {
-            CassError error = CASS_OK;
+            CassCollection* collection = NULL;
             
-            CassCollection* collection = nif_list_to_cass_collection(env, value, type, &error);
+            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, type, &collection);
             
-            if(!collection)
-                return enif_make_badarg(env);
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
             
-            if(error == CASS_OK)
-                cass_error = cass_statement_bind_collection(statement, index, collection);
-            else
-                cass_error = error;
-            
+            CassError error = cass_statement_bind_collection(statement, index, collection);
             cass_collection_free(collection);
-            
-            break;
+            return cass_error_to_nif_term(env, error);
         }
             
         case CASS_VALUE_TYPE_TUPLE:
         {
-            CassError error = CASS_OK;
+            CassTuple* tuple = NULL;
             
-            CassTuple* tuple = nif_term_to_cass_tuple(env, value, type, &error);
+            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, type, &tuple);
             
-            if(!tuple)
-                return enif_make_badarg(env);
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
             
-            if(error == CASS_OK)
-                cass_error = cass_statement_bind_tuple(statement, index, tuple);
-            else
-                cass_error = error;
-            
+            CassError error = cass_statement_bind_tuple(statement, index, tuple);
             cass_tuple_free(tuple);
-            break;
+            return cass_error_to_nif_term(env, error);
         }
-            
+
+        //not implemented data types
         default:
-            cass_error = cass_statement_bind_null(statement, index);
-            break;
+            return make_error(env, "bind failed: not implemented column type");
     }
     
-    return cass_error_to_nif_term(env, cass_error);
 }
 
 ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* statement, int type, ERL_NIF_TERM list)

@@ -20,9 +20,9 @@ case $OS in
                     then echo "libuv has already been installed"
                 else
                     pushd /tmp
-                    wget http://dist.libuv.org/dist/v1.4.2/libuv-v1.4.2.tar.gz
-                    tar xzf libuv-v1.4.2.tar.gz
-                    pushd libuv-v1.4.2
+                    wget http://libuv.org/dist/v1.7.5/libuv-v1.7.5.tar.gz
+                    tar xzf libuv-v1.7.5.tar.gz
+                    pushd libuv-v1.7.5
                     sh autogen.sh
                     ./configure
                     sudo make install
@@ -49,7 +49,8 @@ case $OS in
     ;;
 
     Darwin)
-        brew install libuv cmake
+        brew install libuv cmake openssl
+        brew link --force openssl
         ;;
 
     *) echo "Your system $OS is not supported"

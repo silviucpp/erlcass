@@ -47,9 +47,9 @@ Centos:
 ```sh
 sudo yum install automake cmake gcc-c++ git libtool openssl-devel wget
 pushd /tmp
-wget http://libuv.org/dist/v1.4.2/libuv-v1.4.2.tar.gz
-tar xzf libuv-v1.4.2.tar.gz
-pushd libuv-v1.4.2
+wget http://libuv.org/dist/v1.7.5/libuv-v1.7.5.tar.gz
+pushd libuv-v1.7.5
+tar xzf libuv-v1.7.5.tar.gz
 sh autogen.sh
 ./configure
 sudo make install
@@ -77,7 +77,8 @@ sudo apt-get install g++ make cmake libuv-dev libssl-dev
 Mac OS:
 
 ```sh
-brew install libuv cmake
+brew install libuv cmake openssl
+brew link --force openssl
 ```
 
 ### Data types

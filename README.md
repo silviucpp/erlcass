@@ -8,7 +8,6 @@
 - Add support for Setting serial consistency,
 - Add support for pagination,
 - Add support for UDT
-- Add support for Cassandra 2.2 data types `tinyint` and `smallint`
 - Add support for the Cassandra 2.2 `date` data type
 - Add support for functions to convert from Unix Epoch time (in seconds) to and from the Cassandra `date` and `time` types
 - Add support for sending and relieving custom payloads to and from Cassandra
@@ -17,6 +16,12 @@
 - Add support for client-side timestamps settings
 
 ### Changelog:
+
+##### v2.1 (Not released yet)
+
+- Add support for Cassandra 2.2 data types `tinyint` and `smallint`
+- Small improvements
+- Refactoring the build dependencies script
 
 ##### v2.0
 
@@ -99,6 +104,8 @@ boolean                    | `true`, `false`                              | true
 decimal                    | `{Unscaled :: binary(), Scale :: integer()}` | {<<"1234">>, 5}
 double                     | float (signed 64-bit)                        | 5.1235131241221e-6
 float                      | float (signed 32-bit)                        | 5.12351e-6
+tinyint                    | integer (signed 8-bit)                       | 127
+smallint                   | integer (signed 16-bit)                      | 32767
 int                        | integer (signed 32-bit)                      | 2147483647
 uuid                       | binary                                       | <<"61c16fb1-44ca-4591-9317-ac96ddbd8694">>
 varint                     | binary                                       | <<"1928301970128391280192830198049113123">>
@@ -154,8 +161,6 @@ or under `{_Severity, Msg, Args}` format (for all messages generated from Erlang
 ```erlang
 ok = erlcass:set_cluster_options([
             {contact_points,<<"172.17.3.129">>},
-            {load_balance_round_robin, true},
-            {token_aware_routing, true},
             {load_balance_dc_aware, {<<"dc-beta">>, 0, false}},
             {default_consistency_level, ?CASS_CONSISTENCY_ONE},
             {number_threads_io, 4},
@@ -569,6 +574,8 @@ The datatypes can be found into *erlcass.hrl* file as follow:
 
 ```erlang
 -define(CASS_TEXT, text).                         %use for (ascii, text, varchar)
+-define(CASS_TINYINT, tinyint).                   %use for (tinyint)
+-define(CASS_SMALLINT, smallint).                 %use for (smallint)
 -define(CASS_INT, int).                           %use for (int )
 -define(CASS_BIGINT, bigint).                     %use for (timestamp, counter, bigint)
 -define(CASS_BLOB, blob).                         %use for (varint, blob)

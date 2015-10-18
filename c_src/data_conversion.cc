@@ -22,6 +22,8 @@ ERL_NIF_TERM int64_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM bool_to_erlang_term(const CassValue* value);
 ERL_NIF_TERM float_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM double_to_erlang_term(ErlNifEnv* env, const CassValue* value);
+ERL_NIF_TERM tiny_int_to_erlang_term(ErlNifEnv* env, const CassValue* value);
+ERL_NIF_TERM small_int_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM int_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value);
@@ -50,6 +52,12 @@ ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
             
         case CASS_VALUE_TYPE_DOUBLE:
             return double_to_erlang_term(env, value);
+
+        case CASS_VALUE_TYPE_TINY_INT:
+            return tiny_int_to_erlang_term(env, value);
+            
+        case CASS_VALUE_TYPE_SMALL_INT:
+            return small_int_to_erlang_term(env, value);
             
         case CASS_VALUE_TYPE_INT:
             return int_to_erlang_term(env, value);
@@ -162,6 +170,20 @@ ERL_NIF_TERM int_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 {
     cass_int32_t value_int;
     cass_value_get_int32(value, &value_int);
+    return enif_make_int(env, value_int);
+}
+
+ERL_NIF_TERM tiny_int_to_erlang_term(ErlNifEnv* env, const CassValue* value)
+{
+    cass_int8_t value_int;
+    cass_value_get_int8(value, &value_int);
+    return enif_make_int(env, value_int);
+}
+
+ERL_NIF_TERM small_int_to_erlang_term(ErlNifEnv* env, const CassValue* value)
+{
+    cass_int16_t value_int;
+    cass_value_get_int16(value, &value_int);
     return enif_make_int(env, value_int);
 }
 

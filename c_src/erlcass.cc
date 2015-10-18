@@ -25,6 +25,8 @@ const char kAtomLogMessageReceived[] = "log_message_recv";
 //data types
 
 const char kAtomText[] = "text";
+const char kAtomTinyInt[] = "tinyint";
+const char kAtomSmallInt[] = "smallint";
 const char kAtomInt[] = "int";
 const char kAtomBigInt[] = "bigint";
 const char kAtomBlob[] = "blob";
@@ -107,6 +109,8 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     //data types
     
     ATOMS.atomText = make_atom(env, kAtomText);
+    ATOMS.atomTinyInt = make_atom(env, kAtomTinyInt);
+    ATOMS.atomSmallInt = make_atom(env, kAtomSmallInt);
     ATOMS.atomInt = make_atom(env, kAtomInt);
     ATOMS.atomBigInt = make_atom(env, kAtomBigInt);
     ATOMS.atomBlob = make_atom(env, kAtomBlob);

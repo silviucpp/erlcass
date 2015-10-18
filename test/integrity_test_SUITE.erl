@@ -52,7 +52,8 @@ set_cluster_options(_Config) ->
         [
             {contact_points, ?CONTACT_POINTS},
             {port, 9042},
-            {protocol_version, 3},
+            %Currently disabled because of: https://datastax-oss.atlassian.net/browse/CPP-318
+            %{protocol_version, 3},
             {number_threads_io, 1},
             {queue_size_io, 4096},
             {queue_size_event, 4096},
@@ -155,7 +156,7 @@ datatypes_columns(I, [ColumnType|Rest], Bin) ->
 %limitation: float numbers from erlang are coming back with double precision.
 
 all_datatypes(_Config) ->
-    Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet]),
+    Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet, tinyint, smallint]),
     CreationQ = <<"CREATE TABLE erlang_driver_test.entries2(",  Cols/binary, " PRIMARY KEY(col1));">>,
     {ok, []} = erlcass:execute(CreationQ),
 
@@ -166,6 +167,8 @@ all_datatypes(_Config) ->
     DecimalPositive = {erlang:integer_to_binary(1234), 5},
     DoublePositive =  5.1235131241221e-6,
     FloatPositive = 5.12351e-6,
+    TinyIntPositive = 127,
+    SmallIntPositive = 32767,
     IntPositive = 2147483647,
     Timestamp = 2147483647,
     {ok, Uuid} = erlcass:uuid_gen_random(),
@@ -174,8 +177,8 @@ all_datatypes(_Config) ->
     {ok, Timeuuid} = erlcass:uuid_gen_time(),
     Inet = <<"127.0.0.1">>,
 
-    InsertQuery = <<"INSERT INTO erlang_driver_test.entries2(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
-    SelectQuery = <<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14 FROM erlang_driver_test.entries2 WHERE col1 =?">>,
+    InsertQuery = <<"INSERT INTO erlang_driver_test.entries2(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
+    SelectQuery = <<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16 FROM erlang_driver_test.entries2 WHERE col1 =?">>,
 
     {ok, []} = erlcass:execute(InsertQuery,
         [
@@ -192,12 +195,14 @@ all_datatypes(_Config) ->
             {?CASS_TEXT, Varchar1},
             {?CASS_BLOB, Varint1},
             {?CASS_UUID, Timeuuid},
-            {?CASS_INET, Inet}
+            {?CASS_INET, Inet},
+            {?CASS_TINYINT, TinyIntPositive},
+            {?CASS_SMALLINT, SmallIntPositive}
         ]),
 
     {ok, [Result]} = erlcass:execute(SelectQuery, [{?CASS_TEXT, AsciiValBin}]),
 
-    {AsciiValBin, BigIntPositive, Blob, BooleanTrue, DecimalPositive, DoublePositive, _, IntPositive, Timestamp, Uuid, Varchar1, Varint1, Timeuuid, Inet} = Result,
+    {AsciiValBin, BigIntPositive, Blob, BooleanTrue, DecimalPositive, DoublePositive, _, IntPositive, Timestamp, Uuid, Varchar1, Varint1, Timeuuid, Inet, TinyIntPositive, SmallIntPositive} = Result,
 
     ok = erlcass:add_prepare_statement(insert_all_datatypes, InsertQuery),
     ok = erlcass:add_prepare_statement(select_all_datatypes, SelectQuery),
@@ -209,6 +214,8 @@ all_datatypes(_Config) ->
     DoubleNegative = -5.123513124122e-6,
     FloatNegative = -5.12351e-6,
     IntNegative = -2147483646,
+    TinyIntNegative = -128,
+    SmallIntNegative = -32768,
     Varchar2 = <<"åäö"/utf8>>,
     Varint2 = erlang:integer_to_binary(123124211928301970128391280192830198049113123),
 
@@ -226,13 +233,15 @@ all_datatypes(_Config) ->
         {<<"col11">>, Varchar2},
         {<<"col12">>, Varint2},
         {<<"col13">>, Timeuuid},
-        {<<"col14">>, Inet}
+        {<<"col14">>, Inet},
+        {<<"col15">>, TinyIntNegative},
+        {<<"col16">>, SmallIntNegative}
     ]),
 
     {ok, [Result2]} = erlcass:execute(select_all_datatypes, ?BIND_BY_NAME, [{<<"col1">>, AsciiString}]),
 
     BinAsciiString = list_to_binary(AsciiString),
-    {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet} = Result2,
+    {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet, TinyIntNegative,SmallIntNegative} = Result2,
     ok.
 
 prepared_bind_by_name_index(_Config) ->

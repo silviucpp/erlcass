@@ -13,6 +13,12 @@ CassValueType atom_to_cass_value_type(ERL_NIF_TERM value)
 {
     if(enif_is_identical(value, ATOMS.atomText))
         return CASS_VALUE_TYPE_TEXT;
+
+    if(enif_is_identical(value, ATOMS.atomTinyInt))
+        return CASS_VALUE_TYPE_TINY_INT;
+    
+    if(enif_is_identical(value, ATOMS.atomSmallInt))
+        return CASS_VALUE_TYPE_SMALL_INT;
     
     if(enif_is_identical(value, ATOMS.atomInt))
         return CASS_VALUE_TYPE_INT;

@@ -28,7 +28,27 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             
             return cass_error_to_nif_term(env, cass_tuple_set_string_n(tuple, index, str_value.c_str(), str_value.length()));
         }
+
+        case CASS_VALUE_TYPE_TINY_INT:
+        {
+            int int_value = 0;
             
+            if(!enif_get_int(env, value, &int_value ))
+                return enif_make_badarg(env);
+            
+            return cass_error_to_nif_term(env, cass_tuple_set_int8(tuple, index, static_cast<cass_int8_t>(int_value)));
+        }
+            
+        case CASS_VALUE_TYPE_SMALL_INT:
+        {
+            int int_value = 0;
+            
+            if(!enif_get_int(env, value, &int_value ))
+                return enif_make_badarg(env);
+            
+            return cass_error_to_nif_term(env, cass_tuple_set_int16(tuple, index, static_cast<cass_int16_t>(int_value)));
+        }
+
         case CASS_VALUE_TYPE_INT:
         {
             int int_value = 0;

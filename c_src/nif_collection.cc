@@ -28,6 +28,26 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             return cass_error_to_nif_term(env, cass_collection_append_string_n(collection, str_value.c_str(), str_value.length()));
         }
             
+        case CASS_VALUE_TYPE_TINY_INT:
+        {
+            int int_value = 0;
+            
+            if(!enif_get_int(env, value, &int_value ))
+                return enif_make_badarg(env);
+            
+            return cass_error_to_nif_term(env, cass_collection_append_int8(collection, static_cast<cass_int8_t>(int_value)));
+        }
+            
+        case CASS_VALUE_TYPE_SMALL_INT:
+        {
+            int int_value = 0;
+            
+            if(!enif_get_int(env, value, &int_value ))
+                return enif_make_badarg(env);
+            
+            return cass_error_to_nif_term(env, cass_collection_append_int16(collection, static_cast<cass_int16_t>(int_value)));
+        }
+
         case CASS_VALUE_TYPE_INT:
         {
             int int_value = 0;

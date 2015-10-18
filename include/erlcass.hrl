@@ -40,6 +40,8 @@
 %metadata types for index binding on non prepared statements
 
 -define(CASS_TEXT, text).                                           %use for (ascii, text, varchar)
+-define(CASS_TINYINT, tinyint).                                     %use for (tinyint)
+-define(CASS_SMALLINT, smallint).                                   %use for (smallint)
 -define(CASS_INT, int).                                             %use for (int )
 -define(CASS_BIGINT, bigint).                                       %use for (timestamp, counter, bigint)
 -define(CASS_BLOB, blob).                                           %use for (varint, blob)

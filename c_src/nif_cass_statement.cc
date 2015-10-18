@@ -57,6 +57,26 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             
             return cass_error_to_nif_term(env, cass_statement_bind_string_n(statement, index, str_value.c_str(), str_value.length()));
         }
+
+        case CASS_VALUE_TYPE_TINY_INT:
+        {
+            int int_value = 0;
+            
+            if(!enif_get_int(env, value, &int_value ))
+                return enif_make_badarg(env);
+            
+            return cass_error_to_nif_term(env, cass_statement_bind_int8(statement, index, static_cast<cass_int8_t>(int_value)));
+        }
+            
+        case CASS_VALUE_TYPE_SMALL_INT:
+        {
+            int int_value = 0;
+            
+            if(!enif_get_int(env, value, &int_value ))
+                return enif_make_badarg(env);
+            
+            return cass_error_to_nif_term(env, cass_statement_bind_int16(statement, index, static_cast<cass_int16_t>(int_value)));
+        }
             
         case CASS_VALUE_TYPE_INT:
         {

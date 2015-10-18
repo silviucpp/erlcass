@@ -44,7 +44,11 @@
     uuid_min_from_ts/1,
     uuid_max_from_ts/1,
     uuid_get_ts/1,
-    uuid_get_version/1
+    uuid_get_version/1,
+
+    date_from_epoch/1,
+    time_from_epoch/1,
+    date_time_to_epoch/2
 ]).
 
 -define(SERVER, ?MODULE).
@@ -238,6 +242,24 @@ uuid_get_ts(Uuid) ->
 
 uuid_get_version(Uuid) ->
     nif_cass_uuid_version(Uuid).
+
+-spec(date_from_epoch(EpochSecs :: integer()) ->
+    integer()).
+
+date_from_epoch(EpochSecs) ->
+    nif_cass_date_from_epoch(EpochSecs).
+
+-spec(time_from_epoch(EpochSecs :: integer()) ->
+    integer()).
+
+time_from_epoch(EpochSecs) ->
+    nif_cass_time_from_epoch(EpochSecs).
+
+-spec(date_time_to_epoch(Date :: integer(), Time :: integer()) ->
+    integer()).
+
+date_time_to_epoch(Date, Time) ->
+    nif_cass_date_time_to_epoch(Date, Time).
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -582,4 +604,13 @@ nif_cass_uuid_timestamp(_Uuid) ->
     ?NOT_LOADED.
 
 nif_cass_uuid_version(_Uuid) ->
+    ?NOT_LOADED.
+
+nif_cass_date_from_epoch(_EpochSecs) ->
+    ?NOT_LOADED.
+
+nif_cass_time_from_epoch(_EpochSecs) ->
+    ?NOT_LOADED.
+
+nif_cass_date_time_to_epoch(_Date, _Time) ->
     ?NOT_LOADED.

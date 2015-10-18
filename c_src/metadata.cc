@@ -23,6 +23,9 @@ CassValueType atom_to_cass_value_type(ERL_NIF_TERM value)
     if(enif_is_identical(value, ATOMS.atomInt))
         return CASS_VALUE_TYPE_INT;
     
+    if(enif_is_identical(value, ATOMS.atomDate))
+        return CASS_VALUE_TYPE_DATE;
+    
     if(enif_is_identical(value, ATOMS.atomBigInt))
         return CASS_VALUE_TYPE_BIGINT;
     

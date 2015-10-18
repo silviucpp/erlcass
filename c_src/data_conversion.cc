@@ -18,6 +18,7 @@ ERL_NIF_TERM blob_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM uuid_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM inet_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM decimal_to_erlang_term(ErlNifEnv* env, const CassValue* value);
+ERL_NIF_TERM date_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM int64_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM bool_to_erlang_term(const CassValue* value);
 ERL_NIF_TERM float_to_erlang_term(ErlNifEnv* env, const CassValue* value);
@@ -39,6 +40,7 @@ ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
         case CASS_VALUE_TYPE_VARCHAR:
             return string_to_erlang_term(env, value);
             
+        case CASS_VALUE_TYPE_TIME:
         case CASS_VALUE_TYPE_TIMESTAMP:
         case CASS_VALUE_TYPE_COUNTER:
         case CASS_VALUE_TYPE_BIGINT:
@@ -61,6 +63,9 @@ ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
             
         case CASS_VALUE_TYPE_INT:
             return int_to_erlang_term(env, value);
+            
+        case CASS_VALUE_TYPE_DATE:
+            return date_to_erlang_term(env, value);
             
         case CASS_VALUE_TYPE_VARINT:
         case CASS_VALUE_TYPE_BLOB:
@@ -164,6 +169,13 @@ ERL_NIF_TERM double_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     cass_double_t value_double;
     cass_value_get_double(value, &value_double);
     return enif_make_double(env, value_double);
+}
+
+ERL_NIF_TERM date_to_erlang_term(ErlNifEnv* env, const CassValue* value)
+{
+    cass_uint32_t value_uint;
+    cass_value_get_uint32(value, &value_uint);
+    return enif_make_uint(env, value_uint);
 }
 
 ERL_NIF_TERM int_to_erlang_term(ErlNifEnv* env, const CassValue* value)

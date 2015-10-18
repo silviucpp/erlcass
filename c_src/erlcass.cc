@@ -4,6 +4,7 @@
 #include "nif_cass_prepared.h"
 #include "nif_cass_statement.h"
 #include "nif_cass_uuid.h"
+#include "nif_date_time.h"
 #include "nif_utils.h"
 
 const char kAtomOk[] = "ok";
@@ -28,6 +29,7 @@ const char kAtomText[] = "text";
 const char kAtomTinyInt[] = "tinyint";
 const char kAtomSmallInt[] = "smallint";
 const char kAtomInt[] = "int";
+const char kAtomDate[] = "date";
 const char kAtomBigInt[] = "bigint";
 const char kAtomBlob[] = "blob";
 const char kAtomBool[] = "bool";
@@ -112,6 +114,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomTinyInt = make_atom(env, kAtomTinyInt);
     ATOMS.atomSmallInt = make_atom(env, kAtomSmallInt);
     ATOMS.atomInt = make_atom(env, kAtomInt);
+    ATOMS.atomDate = make_atom(env, kAtomDate);
     ATOMS.atomBigInt = make_atom(env, kAtomBigInt);
     ATOMS.atomBlob = make_atom(env, kAtomBlob);
     ATOMS.atomBool = make_atom(env, kAtomBool);
@@ -233,7 +236,13 @@ static ErlNifFunc nif_funcs[] =
     {"nif_cass_uuid_min_from_time", 1, nif_cass_uuid_min_from_time},
     {"nif_cass_uuid_max_from_time", 1, nif_cass_uuid_max_from_time},
     {"nif_cass_uuid_timestamp", 1, nif_cass_uuid_timestamp},
-    {"nif_cass_uuid_version", 1, nif_cass_uuid_version}
+    {"nif_cass_uuid_version", 1, nif_cass_uuid_version},
+    
+    //Date Time functions
+    
+    {"nif_cass_date_from_epoch", 1, nif_cass_date_from_epoch},
+    {"nif_cass_time_from_epoch", 1, nif_cass_time_from_epoch},
+    {"nif_cass_date_time_to_epoch", 2, nif_cass_date_time_to_epoch}
     
 };
 

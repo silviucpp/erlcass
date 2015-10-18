@@ -88,6 +88,17 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             return cass_error_to_nif_term(env, cass_statement_bind_int32(statement, index, int_value));
         }
             
+        case CASS_VALUE_TYPE_DATE:
+        {
+            unsigned int uint_value = 0;
+            
+            if(!enif_get_uint(env, value, &uint_value ))
+                return enif_make_badarg(env);
+            
+            return cass_error_to_nif_term(env, cass_statement_bind_uint32(statement, index, uint_value));
+        }
+            
+        case CASS_VALUE_TYPE_TIME:
         case CASS_VALUE_TYPE_TIMESTAMP:
         case CASS_VALUE_TYPE_COUNTER:
         case CASS_VALUE_TYPE_BIGINT:

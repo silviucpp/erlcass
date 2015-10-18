@@ -8,8 +8,6 @@
 - Add support for Setting serial consistency,
 - Add support for pagination,
 - Add support for UDT
-- Add support for the Cassandra 2.2 `date` data type
-- Add support for functions to convert from Unix Epoch time (in seconds) to and from the Cassandra `date` and `time` types
 - Add support for sending and relieving custom payloads to and from Cassandra
 - Add support for server-side warnings
 - Add support for retry policies settings
@@ -20,6 +18,8 @@
 ##### v2.1 (Not released yet)
 
 - Add support for Cassandra 2.2 data types `tinyint` and `smallint`
+- Add support for the Cassandra 2.2 `date` and `time` data types
+- Add support for functions to convert from Unix Epoch time (in seconds) to and from the Cassandra `date` and `time` types
 - Small improvements
 - Refactoring the build dependencies script
 
@@ -98,6 +98,7 @@ text                       | binary or string                             | <<"h
 bigint                     | integer (signed 64-bit)                      | 9223372036854775807
 timestamp                  | integer (signed 64-bit)                      | 9223372036854775807
 counter                    | integer (signed 64-bit)                      | 9223372036854775807
+time                       | integer (signed 64-bit)                      | 86399999999999
 blob                       | binary                                       | <<1,2,3,4,5,6,7,8,9,10>>
 varint                     | binary                                       | <<"12423423423423423423243432432">>
 boolean                    | `true`, `false`                              | true
@@ -107,6 +108,7 @@ float                      | float (signed 32-bit)                        | 5.12
 tinyint                    | integer (signed 8-bit)                       | 127
 smallint                   | integer (signed 16-bit)                      | 32767
 int                        | integer (signed 32-bit)                      | 2147483647
+date                       | integer (unsigned 32-bit)                    | 2147483648 	
 uuid                       | binary                                       | <<"61c16fb1-44ca-4591-9317-ac96ddbd8694">>
 varint                     | binary                                       | <<"1928301970128391280192830198049113123">>
 timeuuid                   | binary                                       | <<"076a46c0-0ad7-11e5-b314-3d7bf89b87a1">>
@@ -576,8 +578,9 @@ The datatypes can be found into *erlcass.hrl* file as follow:
 -define(CASS_TEXT, text).                         %use for (ascii, text, varchar)
 -define(CASS_TINYINT, tinyint).                   %use for (tinyint)
 -define(CASS_SMALLINT, smallint).                 %use for (smallint)
--define(CASS_INT, int).                           %use for (int )
--define(CASS_BIGINT, bigint).                     %use for (timestamp, counter, bigint)
+-define(CASS_INT, int).                           %use for (int)
+-define(CASS_DATE, date).                         %use for (date)
+-define(CASS_BIGINT, bigint).                     %use for (timestamp, counter, bigint, time)
 -define(CASS_BLOB, blob).                         %use for (varint, blob)
 -define(CASS_BOOLEAN, bool).                      %use for (bool)
 -define(CASS_FLOAT, float).                       %use for (float)
@@ -641,6 +644,12 @@ ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Ag
 - erlcass:uuid_max_from_ts(Ts) -> Sets the UUID to the maximum V1 (time) value for the specified timestamp,
 - erlcass:uuid_get_ts(Uuid) -> Gets the timestamp for a V1 UUID,
 - erlcass:uuid_get_version(Uuid) -> Gets the version for a UUID (V1 or V4)
+
+### Working with date, time fields:
+
+- `erlcass:date_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `date` type. The `date` type represents the number of days since the Epoch (1970-01-01) with the Epoch centered at the value 2^31.
+- `erlcass:time_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `time` type. The `time` type represents the number of nanoseconds since midnight (range 0 to 86399999999999).
+- `erlcass:date_time_to_epoch(Date, Time)` -> Combines the Cassandra `date` and `time` types to Epoch time in seconds. Returns Epoch time in seconds. Negative times are possible if the date occurs before the Epoch (1970-1-1).
 
 ### Getting metrics
 

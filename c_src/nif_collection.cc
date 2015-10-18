@@ -58,6 +58,17 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             return cass_error_to_nif_term(env, cass_collection_append_int32(collection, int_value));
         }
             
+        case CASS_VALUE_TYPE_DATE:
+        {
+            unsigned int uint_value = 0;
+            
+            if(!enif_get_uint(env, value, &uint_value ))
+                return enif_make_badarg(env);
+            
+            return cass_error_to_nif_term(env, cass_collection_append_uint32(collection, uint_value));
+        }
+
+        case CASS_VALUE_TYPE_TIME:
         case CASS_VALUE_TYPE_TIMESTAMP:
         case CASS_VALUE_TYPE_COUNTER:
         case CASS_VALUE_TYPE_BIGINT:

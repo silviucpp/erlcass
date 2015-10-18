@@ -32,6 +32,7 @@ struct atoms
     ERL_NIF_TERM atomTinyInt;
     ERL_NIF_TERM atomSmallInt;
     ERL_NIF_TERM atomInt;
+    ERL_NIF_TERM atomDate;
     ERL_NIF_TERM atomBigInt;
     ERL_NIF_TERM atomBlob;
     ERL_NIF_TERM atomBool;

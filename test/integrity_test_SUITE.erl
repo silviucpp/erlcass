@@ -34,6 +34,7 @@ groups() ->
             tuples,
             batches,
             uuid_testing,
+            date_time_testing,
             get_metrics,
             drop_keyspace
         ]
@@ -156,7 +157,7 @@ datatypes_columns(I, [ColumnType|Rest], Bin) ->
 %limitation: float numbers from erlang are coming back with double precision.
 
 all_datatypes(_Config) ->
-    Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet, tinyint, smallint]),
+    Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet, tinyint, smallint, date, time]),
     CreationQ = <<"CREATE TABLE erlang_driver_test.entries2(",  Cols/binary, " PRIMARY KEY(col1));">>,
     {ok, []} = erlcass:execute(CreationQ),
 
@@ -171,14 +172,16 @@ all_datatypes(_Config) ->
     SmallIntPositive = 32767,
     IntPositive = 2147483647,
     Timestamp = 2147483647,
+    Date = 2147483648,
+    Time = 86399999999999,
     {ok, Uuid} = erlcass:uuid_gen_random(),
     Varchar1 = <<"Юникод"/utf8>>,
     Varint1 = erlang:integer_to_binary(1928301970128391280192830198049113123),
     {ok, Timeuuid} = erlcass:uuid_gen_time(),
     Inet = <<"127.0.0.1">>,
 
-    InsertQuery = <<"INSERT INTO erlang_driver_test.entries2(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
-    SelectQuery = <<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16 FROM erlang_driver_test.entries2 WHERE col1 =?">>,
+    InsertQuery = <<"INSERT INTO erlang_driver_test.entries2(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
+    SelectQuery = <<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18 FROM erlang_driver_test.entries2 WHERE col1 =?">>,
 
     {ok, []} = erlcass:execute(InsertQuery,
         [
@@ -197,12 +200,14 @@ all_datatypes(_Config) ->
             {?CASS_UUID, Timeuuid},
             {?CASS_INET, Inet},
             {?CASS_TINYINT, TinyIntPositive},
-            {?CASS_SMALLINT, SmallIntPositive}
+            {?CASS_SMALLINT, SmallIntPositive},
+            {?CASS_DATE, Date},
+            {?CASS_BIGINT, Time}
         ]),
 
     {ok, [Result]} = erlcass:execute(SelectQuery, [{?CASS_TEXT, AsciiValBin}]),
 
-    {AsciiValBin, BigIntPositive, Blob, BooleanTrue, DecimalPositive, DoublePositive, _, IntPositive, Timestamp, Uuid, Varchar1, Varint1, Timeuuid, Inet, TinyIntPositive, SmallIntPositive} = Result,
+    {AsciiValBin, BigIntPositive, Blob, BooleanTrue, DecimalPositive, DoublePositive, _, IntPositive, Timestamp, Uuid, Varchar1, Varint1, Timeuuid, Inet, TinyIntPositive, SmallIntPositive, Date, Time} = Result,
 
     ok = erlcass:add_prepare_statement(insert_all_datatypes, InsertQuery),
     ok = erlcass:add_prepare_statement(select_all_datatypes, SelectQuery),
@@ -235,13 +240,15 @@ all_datatypes(_Config) ->
         {<<"col13">>, Timeuuid},
         {<<"col14">>, Inet},
         {<<"col15">>, TinyIntNegative},
-        {<<"col16">>, SmallIntNegative}
+        {<<"col16">>, SmallIntNegative},
+        {<<"col17">>, Date},
+        {<<"col18">>, Time}
     ]),
 
     {ok, [Result2]} = erlcass:execute(select_all_datatypes, ?BIND_BY_NAME, [{<<"col1">>, AsciiString}]),
 
     BinAsciiString = list_to_binary(AsciiString),
-    {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet, TinyIntNegative,SmallIntNegative} = Result2,
+    {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet, TinyIntNegative, SmallIntNegative, Date, Time} = Result2,
     ok.
 
 prepared_bind_by_name_index(_Config) ->
@@ -422,6 +429,15 @@ uuid_testing(_Config) ->
     {ok, _} = erlcass:uuid_max_from_ts(Ts),
     {ok, _} = erlcass:uuid_min_from_ts(Ts),
     ok.
+
+date_time_testing(_Config) ->
+    2147483648 = erlcass:date_from_epoch(0),
+    2147483650 = erlcass:date_from_epoch(2 * 24 * 3600),
+
+    Ts = 2147483647,
+    Date = erlcass:date_from_epoch(Ts),
+    Time = erlcass:time_from_epoch(Ts),
+    Ts = erlcass:date_time_to_epoch(Date, Time).
 
 get_metrics(_Config) ->
     {ok, _} = erlcass:get_metrics(),

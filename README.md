@@ -637,13 +637,13 @@ ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Ag
 
 ### Working with uuid or timeuuid fields:
 
-- erlcass:uuid_gen_time()   -> Generates a V1 (time) UUID
-- erlcass:uuid_gen_random() -> Generates a new V4 (random) UUID
-- erlcass:uuid_gen_from_ts(Ts) -> Generates a V1 (time) UUID for the specified timestamp
-- erlcass:uuid_min_from_ts(Ts) -> Sets the UUID to the minimum V1 (time) value for the specified timestamp,
-- erlcass:uuid_max_from_ts(Ts) -> Sets the UUID to the maximum V1 (time) value for the specified timestamp,
-- erlcass:uuid_get_ts(Uuid) -> Gets the timestamp for a V1 UUID,
-- erlcass:uuid_get_version(Uuid) -> Gets the version for a UUID (V1 or V4)
+- `erlcass:uuid_gen_time()`   -> Generates a V1 (time) UUID
+- `erlcass:uuid_gen_random()` -> Generates a new V4 (random) UUID
+- `erlcass:uuid_gen_from_ts(Ts)` -> Generates a V1 (time) UUID for the specified timestamp
+- `erlcass:uuid_min_from_ts(Ts)` -> Sets the UUID to the minimum V1 (time) value for the specified timestamp,
+- `erlcass:uuid_max_from_ts(Ts)` -> Sets the UUID to the maximum V1 (time) value for the specified timestamp,
+- `erlcass:uuid_get_ts(Uuid)` -> Gets the timestamp for a V1 UUID,
+- `erlcass:uuid_get_version(Uuid)` -> Gets the version for a UUID (V1 or V4)
 
 ### Working with date, time fields:
 
@@ -653,37 +653,37 @@ ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Ag
 
 ### Getting metrics
 
-In order to get metrics from the native driver you can use *erlcass:get_metrics().*
+In order to get metrics from the native driver you can use `erlcass:get_metrics().`
 
 ##### requests
 
-- min - Minimum in microseconds
-- max - Maximum in microseconds
-- mean - Mean in microseconds
-- stddev - Standard deviation in microseconds
-- median - Median in microseconds
-- percentile_75th - 75th percentile in microseconds
-- percentile_95th - 95th percentile in microseconds
-- percentile_98th - 98th percentile in microseconds
-- percentile_99th - 99the percentile in microseconds
-- percentile_999th - 99.9th percentile in microseconds
-- mean_rate - Mean rate in requests per second
-- one_minute_rate - 1 minute rate in requests per second
-- five_minute_rate - 5 minute rate in requests per second
-- fifteen_minute_rate - 15 minute rate in requests per second
+- `min` - Minimum in microseconds
+- `max` - Maximum in microseconds
+- `mean` - Mean in microseconds
+- `stddev` - Standard deviation in microseconds
+- `median` - Median in microseconds
+- `percentile_75th` - 75th percentile in microseconds
+- `percentile_95th` - 95th percentile in microseconds
+- `percentile_98th` - 98th percentile in microseconds
+- `percentile_99th` - 99the percentile in microseconds
+- `percentile_999th` - 99.9th percentile in microseconds
+- `mean_rate` - Mean rate in requests per second
+- `one_minute_rate` - 1 minute rate in requests per second
+- `five_minute_rate` - 5 minute rate in requests per second
+- `fifteen_minute_rate` - 15 minute rate in requests per second
 
 ##### stats
 
-- total_connections - The total number of connections
-- available_connections - The number of connections available to take requests
-- exceeded_pending_requests_water_mark - Occurrences when requests exceeded a pool's water mark
-- exceeded_write_bytes_water_mark - Occurrences when number of bytes exceeded a connection's water mark
+- `total_connections` - The total number of connections
+- `available_connections` - The number of connections available to take requests
+- `exceeded_pending_requests_water_mark` - Occurrences when requests exceeded a pool's water mark
+- `exceeded_write_bytes_water_mark` - Occurrences when number of bytes exceeded a connection's water mark
 
 ##### errors
 
-- connection_timeouts - Occurrences of a connection timeout
-- pending_request_timeouts - Occurrences of requests that timed out waiting for a connection
-- request_timeouts - Occurrences of requests that timed out waiting for a request to finish
+- `connection_timeouts` - Occurrences of a connection timeout
+- `pending_request_timeouts` - Occurrences of requests that timed out waiting for a connection
+- `request_timeouts` - Occurrences of requests that timed out waiting for a request to finish
 
 ### Low level methods
 

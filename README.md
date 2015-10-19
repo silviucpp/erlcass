@@ -15,7 +15,7 @@
 
 ### Changelog:
 
-##### v2.1 (Not released yet)
+##### v2.1
 
 - Add support for Cassandra 2.2 data types `tinyint` and `smallint`
 - Add support for the Cassandra 2.2 `date` and `time` data types

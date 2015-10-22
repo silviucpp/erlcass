@@ -1,8 +1,8 @@
 # ErlCass
 
-*An Erlang Cassandra driver, based on Datastax cpp driver focused on performance.*
+*An Erlang Cassandra driver, based on [Datastax cpp driver][3] focused on performance.*
 
-In case you want to discuss based on this project join me on WowApp - https://www.wowapp.com/w/silviu/Silviu-Caragea
+In case you want to discuss based on this project join me on [WowApp][2]
 
 ### TODO List:
 
@@ -744,3 +744,5 @@ execute(Identifier, Params) ->
 ```
 
 [1]:http://datastax.github.io/cpp-driver/topics/building/
+[2]:https://www.wowapp.com/w/silviu/Silviu-Caragea
+[3]:https://github.com/datastax/cpp-driver

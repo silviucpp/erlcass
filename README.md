@@ -2,6 +2,8 @@
 
 *An Erlang Cassandra driver, based on Datastax cpp driver focused on performance.*
 
+In case you want to discuss based on this project join me on WowApp - https://www.wowapp.com/w/silviu/Silviu-Caragea
+
 ### TODO List:
 
 - Add support for multiple sessions

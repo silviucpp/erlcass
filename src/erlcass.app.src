@@ -1,12 +1,13 @@
 {application, erlcass,
- [
-  {description, ""},
-  {vsn, "2.0"},
-  {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
-  {mod, { erlcass_app, []}},
-  {env, []}
- ]}.
+    [
+        {description, ""},
+        {vsn, "2.2"},
+        {registered, []},
+        {applications, [
+            kernel,
+            stdlib
+        ]},
+        {mod, {erlcass_app, []}},
+        {env, []}
+    ]
+}.

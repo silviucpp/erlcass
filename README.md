@@ -7,15 +7,22 @@ In case you want to discuss based on this project join me on [WowApp][2]
 ### TODO List:
 
 - Add support for multiple sessions
-- Add support for Setting serial consistency,
+- Add support for setting serial consistency,
 - Add support for pagination,
 - Add support for UDT
 - Add support for sending and relieving custom payloads to and from Cassandra
 - Add support for server-side warnings
 - Add support for retry policies settings
 - Add support for client-side timestamps settings
+- Add support for Sets/Appends whitelist hosts
+- Add support for schema metadata API
 
 ### Changelog:
+
+##### v2.2
+
+- Changed the default consistency from `CASS_CONSISTENCY_ONE` to `CASS_CONSISTENCY_LOCAL_QUORUM`
+- Updated the cpp-driver to 2.2.0
 
 ##### v2.1
 
@@ -264,19 +271,19 @@ Default: 1
 
 ##### queue_size_io
 
-Example: {queue_size_io, 4096}
+Example: {queue_size_io, 8192}
 
 Sets the size of the the fixed size queue that stores pending requests.
 
-Default: 4096
+Default: 8192
 
 ##### queue_size_event
 
-Example: {queue_size_event, 4096}
+Example: {queue_size_event, 8192}
 
 Sets the size of the the fixed size queue that stores events.
 
-Default: 4096
+Default: 8192
 
 ##### core_connections_host
 
@@ -348,22 +355,22 @@ Default: 32 KB
 
 ##### pending_requests_high_watermark
 
-Example: {pending_requests_high_watermark, 128}
+Example: {pending_requests_high_watermark, 256}
 
 Sets the high water mark for the number of requests queued waiting for a connection in a connection pool.
 Disables writes to a host on an IO worker if the number of requests queued exceed this value.
 
-Default: 128 * max_connections_per_host
+Default: 256
 
 
 ##### pending_requests_low_watermark
 
-Example: {pending_requests_low_watermark, 64}
+Example: {pending_requests_low_watermark, 128}
 
 Sets the low water mark for the number of requests queued waiting for a connection in a connection pool.
 After exceeding high water mark requests, writes to a host will only resume once the number of requests fall below this value.
 
-Default: 64 * max_connections_per_host
+Default: 128
 
 ##### connect_timeout
 
@@ -386,7 +393,7 @@ Default: 30 seconds
 
 Example: {idle_timeout, 60}
 
-Sets the amount of time a connection is allowed to be without a successful hearbeat response before being terminated and scheduled for reconnection.
+Sets the amount of time a connection is allowed to be without a successful heartbeat response before being terminated and scheduled for reconnection.
 
 Default: 60 seconds
 
@@ -485,11 +492,11 @@ Default: cass_false (disabled).
 
 ##### default_consistency_level
 
-Example: {default_consistency_level, ?CASS_CONSISTENCY_ONE}
+Example: {default_consistency_level, ?CASS_CONSISTENCY_LOCAL_QUORUM}
 
 Set the default consistency level
 
-Default: ?CASS_CONSISTENCY_ONE
+Default: ?CASS_CONSISTENCY_LOCAL_QUORUM
 
 ### Creating a session
 

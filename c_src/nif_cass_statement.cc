@@ -31,7 +31,7 @@ SchemaColumn get_schema_column(const cass::DataType* data_type)
     {
         const cass::SubTypesDataType* collection_type = static_cast<const cass::SubTypesDataType*>(data_type);
         
-        for(cass::DataTypeVec::const_iterator it = collection_type->types().begin(); it != collection_type->types().end(); ++it)
+        for(cass::DataType::Vec::const_iterator it = collection_type->types().begin(); it != collection_type->types().end(); ++it)
             sc.subtypes.push_back(get_schema_column((*it).get()));
     }
 

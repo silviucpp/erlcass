@@ -166,7 +166,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
     data->cluster = NULL;
-    data->defaultConsistencyLevel = CASS_CONSISTENCY_ONE;
+    data->defaultConsistencyLevel = CASS_CONSISTENCY_LOCAL_QUORUM;
     
     open_resources(env, data);
     

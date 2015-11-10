@@ -3,7 +3,7 @@
 
 -include("erlcass.hrl").
 
--export([start/0, profile/3, prepare_load_test_table/0]).
+-export([start/0, profile/3, profile/4, prepare_load_test_table/0]).
 
 -define(KEYSPACE, <<"load_test_erlcass">>).
 -define(CONTACT_POINTS, <<"172.17.3.129">>).
@@ -137,16 +137,14 @@ get_statement(UseOneSatement) ->
             undefined
     end.
 
-load_test(1, NrReq, UseOneSatement) ->
-    St = get_statement(UseOneSatement),
+load_test(St, 1, NrReq, UseOneSatement) ->
     producer_loop(St, NrReq, UseOneSatement),
     consumer_loop(0, 0, 0, NrReq);
 
-load_test(NrProcesses, NrReq, UseOneSatement) ->
+load_test(St, NrProcesses, NrReq, UseOneSatement) ->
     ReqPerProcess = round(NrReq/NrProcesses),
 
     Fun = fun(_X) ->
-        St = get_statement(UseOneSatement),
         producer_loop(St, ReqPerProcess, UseOneSatement),
         consumer_loop(0, 0, 0, ReqPerProcess)
     end,
@@ -154,7 +152,17 @@ load_test(NrProcesses, NrReq, UseOneSatement) ->
     List = lists:seq(1, NrProcesses),
     plists:foreach(Fun, List).
 
+run_test(0, _St, _NrProc, _RequestsNr, _UseOneSatement) ->
+    ok;
+
+run_test(RepeatNr, St, NrProc, RequestsNr, UseOneSatement) ->
+    load_test(St, NrProc, RequestsNr, UseOneSatement),
+    run_test(RepeatNr -1, St,  NrProc, RequestsNr, UseOneSatement).
+
 profile(NrProc, RequestsNr, UseOneSatement) ->
+    profile(NrProc, RequestsNr, 1, UseOneSatement).
+
+profile(NrProc, RequestsNr, RepeatNumber, UseOneSatement) ->
     eprof:start(),
     eprof:start_profiling([self()]),
     Rs = start(),
@@ -167,7 +175,9 @@ profile(NrProc, RequestsNr, UseOneSatement) ->
             ok
     end,
 
-    {Time, _} = timer:tc( fun() -> load_test(NrProc, RequestsNr, UseOneSatement) end),
+    St = get_statement(UseOneSatement),
+
+    {Time, _} = timer:tc( fun() -> run_test(RepeatNumber, St, NrProc, RequestsNr, UseOneSatement) end),
 
     io:format("Cpp Driver Metrics: ~p ~n", [erlcass:get_metrics()]),
     eprof:stop_profiling(),

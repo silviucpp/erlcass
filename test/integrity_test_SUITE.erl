@@ -53,7 +53,6 @@ set_cluster_options(_Config) ->
         [
             {contact_points, ?CONTACT_POINTS},
             {port, 9042},
-            %Currently disabled because of: https://datastax-oss.atlassian.net/browse/CPP-318
             %{protocol_version, 3},
             {number_threads_io, 1},
             {queue_size_io, 4096},

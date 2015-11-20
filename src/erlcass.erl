@@ -6,7 +6,6 @@
 -define(NOT_LOADED, not_loaded(?LINE)).
 -define(TIMEOUT, 20000).
 -define(CONNECT_TIMEOUT, 5000).
--define(PREPARED_ETS_TABLE, erlcass_prepared_statements_ets).
 
 -behaviour(gen_server).
 
@@ -107,7 +106,7 @@ add_prepare_statement(Identifier, Query) ->
     {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
 
 bind_prepared_statement(Identifier) ->
-    case prepare_statement_get(?PREPARED_ETS_TABLE, Identifier) of
+    case erlcass_prep_utils:get(Identifier) of
         undefined ->
             {error, undefined};
         PrepStatement ->
@@ -276,7 +275,7 @@ stop() ->
 init([]) ->
     process_flag(trap_exit, true),
 
-    ?PREPARED_ETS_TABLE = ets:new(?PREPARED_ETS_TABLE, [set, named_table, protected, {read_concurrency, true}]),
+    ok = erlcass_prep_utils:create(),
 
     LogLevel = case application:get_env(erlcass, log_level) of
         {ok, Level} ->
@@ -350,7 +349,7 @@ handle_call(get_metrics, _From, State) ->
 
 handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
 
-    AlreadyExist = prepare_statement_exist(?PREPARED_ETS_TABLE, Identifier),
+    AlreadyExist = erlcass_prep_utils:does_exist(Identifier),
 
     if
         AlreadyExist ->
@@ -398,7 +397,7 @@ handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
 
     case Result of
         {ok, StatementRef} ->
-            prepare_statement_set(?PREPARED_ETS_TABLE, Identifier, StatementRef),
+            erlcass_prep_utils:set(Identifier, StatementRef),
             gen_server:reply(From, ok);
         _ ->
             gen_server:reply(From, Result)
@@ -482,27 +481,6 @@ start_logging(LogLevel, Fun) ->
     LogPid = spawn_link(fun() -> log_loop(Fun) end),
     ok = nif_cass_log_set_level_and_callback(LogLevel, LogPid),
     LogPid.
-
-%% helper functions to store prepare statements
-
-prepare_statement_set(EtsTid, Identifier, StatementRef) ->
-    true = ets:insert(EtsTid, {Identifier, StatementRef}).
-
-prepare_statement_get(EtsTid, Identifier) ->
-    case ets:lookup(EtsTid, Identifier) of
-        [{Identifier, Value}] ->
-            Value;
-        [] ->
-            undefined
-    end.
-
-prepare_statement_exist(EtsTid, Identifier) ->
-    case ets:lookup(EtsTid, Identifier) of
-        [{Identifier, _}] ->
-            true;
-        [] ->
-            false
-    end.
 
 %% nif functions
 

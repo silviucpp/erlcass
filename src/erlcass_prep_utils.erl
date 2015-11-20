@@ -3,14 +3,14 @@
 
 -define(PREPARED_ETS_TABLE, erlcass_prepared_statements_ets).
 
--export([create/0, set/2, get/1, does_exist/1]).
+-export([create/0, set/3, get/1, does_exist/1]).
 
 create() ->
     ?PREPARED_ETS_TABLE = ets:new(?PREPARED_ETS_TABLE, [set, named_table, protected, {read_concurrency, true}]),
     ok.
 
-set(Identifier, StatementRef) ->
-    true = ets:insert(?PREPARED_ETS_TABLE, {Identifier, StatementRef}).
+set(Identifier, Session, StatementRef) ->
+    true = ets:insert(?PREPARED_ETS_TABLE, {Identifier, {Session, StatementRef}}).
 
 get(Identifier) ->
     case ets:lookup(?PREPARED_ETS_TABLE, Identifier) of

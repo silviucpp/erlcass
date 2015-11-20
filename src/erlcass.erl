@@ -9,6 +9,8 @@
 
 -behaviour(gen_server).
 
+-record(erlcass_stm, {session, stm}).
+
 -on_load(load_nif/0).
 
 -export([start_link/0, stop/0]).
@@ -103,33 +105,45 @@ add_prepare_statement(Identifier, Query) ->
     gen_server:call(?MODULE, {add_prepare_statement, Identifier, Query}, ?TIMEOUT).
 
 -spec(bind_prepared_statement(Identifier :: atom()) ->
-    {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
+    {ok, Statement :: #erlcass_stm{}} | badarg | {error, Reason :: binary()}).
 
 bind_prepared_statement(Identifier) ->
     case erlcass_prep_utils:get(Identifier) of
         undefined ->
             {error, undefined};
-        PrepStatement ->
-            nif_cass_prepared_bind(PrepStatement)
+        {Session, PrepStatement} ->
+            {ok, StatementRef} = nif_cass_prepared_bind(PrepStatement),
+            {ok, #erlcass_stm{session = Session, stm = StatementRef}}
     end.
 
--spec(bind_prepared_params_by_name(StatementRef :: reference(), Params :: list()) ->
+-spec(bind_prepared_params_by_name(Stm :: #erlcass_stm{} | reference() , Params :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
 
-bind_prepared_params_by_name(StatementRef, Params) ->
-    nif_cass_statement_bind_parameters(StatementRef, ?BIND_BY_NAME, Params).
+bind_prepared_params_by_name(Stm, Params) when is_record(Stm, erlcass_stm) ->
+    nif_cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_NAME, Params);
 
--spec(bind_prepared_params_by_index(StatementRef :: reference(), Params :: list()) ->
+bind_prepared_params_by_name(Stm, Params) ->
+    nif_cass_statement_bind_parameters(Stm, ?BIND_BY_NAME, Params).
+
+-spec(bind_prepared_params_by_index(Stm :: #erlcass_stm{} | reference(), Params :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
 
-bind_prepared_params_by_index(StatementRef, Params) ->
-    nif_cass_statement_bind_parameters(StatementRef, ?BIND_BY_INDEX, Params).
+bind_prepared_params_by_index(Stm, Params) when is_record(Stm, erlcass_stm) ->
+    nif_cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_INDEX, Params);
 
--spec(async_execute_statement(StatementRef :: reference()) ->
+bind_prepared_params_by_index(Stm, Params) ->
+    nif_cass_statement_bind_parameters(Stm, ?BIND_BY_INDEX, Params).
+
+-spec(async_execute_statement(Stm :: reference() | #erlcass_stm{}) ->
     {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
 
-async_execute_statement(StatementRef) ->
-    gen_server:call(?MODULE, {execute_statement, StatementRef}).
+async_execute_statement(Stm) when is_record(Stm, erlcass_stm) ->
+    Tag = make_ref(),
+    Result = nif_cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, self(), Tag),
+    {Result, Tag};
+
+async_execute_statement(Stm) ->
+    gen_server:call(?MODULE, {execute_normal_statements, Stm}).
 
 -spec(execute_statement(StatementRef :: reference()) ->
     {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
@@ -164,14 +178,14 @@ async_execute(Identifier, Params) ->
 async_execute(Identifier, BindType, Params) ->
     if
         is_atom(Identifier) ->
-            {ok, Statement} = bind_prepared_statement(Identifier),
-            ok = nif_cass_statement_bind_parameters(Statement, BindType, Params);
+            {ok, Stm} = bind_prepared_statement(Identifier),
+            ok = nif_cass_statement_bind_parameters(Stm#erlcass_stm.stm, BindType, Params);
 
         true ->
-            {ok, Statement} = create_statement(Identifier, Params)
+            {ok, Stm} = create_statement(Identifier, Params)
     end,
 
-    async_execute_statement(Statement).
+    async_execute_statement(Stm).
 
 -spec(execute(Identifier :: atom() | binary()) ->
     {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
@@ -362,7 +376,7 @@ handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
 handle_call(stop, _From, State) ->
     {stop, normal, shutdown, State};
 
-handle_call({execute_statement, StatementRef}, From, State) ->
+handle_call({execute_normal_statements, StatementRef}, From, State) ->
     Tag = make_ref(),
     {FromPid, _} = From,
     Result = nif_cass_session_execute(State#state.session, StatementRef, FromPid, Tag),
@@ -370,7 +384,7 @@ handle_call({execute_statement, StatementRef}, From, State) ->
 
 handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
     {FromPid, _} = From,
-    Result = nif_cass_session_execute_batch(State#state.session, BatchType, StmList, Options, FromPid),
+    Result = nif_cass_session_execute_batch(State#state.session, BatchType, filter_stm_list(StmList), Options, FromPid),
     {reply, Result, State}.
 
 handle_cast(_Request, State) ->
@@ -397,7 +411,7 @@ handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
 
     case Result of
         {ok, StatementRef} ->
-            erlcass_prep_utils:set(Identifier, StatementRef),
+            erlcass_prep_utils:set(Identifier, State#state.session, StatementRef),
             gen_server:reply(From, ok);
         _ ->
             gen_server:reply(From, Result)
@@ -443,6 +457,18 @@ receive_response(Tag) ->
     end.
 
 %%log message function
+
+filter_stm_list(StmList) ->
+    filter_stm_list(StmList, []).
+
+filter_stm_list([], Acc) ->
+    Acc;
+
+filter_stm_list([H|T], Acc) when is_record(H, erlcass_stm) ->
+    filter_stm_list(T, [H#erlcass_stm.stm | Acc]);
+
+filter_stm_list([H|T], Acc) ->
+    filter_stm_list(T, [H | Acc]).
 
 send_erlang_log(LogPid, Severity, Msg, Args) ->
     LogPid ! {log_message_recv, {Severity, Msg, Args}}.

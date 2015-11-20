@@ -101,13 +101,18 @@ create_statement(Query) ->
     ok | already_exist | badarg | {error, Reason :: binary()}).
 
 add_prepare_statement(Identifier, Query) ->
-    gen_server:call(?MODULE, {prepare_statement, Identifier, Query}, ?TIMEOUT).
+    gen_server:call(?MODULE, {add_prepare_statement, Identifier, Query}, ?TIMEOUT).
 
 -spec(bind_prepared_statement(Identifier :: atom()) ->
     {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
 
 bind_prepared_statement(Identifier) ->
-    gen_server:call(?MODULE, {bind_prepare_statement, Identifier}).
+    case prepare_statement_get(?PREPARED_ETS_TABLE, Identifier) of
+        undefined ->
+            {error, undefined};
+        PrepStatement ->
+            nif_cass_prepared_bind(PrepStatement)
+    end.
 
 -spec(bind_prepared_params_by_name(StatementRef :: reference(), Params :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
@@ -343,7 +348,7 @@ handle_call({create_session, Args}, From, State) ->
 handle_call(get_metrics, _From, State) ->
     {reply, nif_cass_session_get_metrics(State#state.session), State};
 
-handle_call({prepare_statement, Identifier, Query}, From, State) ->
+handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
 
     AlreadyExist = prepare_statement_exist(?PREPARED_ETS_TABLE, Identifier),
 
@@ -354,19 +359,6 @@ handle_call({prepare_statement, Identifier, Query}, From, State) ->
             ok = nif_cass_session_prepare(State#state.session, Query, {From, Identifier}),
             {noreply, State}
     end;
-
-handle_call({bind_prepare_statement, Identifier}, _From, State) ->
-    PrepStatement = prepare_statement_get(?PREPARED_ETS_TABLE, Identifier),
-
-    if
-        PrepStatement =/= undefined ->
-            {ok, Statement} = nif_cass_prepared_bind(PrepStatement),
-            Result = {ok, Statement};
-        true ->
-            Result = {error, undefined}
-    end,
-
-    {reply, Result, State};
 
 handle_call(stop, _From, State) ->
     {stop, normal, shutdown, State};

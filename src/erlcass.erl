@@ -6,6 +6,7 @@
 -define(NOT_LOADED, not_loaded(?LINE)).
 -define(TIMEOUT, 20000).
 -define(CONNECT_TIMEOUT, 5000).
+-define(PREPARED_ETS_TABLE, erlcass_prepared_statements_ets).
 
 -behaviour(gen_server).
 
@@ -53,7 +54,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {session, connected, ets_prep, uuid_generator, log_pid}).
+-record(state, {session, connected, uuid_generator, log_pid}).
 
 -spec(set_cluster_options(OptionList :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
@@ -270,7 +271,7 @@ stop() ->
 init([]) ->
     process_flag(trap_exit, true),
 
-    Tid = ets:new(erlcass_prepared_statements, [set, private, {read_concurrency, true}]),
+    ?PREPARED_ETS_TABLE = ets:new(?PREPARED_ETS_TABLE, [set, named_table, protected, {read_concurrency, true}]),
 
     LogLevel = case application:get_env(erlcass, log_level) of
         {ok, Level} ->
@@ -307,7 +308,7 @@ init([]) ->
         {stop, session_connect_timeout, shutdown, #state{}};
     true ->
         {ok, UuidGenerator} = nif_cass_uuid_gen_new(),
-        {ok, #state{connected = false, ets_prep = Tid, uuid_generator = UuidGenerator, session = SessionRef, log_pid = LogPid}}
+        {ok, #state{connected = false, uuid_generator = UuidGenerator, session = SessionRef, log_pid = LogPid}}
     end.
 
 handle_call(gen_time, _From, State) ->
@@ -344,7 +345,7 @@ handle_call(get_metrics, _From, State) ->
 
 handle_call({prepare_statement, Identifier, Query}, From, State) ->
 
-    AlreadyExist = prepare_statement_exist(State#state.ets_prep, Identifier),
+    AlreadyExist = prepare_statement_exist(?PREPARED_ETS_TABLE, Identifier),
 
     if
         AlreadyExist ->
@@ -355,7 +356,7 @@ handle_call({prepare_statement, Identifier, Query}, From, State) ->
     end;
 
 handle_call({bind_prepare_statement, Identifier}, _From, State) ->
-    PrepStatement = prepare_statement_get(State#state.ets_prep, Identifier),
+    PrepStatement = prepare_statement_get(?PREPARED_ETS_TABLE, Identifier),
 
     if
         PrepStatement =/= undefined ->
@@ -405,7 +406,7 @@ handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
 
     case Result of
         {ok, StatementRef} ->
-            prepare_statement_set(State#state.ets_prep, Identifier, StatementRef),
+            prepare_statement_set(?PREPARED_ETS_TABLE, Identifier, StatementRef),
             gen_server:reply(From, ok);
         _ ->
             gen_server:reply(From, Result)

@@ -8,3 +8,4 @@
 /cpp-driver
 *.iml
 /deps/
+/.eunit/

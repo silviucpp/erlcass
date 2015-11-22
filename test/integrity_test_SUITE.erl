@@ -53,7 +53,7 @@ set_cluster_options(_Config) ->
         [
             {contact_points, ?CONTACT_POINTS},
             {port, 9042},
-            %{protocol_version, 3},
+            %{protocol_version, 4},
             {number_threads_io, 1},
             {queue_size_io, 4096},
             {queue_size_event, 4096},

@@ -373,9 +373,6 @@ handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
             {noreply, State}
     end;
 
-handle_call(stop, _From, State) ->
-    {stop, normal, shutdown, State};
-
 handle_call({execute_normal_statements, StatementRef}, From, State) ->
     Tag = make_ref(),
     {FromPid, _} = From,
@@ -385,7 +382,10 @@ handle_call({execute_normal_statements, StatementRef}, From, State) ->
 handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
     {FromPid, _} = From,
     Result = nif_cass_session_execute_batch(State#state.session, BatchType, filter_stm_list(StmList), Options, FromPid),
-    {reply, Result, State}.
+    {reply, Result, State};
+
+handle_call(stop, _From, State) ->
+    {stop, normal, shutdown, State}.
 
 handle_cast(_Request, State) ->
     {noreply, State}.

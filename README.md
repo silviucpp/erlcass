@@ -19,6 +19,10 @@ In case you want to discuss based on this project join me on [WowApp][2]
 
 ### Changelog:
 
+##### v2.3 (Not released yet - master)
+
+- Removed the necessity of gen_server calls for prepared statements. Observed this as being a bottleneck under heavy load.
+
 ##### v2.2
 
 - Changed the default consistency from `CASS_CONSISTENCY_ONE` to `CASS_CONSISTENCY_LOCAL_QUORUM`

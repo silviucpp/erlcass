@@ -22,6 +22,8 @@ In case you want to discuss based on this project join me on [WowApp][2]
 ##### v2.3 (Not released yet - master)
 
 - Removed the necessity of gen_server calls for prepared statements. Observed this as being a bottleneck under heavy load.
+- Removed from erlcass module all methods starting with uuid_* and date_from_epoch/1, time_from_epoch/1, date_time_to_epoch/2. 
+  Instead this functions you can use the one from erlcass_uuid and erlcass_time modules.
 
 ##### v2.2
 
@@ -128,7 +130,7 @@ timeuuid                   | binary                                       | <<"0
 inet                       | binary                                       | <<"127.0.0.1">>
 tuple                      | erlang tuple                                 | {<<"aaa">>, 1}
 
-In order to generate a uuid v4 you can use `erlcass:uuid_gen_random()` for uuid v1 you can use `erlcass:uuid_gen_time()`.
+In order to generate a uuid v4 you can use `erlcass_uuid:gen_random()` for uuid v1 you can use `erlcass_uuid:gen_time()`.
 For more details please see the section dedicated to uuid's
 
 ### Starting the application
@@ -650,19 +652,19 @@ ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Ag
 
 ### Working with uuid or timeuuid fields:
 
-- `erlcass:uuid_gen_time()`   -> Generates a V1 (time) UUID
-- `erlcass:uuid_gen_random()` -> Generates a new V4 (random) UUID
-- `erlcass:uuid_gen_from_ts(Ts)` -> Generates a V1 (time) UUID for the specified timestamp
-- `erlcass:uuid_min_from_ts(Ts)` -> Sets the UUID to the minimum V1 (time) value for the specified timestamp,
-- `erlcass:uuid_max_from_ts(Ts)` -> Sets the UUID to the maximum V1 (time) value for the specified timestamp,
-- `erlcass:uuid_get_ts(Uuid)` -> Gets the timestamp for a V1 UUID,
-- `erlcass:uuid_get_version(Uuid)` -> Gets the version for a UUID (V1 or V4)
+- `erlcass_uuid:gen_time()`   -> Generates a V1 (time) UUID
+- `erlcass_uuid:gen_random()` -> Generates a new V4 (random) UUID
+- `erlcass_uuid:gen_from_ts(Ts)` -> Generates a V1 (time) UUID for the specified timestamp
+- `erlcass_uuid:min_from_ts(Ts)` -> Sets the UUID to the minimum V1 (time) value for the specified timestamp,
+- `erlcass_uuid:max_from_ts(Ts)` -> Sets the UUID to the maximum V1 (time) value for the specified timestamp,
+- `erlcass_uuid:get_ts(Uuid)` -> Gets the timestamp for a V1 UUID,
+- `erlcass_uuid:get_version(Uuid)` -> Gets the version for a UUID (V1 or V4)
 
 ### Working with date, time fields:
 
-- `erlcass:date_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `date` type. The `date` type represents the number of days since the Epoch (1970-01-01) with the Epoch centered at the value 2^31.
-- `erlcass:time_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `time` type. The `time` type represents the number of nanoseconds since midnight (range 0 to 86399999999999).
-- `erlcass:date_time_to_epoch(Date, Time)` -> Combines the Cassandra `date` and `time` types to Epoch time in seconds. Returns Epoch time in seconds. Negative times are possible if the date occurs before the Epoch (1970-1-1).
+- `erlcass_time:date_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `date` type. The `date` type represents the number of days since the Epoch (1970-01-01) with the Epoch centered at the value 2^31.
+- `erlcass_time:time_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `time` type. The `time` type represents the number of nanoseconds since midnight (range 0 to 86399999999999).
+- `erlcass_time:date_time_to_epoch(Date, Time)` -> Combines the Cassandra `date` and `time` types to Epoch time in seconds. Returns Epoch time in seconds. Negative times are possible if the date occurs before the Epoch (1970-1-1).
 
 ### Getting metrics
 

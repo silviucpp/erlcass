@@ -203,48 +203,48 @@ static ErlNifFunc nif_funcs[] =
 {
     //CassCluster
     
-    {"nif_cass_cluster_create", 0, nif_cass_cluster_create},
-    {"nif_cass_cluster_release", 0, nif_cass_cluster_release},
-    {"nif_cass_log_set_level_and_callback", 2, nif_cass_log_set_level_and_callback},
-    {"nif_cass_cluster_set_options", 1, nif_cass_cluster_set_options},
+    {"cass_cluster_create", 0, nif_cass_cluster_create},
+    {"cass_cluster_release", 0, nif_cass_cluster_release},
+    {"cass_log_set_level_and_callback", 2, nif_cass_log_set_level_and_callback},
+    {"cass_cluster_set_options", 1, nif_cass_cluster_set_options},
     
     //CassSession
     
-    {"nif_cass_session_new", 0, nif_cass_session_new},
-    {"nif_cass_session_connect", 2, nif_cass_session_connect},
-    {"nif_cass_session_connect_keyspace", 3, nif_cass_session_connect},
-    {"nif_cass_session_close", 1, nif_cass_session_close},
-    {"nif_cass_session_prepare", 3, nif_cass_session_prepare},
+    {"cass_session_new", 0, nif_cass_session_new},
+    {"cass_session_connect", 2, nif_cass_session_connect},
+    {"cass_session_connect_keyspace", 3, nif_cass_session_connect},
+    {"cass_session_close", 1, nif_cass_session_close},
+    {"cass_session_prepare", 3, nif_cass_session_prepare},
     
-    {"nif_cass_prepared_bind", 1, nif_cass_prepared_bind},
-    {"nif_cass_statement_new", 1, nif_cass_statement_new},
-    {"nif_cass_statement_new", 2, nif_cass_statement_new},
-    {"nif_cass_statement_bind_parameters", 3, nif_cass_statement_bind_parameters},
-    {"nif_cass_session_execute", 4, nif_cass_session_execute},
-    {"nif_cass_session_execute_batch", 5, nif_cass_session_execute_batch},
-    {"nif_cass_session_get_metrics", 1, nif_cass_session_get_metrics},
+    {"cass_prepared_bind", 1, nif_cass_prepared_bind},
+    {"cass_statement_new", 1, nif_cass_statement_new},
+    {"cass_statement_new", 2, nif_cass_statement_new},
+    {"cass_statement_bind_parameters", 3, nif_cass_statement_bind_parameters},
+    {"cass_session_execute", 4, nif_cass_session_execute},
+    {"cass_session_execute_batch", 5, nif_cass_session_execute_batch},
+    {"cass_session_get_metrics", 1, nif_cass_session_get_metrics},
     
     //CassUuidGen
     
-    {"nif_cass_uuid_gen_new", 0, nif_cass_uuid_gen_new},
-    {"nif_cass_uuid_gen_time", 1, nif_cass_uuid_gen_time},
-    {"nif_cass_uuid_gen_random", 1, nif_cass_uuid_gen_random},
-    {"nif_cass_uuid_gen_from_time", 2, nif_cass_uuid_gen_from_time},
+    {"cass_uuid_gen_new", 0, nif_cass_uuid_gen_new},
+    {"cass_uuid_gen_time", 1, nif_cass_uuid_gen_time},
+    {"cass_uuid_gen_random", 1, nif_cass_uuid_gen_random},
+    {"cass_uuid_gen_from_time", 2, nif_cass_uuid_gen_from_time},
     
     //CassUuid
     
-    {"nif_cass_uuid_min_from_time", 1, nif_cass_uuid_min_from_time},
-    {"nif_cass_uuid_max_from_time", 1, nif_cass_uuid_max_from_time},
-    {"nif_cass_uuid_timestamp", 1, nif_cass_uuid_timestamp},
-    {"nif_cass_uuid_version", 1, nif_cass_uuid_version},
+    {"cass_uuid_min_from_time", 1, nif_cass_uuid_min_from_time},
+    {"cass_uuid_max_from_time", 1, nif_cass_uuid_max_from_time},
+    {"cass_uuid_timestamp", 1, nif_cass_uuid_timestamp},
+    {"cass_uuid_version", 1, nif_cass_uuid_version},
     
     //Date Time functions
     
-    {"nif_cass_date_from_epoch", 1, nif_cass_date_from_epoch},
-    {"nif_cass_time_from_epoch", 1, nif_cass_time_from_epoch},
-    {"nif_cass_date_time_to_epoch", 2, nif_cass_date_time_to_epoch}
+    {"cass_date_from_epoch", 1, nif_cass_date_from_epoch},
+    {"cass_time_from_epoch", 1, nif_cass_time_from_epoch},
+    {"cass_date_time_to_epoch", 2, nif_cass_date_time_to_epoch}
     
 };
 
-ERL_NIF_INIT(erlcass, nif_funcs, on_nif_load, NULL, on_nif_upgrade, on_nif_unload)
+ERL_NIF_INIT(erlcass_nif, nif_funcs, on_nif_load, NULL, on_nif_upgrade, on_nif_unload)
 

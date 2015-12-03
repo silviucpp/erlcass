@@ -173,10 +173,10 @@ all_datatypes(_Config) ->
     Timestamp = 2147483647,
     Date = 2147483648,
     Time = 86399999999999,
-    {ok, Uuid} = erlcass:uuid_gen_random(),
+    {ok, Uuid} = erlcass_uuid:gen_random(),
     Varchar1 = <<"Юникод"/utf8>>,
     Varint1 = erlang:integer_to_binary(1928301970128391280192830198049113123),
-    {ok, Timeuuid} = erlcass:uuid_gen_time(),
+    {ok, Timeuuid} = erlcass_uuid:gen_time(),
     Inet = <<"127.0.0.1">>,
 
     InsertQuery = <<"INSERT INTO erlang_driver_test.entries2(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
@@ -420,23 +420,23 @@ batches(_Config) ->
 
 uuid_testing(_Config) ->
     Ts = 2147483647,
-    {ok, _} = erlcass:uuid_gen_time(),
-    {ok, _} = erlcass:uuid_gen_random(),
-    {ok, UuidTs} = erlcass:uuid_gen_from_ts(Ts),
-    {ok, Ts} = erlcass:uuid_get_ts(UuidTs),
-    {ok, 1} = erlcass:uuid_get_version(UuidTs),
-    {ok, _} = erlcass:uuid_max_from_ts(Ts),
-    {ok, _} = erlcass:uuid_min_from_ts(Ts),
+    {ok, _} = erlcass_uuid:gen_time(),
+    {ok, _} = erlcass_uuid:gen_random(),
+    {ok, UuidTs} = erlcass_uuid:gen_from_ts(Ts),
+    {ok, Ts} = erlcass_uuid:get_ts(UuidTs),
+    {ok, 1} = erlcass_uuid:get_version(UuidTs),
+    {ok, _} = erlcass_uuid:max_from_ts(Ts),
+    {ok, _} = erlcass_uuid:min_from_ts(Ts),
     ok.
 
 date_time_testing(_Config) ->
-    2147483648 = erlcass:date_from_epoch(0),
-    2147483650 = erlcass:date_from_epoch(2 * 24 * 3600),
+    2147483648 = erlcass_time:date_from_epoch(0),
+    2147483650 = erlcass_time:date_from_epoch(2 * 24 * 3600),
 
     Ts = 2147483647,
-    Date = erlcass:date_from_epoch(Ts),
-    Time = erlcass:time_from_epoch(Ts),
-    Ts = erlcass:date_time_to_epoch(Date, Time).
+    Date = erlcass_time:date_from_epoch(Ts),
+    Time = erlcass_time:time_from_epoch(Ts),
+    Ts = erlcass_time:date_time_to_epoch(Date, Time).
 
 get_metrics(_Config) ->
     {ok, _} = erlcass:get_metrics(),

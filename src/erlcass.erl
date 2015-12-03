@@ -3,15 +3,12 @@
 
 -include("erlcass.hrl").
 
--define(NOT_LOADED, not_loaded(?LINE)).
 -define(TIMEOUT, 20000).
 -define(CONNECT_TIMEOUT, 5000).
 
 -behaviour(gen_server).
 
 -record(erlcass_stm, {session, stm}).
-
--on_load(load_nif/0).
 
 -export([start_link/0, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -38,24 +35,12 @@
     bind_prepared_params_by_name/2,
     bind_prepared_params_by_index/2,
     async_execute_statement/1,
-    execute_statement/1,
-
-    uuid_gen_time/0,
-    uuid_gen_random/0,
-    uuid_gen_from_ts/1,
-    uuid_min_from_ts/1,
-    uuid_max_from_ts/1,
-    uuid_get_ts/1,
-    uuid_get_version/1,
-
-    date_from_epoch/1,
-    time_from_epoch/1,
-    date_time_to_epoch/2
+    execute_statement/1
 ]).
 
 -define(SERVER, ?MODULE).
 
--record(state, {session, connected, uuid_generator, log_pid}).
+-record(state, {session, connected, log_pid}).
 
 -spec(set_cluster_options(OptionList :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
@@ -90,13 +75,13 @@ get_metrics() ->
     {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
 
 create_statement(Query, BindParams) ->
-    nif_cass_statement_new(Query, BindParams).
+    erlcass_nif:cass_statement_new(Query, BindParams).
 
 -spec(create_statement(Query :: binary() | {binary(), integer()}) ->
     {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
 
 create_statement(Query) ->
-    nif_cass_statement_new(Query).
+    erlcass_nif:cass_statement_new(Query).
 
 -spec(add_prepare_statement(Identifier :: atom(), Query :: binary() | {binary(), integer()}) ->
     ok | already_exist | badarg | {error, Reason :: binary()}).
@@ -112,7 +97,7 @@ bind_prepared_statement(Identifier) ->
         undefined ->
             {error, undefined};
         {Session, PrepStatement} ->
-            {ok, StatementRef} = nif_cass_prepared_bind(PrepStatement),
+            {ok, StatementRef} = erlcass_nif:cass_prepared_bind(PrepStatement),
             {ok, #erlcass_stm{session = Session, stm = StatementRef}}
     end.
 
@@ -120,26 +105,26 @@ bind_prepared_statement(Identifier) ->
     ok | badarg | {error, Reason :: binary()}).
 
 bind_prepared_params_by_name(Stm, Params) when is_record(Stm, erlcass_stm) ->
-    nif_cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_NAME, Params);
+    erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_NAME, Params);
 
 bind_prepared_params_by_name(Stm, Params) ->
-    nif_cass_statement_bind_parameters(Stm, ?BIND_BY_NAME, Params).
+    erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_NAME, Params).
 
 -spec(bind_prepared_params_by_index(Stm :: #erlcass_stm{} | reference(), Params :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
 
 bind_prepared_params_by_index(Stm, Params) when is_record(Stm, erlcass_stm) ->
-    nif_cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_INDEX, Params);
+    erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_INDEX, Params);
 
 bind_prepared_params_by_index(Stm, Params) ->
-    nif_cass_statement_bind_parameters(Stm, ?BIND_BY_INDEX, Params).
+    erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_INDEX, Params).
 
 -spec(async_execute_statement(Stm :: reference() | #erlcass_stm{}) ->
     {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
 
 async_execute_statement(Stm) when is_record(Stm, erlcass_stm) ->
     Tag = make_ref(),
-    Result = nif_cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, self(), Tag),
+    Result = erlcass_nif:cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, self(), Tag),
     {Result, Tag};
 
 async_execute_statement(Stm) ->
@@ -179,7 +164,7 @@ async_execute(Identifier, BindType, Params) ->
     if
         is_atom(Identifier) ->
             {ok, Stm} = bind_prepared_statement(Identifier),
-            ok = nif_cass_statement_bind_parameters(Stm#erlcass_stm.stm, BindType, Params);
+            ok = erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, BindType, Params);
 
         true ->
             {ok, Stm} = create_statement(Identifier, Params)
@@ -220,66 +205,6 @@ batch_execute(BatchType, StmList, Options) ->
     {ok, Tag} = batch_async_execute(BatchType, StmList, Options),
     receive_response(Tag).
 
--spec(uuid_gen_time() ->
-    {ok, Uuid :: binary()} | {error, Reason :: binary()}).
-
-uuid_gen_time() ->
-    gen_server:call(?MODULE, gen_time).
-
--spec(uuid_gen_random() ->
-    {ok, Uuid :: binary()} | {error, Reason :: binary()}).
-
-uuid_gen_random() ->
-    gen_server:call(?MODULE, gen_random).
-
--spec(uuid_gen_from_ts(Ts :: integer()) ->
-    {ok, Uuid :: binary()} | badarg | {error, Reason :: binary()}).
-
-uuid_gen_from_ts(Ts) ->
-    gen_server:call(?MODULE, {gen_from_time, Ts}).
-
--spec(uuid_min_from_ts(Ts :: integer()) ->
-    {ok, Uuid :: binary()} | badarg | {error, Reason :: binary()}).
-
-uuid_min_from_ts(Ts) ->
-    nif_cass_uuid_min_from_time(Ts).
-
--spec(uuid_max_from_ts(Ts :: integer()) ->
-    {ok, Uuid :: binary()} | badarg | {error, Reason :: binary()}).
-
-uuid_max_from_ts(Ts) ->
-    nif_cass_uuid_max_from_time(Ts).
-
--spec(uuid_get_ts(Uuid :: binary()) ->
-    {ok, Ts :: integer()} | badarg | {error, Reason :: binary()}).
-
-uuid_get_ts(Uuid) ->
-    nif_cass_uuid_timestamp(Uuid).
-
--spec(uuid_get_version(Uuid :: binary()) ->
-    {ok, Version :: integer()} | badarg | {error, Reason :: binary()}).
-
-uuid_get_version(Uuid) ->
-    nif_cass_uuid_version(Uuid).
-
--spec(date_from_epoch(EpochSecs :: integer()) ->
-    integer()).
-
-date_from_epoch(EpochSecs) ->
-    nif_cass_date_from_epoch(EpochSecs).
-
--spec(time_from_epoch(EpochSecs :: integer()) ->
-    integer()).
-
-time_from_epoch(EpochSecs) ->
-    nif_cass_time_from_epoch(EpochSecs).
-
--spec(date_time_to_epoch(Date :: integer(), Time :: integer()) ->
-    integer()).
-
-date_time_to_epoch(Date, Time) ->
-    nif_cass_date_time_to_epoch(Date, Time).
-
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
@@ -299,18 +224,19 @@ init([]) ->
     end,
 
     LogPid = start_logging(LogLevel, fun(X) -> default_log_function(X) end),
-    ok = nif_cass_cluster_create(),
+    ok = erlcass_nif:cass_cluster_create(),
+    {ok, _UuidPid} = erlcass_uuid:start_link(),
 
     SessionRef = case application:get_env(erlcass, cluster_options) of
         {ok, ClusterOptions} ->
-            nif_cass_cluster_set_options(ClusterOptions),
-            {ok, S} = nif_cass_session_new(),
+            erlcass_nif:cass_cluster_set_options(ClusterOptions),
+            {ok, S} = erlcass_nif:cass_session_new(),
 
             case application:get_env(erlcass, keyspace) of
                 {ok, Keyspace} ->
-                    nif_cass_session_connect_keyspace(S, self(), Keyspace);
+                    erlcass_nif:cass_session_connect_keyspace(S, self(), Keyspace);
                 _ ->
-                    nif_cass_session_connect(S, self())
+                    erlcass_nif:cass_session_connect(S, self())
             end,
 
             receive
@@ -322,24 +248,16 @@ init([]) ->
         _ ->
             undefined
     end,
-    if SessionRef == error ->
-        {stop, session_connect_timeout, shutdown, #state{}};
-    true ->
-        {ok, UuidGenerator} = nif_cass_uuid_gen_new(),
-        {ok, #state{connected = false, uuid_generator = UuidGenerator, session = SessionRef, log_pid = LogPid}}
+
+    if
+        SessionRef == error ->
+            {stop, session_connect_timeout, shutdown, #state{}};
+        true ->
+            {ok, #state{connected = false, session = SessionRef, log_pid = LogPid}}
     end.
 
-handle_call(gen_time, _From, State) ->
-    {reply, nif_cass_uuid_gen_time(State#state.uuid_generator), State};
-
-handle_call(gen_random, _From, State) ->
-    {reply, nif_cass_uuid_gen_random(State#state.uuid_generator), State};
-
-handle_call({gen_from_time, Ts}, _From, State) ->
-    {reply, nif_cass_uuid_gen_from_time(State#state.uuid_generator, Ts), State};
-
 handle_call({set_cluster_options, Options}, _From, State) ->
-    Result = nif_cass_cluster_set_options(Options),
+    Result = erlcass_nif:cass_cluster_set_options(Options),
     {reply, Result, State};
 
 handle_call({set_log_callback, Level}, _From, State) ->
@@ -347,19 +265,19 @@ handle_call({set_log_callback, Level}, _From, State) ->
     {reply, ok, State};
 
 handle_call({create_session, Args}, From, State) ->
-    {ok, SessionRef} = nif_cass_session_new(),
+    {ok, SessionRef} = erlcass_nif:cass_session_new(),
 
     case lists:keyfind(keyspace, 1, Args) of
         {_Key, Value} ->
-            ok = nif_cass_session_connect_keyspace(SessionRef, From, Value);
+            ok = erlcass_nif:cass_session_connect_keyspace(SessionRef, From, Value);
         false ->
-            ok = nif_cass_session_connect(SessionRef, From)
+            ok = erlcass_nif:cass_session_connect(SessionRef, From)
     end,
 
     {noreply, State#state{session = SessionRef}};
 
 handle_call(get_metrics, _From, State) ->
-    {reply, nif_cass_session_get_metrics(State#state.session), State};
+    {reply, erlcass_nif:cass_session_get_metrics(State#state.session), State};
 
 handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
 
@@ -369,19 +287,19 @@ handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
         AlreadyExist ->
             {reply, already_exist, State};
         true ->
-            ok = nif_cass_session_prepare(State#state.session, Query, {From, Identifier}),
+            ok = erlcass_nif:cass_session_prepare(State#state.session, Query, {From, Identifier}),
             {noreply, State}
     end;
 
 handle_call({execute_normal_statements, StatementRef}, From, State) ->
     Tag = make_ref(),
     {FromPid, _} = From,
-    Result = nif_cass_session_execute(State#state.session, StatementRef, FromPid, Tag),
+    Result = erlcass_nif:cass_session_execute(State#state.session, StatementRef, FromPid, Tag),
     {reply, {Result, Tag}, State};
 
 handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
     {FromPid, _} = From,
-    Result = nif_cass_session_execute_batch(State#state.session, BatchType, filter_stm_list(StmList), Options, FromPid),
+    Result = erlcass_nif:cass_session_execute_batch(State#state.session, BatchType, filter_stm_list(StmList), Options, FromPid),
     {reply, Result, State};
 
 handle_call(stop, _From, State) ->
@@ -428,7 +346,7 @@ terminate(Reason, State) ->
     if
         State#state.connected =:= true ->
 
-            {ok, Tag} = nif_cass_session_close(State#state.session),
+            {ok, Tag} = erlcass_nif:cass_session_close(State#state.session),
 
             receive
                 {session_closed, Tag, Result} ->
@@ -442,7 +360,7 @@ terminate(Reason, State) ->
             ok
     end,
 
-    ok = nif_cass_cluster_release().
+    ok = erlcass_nif:cass_cluster_release().
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
@@ -505,109 +423,8 @@ default_log_function(Msg) ->
 
 start_logging(LogLevel, Fun) ->
     LogPid = spawn_link(fun() -> log_loop(Fun) end),
-    ok = nif_cass_log_set_level_and_callback(LogLevel, LogPid),
+    ok = erlcass_nif:cass_log_set_level_and_callback(LogLevel, LogPid),
     LogPid.
 
-%% nif functions
 
-load_nif() ->
-    SoName = get_nif_library_path(),
-    io:format(<<"Loading library: ~p ~n">>, [SoName]),
-    ok = erlang:load_nif(SoName, 0).
 
-get_nif_library_path() ->
-    case code:priv_dir(?MODULE) of
-        {error, bad_name} ->
-            case filelib:is_dir(filename:join(["..", priv])) of
-                true ->
-                    filename:join(["..", priv, ?MODULE]);
-                false ->
-                    filename:join([priv, ?MODULE])
-             end;
-        Dir ->
-            filename:join(Dir, ?MODULE)
-    end.
-
-not_loaded(Line) ->
-    erlang:nif_error({not_loaded, [{module, ?MODULE}, {line, Line}]}).
-
-nif_cass_cluster_create() ->
-    ?NOT_LOADED.
-
-nif_cass_cluster_release() ->
-    ?NOT_LOADED.
-
-nif_cass_log_set_level_and_callback(_Level, _LogPid) ->
-    ?NOT_LOADED.
-
-nif_cass_cluster_set_options(_OptionList) ->
-    ?NOT_LOADED.
-
-nif_cass_session_new() ->
-    ?NOT_LOADED.
-
-nif_cass_session_connect(_SessionRef, _FromPid) ->
-    ?NOT_LOADED.
-
-nif_cass_session_connect_keyspace(_SessionRef, _FromPid, _Keyspace) ->
-    ?NOT_LOADED.
-
-nif_cass_session_close(_SessionRef) ->
-    ?NOT_LOADED.
-
-nif_cass_session_prepare(_SessionRef, _Query, _Info) ->
-    ?NOT_LOADED.
-
-nif_cass_prepared_bind(_PrepStatementRef) ->
-    ?NOT_LOADED.
-
-nif_cass_statement_new(_Query, _Params) ->
-    ?NOT_LOADED.
-
-nif_cass_statement_new(_Query) ->
-    ?NOT_LOADED.
-
-nif_cass_statement_bind_parameters(_StatementRef, _BindType, _Args)->
-    ?NOT_LOADED.
-
-nif_cass_session_execute(_SessionRef, _StatementRef, _FromPid, _Tag) ->
-    ?NOT_LOADED.
-
-nif_cass_session_execute_batch(_SessionRef, _BatchType, _StmList, _Options, _Pid) ->
-    ?NOT_LOADED.
-
-nif_cass_session_get_metrics(_SessionRef) ->
-    ?NOT_LOADED.
-
-nif_cass_uuid_gen_new() ->
-    ?NOT_LOADED.
-
-nif_cass_uuid_gen_time(_Generator) ->
-    ?NOT_LOADED.
-
-nif_cass_uuid_gen_random(_Generator) ->
-    ?NOT_LOADED.
-
-nif_cass_uuid_gen_from_time(_Generator, _Ts) ->
-    ?NOT_LOADED.
-
-nif_cass_uuid_min_from_time(_Ts) ->
-    ?NOT_LOADED.
-
-nif_cass_uuid_max_from_time(_Ts) ->
-    ?NOT_LOADED.
-
-nif_cass_uuid_timestamp(_Uuid) ->
-    ?NOT_LOADED.
-
-nif_cass_uuid_version(_Uuid) ->
-    ?NOT_LOADED.
-
-nif_cass_date_from_epoch(_EpochSecs) ->
-    ?NOT_LOADED.
-
-nif_cass_time_from_epoch(_EpochSecs) ->
-    ?NOT_LOADED.
-
-nif_cass_date_time_to_epoch(_Date, _Time) ->
-    ?NOT_LOADED.

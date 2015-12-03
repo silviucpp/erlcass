@@ -62,10 +62,10 @@ prepare_load_test_table() ->
     FloatPositive = 5.12351e-6,
     IntPositive = 2147483647,
     Timestamp = 2147483647,
-    {ok, Uuid} = erlcass:uuid_gen_random(),
+    {ok, Uuid} = erlcass_uuid:gen_random(),
     Varchar1 = <<"Юникод"/utf8>>,
     Varint1 = erlang:integer_to_binary(1928301970128391280192830198049113123),
-    {ok, Timeuuid} = erlcass:uuid_gen_time(),
+    {ok, Timeuuid} = erlcass_uuid:gen_time(),
     Inet = <<"127.0.0.1">>,
 
     {ok, []} = erlcass:execute(InsertQuery,

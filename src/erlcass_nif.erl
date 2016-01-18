@@ -43,7 +43,7 @@ load_nif() ->
     ok = erlang:load_nif(SoName, 0).
 
 get_nif_library_path() ->
-    case code:priv_dir(?MODULE) of
+    case code:priv_dir(erlcass) of
         {error, bad_name} ->
             case filelib:is_dir(filename:join(["..", priv])) of
                 true ->

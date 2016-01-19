@@ -21,12 +21,12 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
         case CASS_VALUE_TYPE_ASCII:
         case CASS_VALUE_TYPE_TEXT:
         {
-            std::string str_value;
+            ErlNifBinary bin;
             
-            if(!get_string(env, value, str_value))
+            if(!get_bstring(env, value, &bin))
                 return enif_make_badarg(env);
             
-            return cass_error_to_nif_term(env, cass_tuple_set_string_n(tuple, index, str_value.c_str(), str_value.length()));
+            return cass_error_to_nif_term(env, cass_tuple_set_string_n(tuple, index, BIN_TO_STR(bin.data), bin.size));
         }
 
         case CASS_VALUE_TYPE_TINY_INT:
@@ -85,13 +85,12 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
         case CASS_VALUE_TYPE_VARINT:
         case CASS_VALUE_TYPE_BLOB:
         {
-            std::string str_value;
+            ErlNifBinary bin;
             
-            if(!get_string(env, value, str_value))
+            if(!get_bstring(env, value, &bin))
                 return enif_make_badarg(env);
             
-            const cass_byte_t* bytes = reinterpret_cast<const cass_byte_t*>(str_value.data());
-            return cass_error_to_nif_term(env, cass_tuple_set_bytes(tuple, index, bytes, str_value.size()));
+            return cass_error_to_nif_term(env, cass_tuple_set_bytes(tuple, index, bin.data, bin.size));
         }
             
         case CASS_VALUE_TYPE_BOOLEAN:
@@ -115,13 +114,13 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             
         case CASS_VALUE_TYPE_INET:
         {
-            std::string str_value;
+            ErlNifBinary bin;
             
-            if(!get_string(env, value, str_value))
+            if(!get_bstring(env, value, &bin))
                 return enif_make_badarg(env);
             
             CassInet inet;
-            if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
+            if(cass_inet_from_string_n(BIN_TO_STR(bin.data), bin.size, &inet) != CASS_OK)
                 return enif_make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_inet(tuple, index, inet));
@@ -130,13 +129,13 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
         case CASS_VALUE_TYPE_TIMEUUID:
         case CASS_VALUE_TYPE_UUID:
         {
-            std::string str_value;
+            ErlNifBinary bin;
             
-            if(!get_string(env, value, str_value))
+            if(!get_bstring(env, value, &bin))
                 return enif_make_badarg(env);
             
             CassUuid uuid;
-            if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
+            if(erlcass::cass_uuid_from_string_n(BIN_TO_STR(bin.data), bin.size, &uuid) != CASS_OK)
                 return enif_make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_uuid(tuple, index, uuid));
@@ -150,14 +149,13 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
                 return enif_make_badarg(env);
             
-            std::string varint;
+            ErlNifBinary varint;
             int scale;
             
-            if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
+            if(!get_bstring(env, items[0], &varint) || !enif_get_int(env, items[1], &scale))
                 return enif_make_badarg(env);
             
-            const cass_byte_t* varint_bytes = reinterpret_cast<const cass_byte_t*>(varint.data());
-            return cass_error_to_nif_term(env, cass_tuple_set_decimal(tuple, index, varint_bytes, varint.size(), scale));
+            return cass_error_to_nif_term(env, cass_tuple_set_decimal(tuple, index, varint.data, varint.size, scale));
         }
             
         case CASS_VALUE_TYPE_MAP:

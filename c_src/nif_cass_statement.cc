@@ -50,12 +50,12 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
         case CASS_VALUE_TYPE_ASCII:
         case CASS_VALUE_TYPE_TEXT:
         {
-            std::string str_value;
+            ErlNifBinary bin;
             
-            if(!get_string(env, value, str_value))
+            if(!get_bstring(env, value, &bin))
                 return enif_make_badarg(env);
             
-            return cass_error_to_nif_term(env, cass_statement_bind_string_n(statement, index, str_value.c_str(), str_value.length()));
+            return cass_error_to_nif_term(env, cass_statement_bind_string_n(statement, index, BIN_TO_STR(bin.data), bin.size));
         }
 
         case CASS_VALUE_TYPE_TINY_INT:
@@ -114,13 +114,12 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
         case CASS_VALUE_TYPE_VARINT:
         case CASS_VALUE_TYPE_BLOB:
         {
-            std::string str_value;
+            ErlNifBinary bin;
             
-            if(!get_string(env, value, str_value))
+            if(!get_bstring(env, value, &bin))
                 return enif_make_badarg(env);
             
-            const cass_byte_t* bytes = reinterpret_cast<const cass_byte_t*>(str_value.data());
-            return cass_error_to_nif_term(env, cass_statement_bind_bytes(statement, index, bytes, str_value.size()));
+            return cass_error_to_nif_term(env, cass_statement_bind_bytes(statement, index, bin.data, bin.size));
         }
             
         case CASS_VALUE_TYPE_BOOLEAN:
@@ -144,13 +143,13 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             
         case CASS_VALUE_TYPE_INET:
         {
-            std::string str_value;
+            ErlNifBinary bin;
             
-            if(!get_string(env, value, str_value))
+            if(!get_bstring(env, value, &bin))
                 return enif_make_badarg(env);
             
             CassInet inet;
-            if(cass_inet_from_string_n(str_value.c_str(), str_value.length(), &inet) != CASS_OK)
+            if(cass_inet_from_string_n(BIN_TO_STR(bin.data), bin.size, &inet) != CASS_OK)
                 return enif_make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_inet(statement, index, inet));
@@ -159,13 +158,13 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
         case CASS_VALUE_TYPE_TIMEUUID:
         case CASS_VALUE_TYPE_UUID:
         {
-            std::string str_value;
+            ErlNifBinary bin;
             
-            if(!get_string(env, value, str_value))
+            if(!get_bstring(env, value, &bin))
                 return enif_make_badarg(env);
             
             CassUuid uuid;
-            if(erlcass::cass_uuid_from_string_n(str_value.c_str(), str_value.length(), &uuid) != CASS_OK)
+            if(erlcass::cass_uuid_from_string_n(BIN_TO_STR(bin.data), bin.size, &uuid) != CASS_OK)
                 return enif_make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_uuid(statement, index, uuid));
@@ -179,14 +178,13 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
                 return enif_make_badarg(env);
             
-            std::string varint;
+            ErlNifBinary varint;
             int scale;
             
-            if(!get_string(env, items[0], varint) || !enif_get_int(env, items[1], &scale))
+            if(!get_bstring(env, items[0], &varint) || !enif_get_int(env, items[1], &scale))
                 return enif_make_badarg(env);
             
-            const cass_byte_t* variant_bytes = reinterpret_cast<const cass_byte_t*>(varint.data());
-            return cass_error_to_nif_term(env, cass_statement_bind_decimal(statement, index, variant_bytes, varint.size(), scale));
+            return cass_error_to_nif_term(env, cass_statement_bind_decimal(statement, index, varint.data, varint.size, scale));
         }
         
         case CASS_VALUE_TYPE_MAP:
@@ -238,7 +236,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
         //bind by name -> {name, value}
         
         cass::IndexVec indices;
-        std::string column_name;
+        ErlNifBinary column_name;
         const ERL_NIF_TERM *items;
         int arity;
         
@@ -247,10 +245,10 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
                 return enif_make_badarg(env);
             
-            if(!get_string(env, items[0], column_name))
+            if(!get_bstring(env, items[0], &column_name))
                 return enif_make_badarg(env);
-            
-            if(result->metadata()->get_indices(column_name, &indices) == 0)
+                        
+            if(result->metadata()->get_indices(cass::StringRef(BIN_TO_STR(column_name.data), column_name.size), &indices) == 0)
                 return enif_make_badarg(env);
             
             size_t index = indices[0];
@@ -304,7 +302,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
     ERL_NIF_TERM queryTerm;
-    std::string query;
+    ErlNifBinary query;
     CassConsistency consistencyLevel;
     
     if(enif_is_tuple(env, argv[0]))
@@ -329,7 +327,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
         consistencyLevel = data->defaultConsistencyLevel;
     }
     
-    if(!get_string(env, queryTerm, query))
+    if(!get_bstring(env, queryTerm, &query))
         return enif_make_badarg(env);
     
     unsigned int params_length = 0;
@@ -340,7 +338,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
             return enif_make_badarg(env);
     }
 
-    CassStatement* stm = cass_statement_new_n(query.c_str(), query.length(), params_length);
+    CassStatement* stm = cass_statement_new_n(BIN_TO_STR(query.data), query.size, params_length);
     
     CassError cass_result = cass_statement_set_consistency(stm, consistencyLevel);
     

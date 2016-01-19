@@ -21,41 +21,22 @@ ERL_NIF_TERM make_binary(ErlNifEnv* env, const char* buff, size_t length)
     return term;
 }
 
-ERL_NIF_TERM make_error(ErlNifEnv* env, const char* error)
+ERL_NIF_TERM make_error(ErlNifEnv* env, const char* error, size_t length)
 {
-    return enif_make_tuple2(env, ATOMS.atomError, make_binary(env, error, strlen(error)));
+    return enif_make_tuple2(env, ATOMS.atomError, make_binary(env, error, length));
 }
 
-bool get_string(ErlNifEnv* env, ERL_NIF_TERM term, std::string & value)
+ERL_NIF_TERM make_error(ErlNifEnv* env, const char* error)
+{
+    return make_error(env, error, strlen(error));
+}
+
+bool get_bstring(ErlNifEnv* env, ERL_NIF_TERM term, ErlNifBinary* bin)
 {
     if(enif_is_binary(env, term))
-    {
-        ErlNifBinary bin;
-        
-        if(enif_inspect_binary(env, term, &bin))
-        {
-            value.resize(bin.size);
-            memcpy((char*)value.c_str(), bin.data, bin.size);
-            return true;
-        }
-    }
-    else
-    {
-        unsigned len;
-        
-        if(enif_get_list_length(env, term, &len))
-        {
-            value.resize(len+1);
-            
-            if(enif_get_string(env, term, &*(value.begin()), value.size(), ERL_NIF_LATIN1) > 0)
-            {
-            	value.resize(len); //trim null terminated char.
-            	return true;
-            }
-        }
-    }
-    
-    return false;
+        return enif_inspect_binary(env, term, bin);
+
+    return enif_inspect_iolist_as_binary(env, term, bin);
 }
 
 ERL_NIF_TERM cass_error_to_nif_term(ErlNifEnv* env, CassError error)
@@ -71,7 +52,5 @@ ERL_NIF_TERM cass_future_error_to_nif_term(ErlNifEnv* env, CassFuture* future)
     const char* message;
     size_t message_length;
     cass_future_error_message(future, &message, &message_length);
-    
-    std::string msg(message, message_length);
-    return make_error(env, msg.c_str());
+    return make_error(env, message, message_length);
 }

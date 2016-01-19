@@ -175,11 +175,12 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return enif_make_badarg(env);
     
-    std::string keyspace;
+    ErlNifBinary keyspace;
+    memset(&keyspace, 0, sizeof(keyspace));
     
     if(argc == 3)
     {
-        if(!get_string(env, argv[2], keyspace))
+        if(!get_bstring(env, argv[2], &keyspace))
             return enif_make_badarg(env);
     }
     
@@ -195,10 +196,10 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
     
     CassFuture* future;
     
-    if(keyspace.empty())
+    if(!keyspace.size)
         future = cass_session_connect(enif_session->session, data->cluster);
     else
-        future = cass_session_connect_keyspace(enif_session->session, data->cluster, keyspace.c_str());
+        future = cass_session_connect_keyspace_n(enif_session->session, data->cluster, BIN_TO_STR(keyspace.data), keyspace.size);
     
     CassError error = cass_future_set_callback(future, on_session_connect, callback);
     cass_future_free(future);
@@ -243,7 +244,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     enif_cass_session * enif_session = NULL;
     
     ERL_NIF_TERM queryTerm;
-    std::string query;
+    ErlNifBinary query;
     CassConsistency consistencyLevel;
     
     if(enif_is_tuple(env, argv[1]))
@@ -268,7 +269,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
         consistencyLevel = data->defaultConsistencyLevel;
     }
     
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session) || !get_string(env, queryTerm, query))
+    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session) || !get_bstring(env, queryTerm, &query))
         return enif_make_badarg(env);
     
     ErlNifPid pid;
@@ -284,7 +285,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     callback->consistencyLevel = consistencyLevel;
     callback->session = enif_session->session;
     
-    CassFuture* future = cass_session_prepare_n(enif_session->session, query.c_str(), query.length());
+    CassFuture* future = cass_session_prepare_n(enif_session->session, BIN_TO_STR(query.data), query.size);
     
     CassError error = cass_future_set_callback(future, on_statement_prepared, callback);
     cass_future_free(future);

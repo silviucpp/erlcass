@@ -11,17 +11,16 @@
 #include "nif_utils.h"
 
 #include <string.h>
-#include <vector>
 
 //CassCluster
 
 #define STRING_SETTING(Key, Func) \
     if(enif_is_identical(term_key, Key)) \
     { \
-        std::string value; \
-        if(!get_string(env, term_value, value)) \
+        ErlNifBinary value; \
+        if(!get_bstring(env, term_value, &value)) \
             return false; \
-        return cass_error_to_nif_term(env, Func(data->cluster, value.c_str())); \
+        return cass_error_to_nif_term(env, Func(data->cluster, BIN_TO_STR(value.data), value.size)); \
     }
 
 #define INT_SETTING(Key, Func) \
@@ -118,13 +117,14 @@ ERL_NIF_TERM internal_cass_cluster_set_credentials(ErlNifEnv* env, ERL_NIF_TERM 
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
         return enif_make_badarg(env);
     
-    std::string username;
-    std::string pwd;
+    ErlNifBinary username;
+    ErlNifBinary pwd;
     
-    if(!get_string(env, items[0], username) || !get_string(env, items[1], pwd))
+    if(!get_bstring(env, items[0], &username) || !get_bstring(env, items[1], &pwd))
         return enif_make_badarg(env);
     
-    cass_cluster_set_credentials(data->cluster, username.c_str(), pwd.c_str());
+    cass_cluster_set_credentials_n(data->cluster, BIN_TO_STR(username.data), username.size, BIN_TO_STR(pwd.data), pwd.size);
+
     return ATOMS.atomOk;
 }
 
@@ -136,19 +136,19 @@ ERL_NIF_TERM internal_cass_cluster_set_load_balance_dc_aware(ErlNifEnv* env, ERL
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 3)
         return enif_make_badarg(env);
     
-    std::string local_dc;
+    ErlNifBinary local_dc;
     unsigned int used_hosts_per_remote_dc;
     
-    if(!get_string(env, items[0], local_dc) || !enif_get_uint(env, items[1], &used_hosts_per_remote_dc))
+    if(!get_bstring(env, items[0], &local_dc) || !enif_get_uint(env, items[1], &used_hosts_per_remote_dc))
         return enif_make_badarg(env);
     
     cass_bool_t allow_remote_dcs_for_local_cl = enif_is_identical(items[2], ATOMS.atomTrue) ? cass_true : cass_false;
     
-    return cass_error_to_nif_term(env,
-                                  cass_cluster_set_load_balance_dc_aware(data->cluster,
-                                                                         local_dc.c_str(),
-                                                                         used_hosts_per_remote_dc,
-                                                                         allow_remote_dcs_for_local_cl));
+    return cass_error_to_nif_term(env, cass_cluster_set_load_balance_dc_aware_n(data->cluster,
+                                                                                BIN_TO_STR(local_dc.data),
+                                                                                local_dc.size,
+                                                                                used_hosts_per_remote_dc,
+                                                                                allow_remote_dcs_for_local_cl));
 }
 
 ERL_NIF_TERM internal_cass_cluster_set_tcp_keepalive(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
@@ -183,11 +183,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
 {
     ERL_NIF_TERM head;
 
-    std::vector<std::string> trusted_certs;
-    std::string cert;
-    std::string private_key;
-    std::string private_key_pwd;
-    int verify_flags = CASS_SSL_VERIFY_PEER_CERT;
+    CassSslScope ssl(cass_ssl_new());
     
     while(enif_get_list_cell(env, term_value, &head, &term_value))
     {
@@ -202,39 +198,60 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             ERL_NIF_TERM trust_list = items[1];
             ERL_NIF_TERM cert_head;
             
-            std::string cert;
+            ErlNifBinary cert_item;
             
             while(enif_get_list_cell(env, trust_list, &cert_head, &trust_list))
             {
-                if(!get_string(env, cert_head, cert))
+                if(!get_bstring(env, cert_head, &cert_item))
                     return enif_make_badarg(env);
              
-                trusted_certs.push_back(cert);
+                CassError error = cass_ssl_add_trusted_cert_n(ssl.get(), BIN_TO_STR(cert_item.data), cert_item.size);
+                
+                if(error != CASS_OK)
+                    return cass_error_to_nif_term(env, error);
             }
         }
         else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslCert))
         {
-            if(!get_string(env, items[1], cert))
+            ErlNifBinary cert;
+            
+            if(!get_bstring(env, items[1], &cert))
                 return enif_make_badarg(env);
+            
+            CassError error = cass_ssl_set_cert_n(ssl.get(), BIN_TO_STR(cert.data), cert.size);
+            
+            if(error != CASS_OK)
+                return cass_error_to_nif_term(env, error);
         }
         else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslPrivateKey))
         {
             const ERL_NIF_TERM *pk_items;
             int pk_arity;
+            ErlNifBinary pk;
+            ErlNifBinary pk_pwd;
             
             if(!enif_get_tuple(env, items[1], &pk_arity, &pk_items) || pk_arity != 2)
                 return enif_make_badarg(env);
             
-            if(!get_string(env, pk_items[0], private_key))
+            if(!get_bstring(env, pk_items[0], &pk))
                 return enif_make_badarg(env);
             
-            if(!get_string(env, pk_items[1], private_key_pwd))
+            if(!get_bstring(env, pk_items[1], &pk_pwd))
                 return enif_make_badarg(env);
+            
+            CassError error = cass_ssl_set_private_key_n(ssl.get(), BIN_TO_STR(pk.data), pk.size, BIN_TO_STR(pk_pwd.data), pk_pwd.size);
+            
+            if(error != CASS_OK)
+                return cass_error_to_nif_term(env, error);
         }
         else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslVerifyFlags))
         {
+            int verify_flags;
+            
             if(!enif_get_int(env, items[1], &verify_flags))
                 return enif_make_badarg(env);
+            
+            cass_ssl_set_verify_flags(ssl.get(), verify_flags);
         }
         else
         {
@@ -243,35 +260,6 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
         }
     }
     
-    CassSslScope ssl(cass_ssl_new());
-    
-    for (std::vector<std::string>::const_iterator it = trusted_certs.begin(); it != trusted_certs.end(); ++it)
-    {
-        CassError error = cass_ssl_add_trusted_cert(ssl.get(), (*it).c_str());
-        
-        if(error != CASS_OK)
-            return cass_error_to_nif_term(env, error);
-    }
-
-    if(!cert.empty())
-    {
-        CassError error = cass_ssl_set_cert(ssl.get(), cert.c_str());
-        
-        if(error != CASS_OK)
-            return cass_error_to_nif_term(env, error);
-    }
-    
-    if(!private_key.empty())
-    {
-        CassError error = cass_ssl_set_private_key(ssl.get(), private_key.c_str(), private_key_pwd.c_str());
-        
-        if(error != CASS_OK)
-            return cass_error_to_nif_term(env, error);
-    }
-    
-    if(verify_flags != CASS_SSL_VERIFY_NONE)
-        cass_ssl_set_verify_flags(ssl.get(), verify_flags);
-
     cass_cluster_set_ssl(data->cluster, ssl.get());
     
     return ATOMS.atomOk;
@@ -331,7 +319,7 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_N
 {
     CUSTOM_SETTING(ATOMS.atomClusterDefaultConsistencyLevel, internal_cluster_set_default_consistency_level);
     
-    STRING_SETTING(ATOMS.atomClusterSettingContactPoints, cass_cluster_set_contact_points);
+    STRING_SETTING(ATOMS.atomClusterSettingContactPoints, cass_cluster_set_contact_points_n);
     INT_SETTING(ATOMS.atomClusterSettingPort, cass_cluster_set_port);
     CUSTOM_SETTING(ATOMS.atomClusterSettingSsl, internal_cass_cluster_set_ssl);
     INT_SETTING(ATOMS.atomClusterSettingProtocolVersion, cass_cluster_set_protocol_version);

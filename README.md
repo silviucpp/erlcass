@@ -21,9 +21,9 @@ In case you want to discuss based on this project join me on [WowApp][2]
 
 ##### v2.3 (Not released yet - master)
 
-- Removed the necessity of gen_server calls for prepared statements. Observed this as being a bottleneck under heavy load.
-- Removed from erlcass module all methods starting with uuid_* and date_from_epoch/1, time_from_epoch/1, date_time_to_epoch/2. 
-  Instead this functions you can use the one from erlcass_uuid and erlcass_time modules.
+- Removed the necessity of `gen_server` calls for prepared statements. Observed this as being a bottleneck under heavy load.
+- Removed from erlcass module all methods starting with `uuid_*` and `date_from_epoch/1`, `time_from_epoch/1`, `date_time_to_epoch/2`. 
+  Instead this functions you can use the one from `erlcass_uuid` and `erlcass_time` modules.
 - Updated cpp-driver to 2.2.1
 - Internal code refactoring
 

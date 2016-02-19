@@ -8,7 +8,7 @@
 -define(KEYSPACE, <<"load_test_erlcass">>).
 -define(CONTACT_POINTS, <<"172.17.3.129">>).
 -define(CLUSTER_NAME, <<"dc-beta">>).
--define(QUERY, {<<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14 FROM entries WHERE col1 =?">>, ?CASS_CONSISTENCY_ONE}).
+-define(QUERY, {<<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14 FROM test_table WHERE col1 =?">>, ?CASS_CONSISTENCY_ONE}).
 -define(QUERY_ARGS, [<<"hello">>]).
 
 start() ->
@@ -49,9 +49,11 @@ prepare_load_test_table() ->
     {ok, []} = erlcass:execute(<<"CREATE KEYSPACE ", (?KEYSPACE)/binary, " WITH replication = {'class': 'NetworkTopologyStrategy', '", (?CLUSTER_NAME)/binary, "': 3  }">>),
 
     Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet]),
-    {ok, []} = erlcass:execute(<<"CREATE TABLE ", (?KEYSPACE)/binary, ".entries(",  Cols/binary, " PRIMARY KEY(col1));">>),
+    Sql = <<"CREATE TABLE ", (?KEYSPACE)/binary, ".test_table(",  Cols/binary, " PRIMARY KEY(col1));">>,
+    io:format(<<"exec: ~p ~n">>,[Sql]),
+    {ok, []} = erlcass:execute(Sql),
 
-    InsertQuery = <<"INSERT INTO ", (?KEYSPACE)/binary, ".entries(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
+    InsertQuery = <<"INSERT INTO ", (?KEYSPACE)/binary, ".test_table(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
 
     AsciiValBin = <<"hello">>,
     BigIntPositive = 9223372036854775807,

@@ -20,7 +20,7 @@ case $OS in
                     then echo "libuv has already been installed"
                 else
                     pushd /tmp
-                    wget http://libuv.org/dist/v1.7.5/libuv-v1.7.5.tar.gz
+                    wget http://dist.libuv.org/dist/v1.7.5/libuv-v1.7.5.tar.gz
                     tar xzf libuv-v1.7.5.tar.gz
                     pushd libuv-v1.7.5
                     sh autogen.sh

@@ -6,7 +6,7 @@
 -export([start/0, profile/3, profile/4, prepare_load_test_table/0]).
 
 -define(KEYSPACE, <<"load_test_erlcass">>).
--define(CONTACT_POINTS, <<"172.17.3.129">>).
+-define(CONTACT_POINTS, <<"172.17.3.129,172.17.3.130,172.17.3.131">>).
 -define(CLUSTER_NAME, <<"dc-beta">>).
 -define(QUERY, {<<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14 FROM test_table WHERE col1 =?">>, ?CASS_CONSISTENCY_ONE}).
 -define(QUERY_ARGS, [<<"hello">>]).
@@ -146,13 +146,12 @@ load_test(St, 1, NrReq, UseOneSatement) ->
 load_test(St, NrProcesses, NrReq, UseOneSatement) ->
     ReqPerProcess = round(NrReq/NrProcesses),
 
-    Fun = fun(_X) ->
+    Fun = fun() ->
         producer_loop(St, ReqPerProcess, UseOneSatement),
         consumer_loop(0, 0, 0, ReqPerProcess)
     end,
 
-    List = lists:seq(1, NrProcesses),
-    plists:foreach(Fun, List).
+    multi_spawn:do_work(Fun, NrProcesses).
 
 run_test(0, _St, _NrProc, _RequestsNr, _UseOneSatement) ->
     ok;
@@ -165,6 +164,10 @@ profile(NrProc, RequestsNr, UseOneSatement) ->
     profile(NrProc, RequestsNr, 1, UseOneSatement).
 
 profile(NrProc, RequestsNr, RepeatNumber, UseOneSatement) ->
+    Fun = fun() -> do_profiling(NrProc, RequestsNr, RepeatNumber, UseOneSatement) end,
+    spawn(Fun).
+
+do_profiling(NrProc, RequestsNr, RepeatNumber, UseOneSatement) ->
     eprof:start(),
     eprof:start_profiling([self()]),
     Rs = start(),

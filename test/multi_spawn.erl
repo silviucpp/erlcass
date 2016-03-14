@@ -6,7 +6,7 @@
 do_work(Fun, Count) ->
     process_flag(trap_exit, true),
     spawn_childrens(Fun, Count),
-    wait_responses(0).
+    wait_responses(Count).
 
 spawn_childrens(_Fun, 0) ->
     ok;

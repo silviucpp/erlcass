@@ -29,7 +29,7 @@ SchemaColumn get_schema_column(const cass::DataType* data_type)
     
     if(data_type->is_collection() || data_type->is_tuple())
     {
-        const cass::SubTypesDataType* collection_type = static_cast<const cass::SubTypesDataType*>(data_type);
+        const cass::CompositeType* collection_type = static_cast<const cass::CompositeType*>(data_type);
         
         for(cass::DataType::Vec::const_iterator it = collection_type->types().begin(); it != collection_type->types().end(); ++it)
             sc.subtypes.push_back(get_schema_column((*it).get()));

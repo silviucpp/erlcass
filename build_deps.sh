@@ -72,5 +72,5 @@ popd
 mkdir -p deps/cpp-driver/build
 pushd deps/cpp-driver/build
 cmake ..
-make
+make -j 12
 popd

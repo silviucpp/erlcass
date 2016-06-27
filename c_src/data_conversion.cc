@@ -31,9 +31,10 @@ ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 
 ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
 {
-    CassValueType type = cass_value_type(value);
-    
-    switch (type)
+    if(cass_value_is_null(value))
+        return ATOMS.atomNull;
+        
+    switch (cass_value_type(value))
     {
         case CASS_VALUE_TYPE_ASCII:
         case CASS_VALUE_TYPE_TEXT:

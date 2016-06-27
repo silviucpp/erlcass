@@ -19,6 +19,11 @@ In case you want to discuss based on this project join me on [WowApp][2]
 
 ### Changelog:
 
+##### v2.4 (not released yet)
+
+- Updated cpp-driver to 2.4.1
+- Improved the native code build speed
+
 ##### v2.3
 
 - Removed the necessity of `gen_server` calls for prepared statements. Observed this as being a bottleneck under heavy load.

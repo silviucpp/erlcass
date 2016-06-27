@@ -21,7 +21,9 @@ start() ->
             [
                 {contact_points, ?CONTACT_POINTS},
                 {load_balance_dc_aware, {?CLUSTER_NAME, 0, false}},
-                {number_threads_io, 4},
+                {latency_aware_routing, true},
+                {token_aware_routing, true},
+                {number_threads_io, 8},
                 {queue_size_io, 128000},
                 {core_connections_host, 5},
                 {max_connections_host, 5},

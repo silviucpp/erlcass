@@ -21,6 +21,9 @@ ERL_NIF_TERM make_binary(ErlNifEnv* env, const char* buff, size_t length);
 ERL_NIF_TERM cass_error_to_nif_term(ErlNifEnv* env, CassError error);
 ERL_NIF_TERM cass_future_error_to_nif_term(ErlNifEnv* env, CassFuture* future);
 
+bool parse_consistency_level_options(ErlNifEnv* env, ERL_NIF_TERM options_list, CassConsistency* cl, CassConsistency* serial_cl);
+bool parse_query_term(ErlNifEnv* env, ERL_NIF_TERM qterm, ErlNifBinary* query, CassConsistency* cl, CassConsistency* serial_cl);
+
 bool get_bstring(ErlNifEnv* env, ERL_NIF_TERM term, ErlNifBinary* bin);
 
 #endif

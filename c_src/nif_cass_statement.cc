@@ -301,33 +301,11 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    ERL_NIF_TERM queryTerm;
     ErlNifBinary query;
-    CassConsistency consistencyLevel;
-    
-    if(enif_is_tuple(env, argv[0]))
-    {
-        const ERL_NIF_TERM *items;
-        int arity;
-        
-        if(!enif_get_tuple(env, argv[0], &arity, &items) || arity != 2)
-            return enif_make_badarg(env);
-        
-        queryTerm = items[0];
-        int cLevel;
-        
-        if(!enif_get_int(env, items[1], &cLevel))
-            return enif_make_badarg(env);
-        
-        consistencyLevel = static_cast<CassConsistency>(cLevel);
-    }
-    else
-    {
-        queryTerm = argv[0];
-        consistencyLevel = data->defaultConsistencyLevel;
-    }
-    
-    if(!get_bstring(env, queryTerm, &query))
+    CassConsistency consistency_level = data->defaultConsistencyLevel;
+    CassConsistency serial_consistency_level = CASS_CONSISTENCY_ANY;
+
+    if(!parse_query_term(env, argv[0], &query, &consistency_level, &serial_consistency_level))
         return enif_make_badarg(env);
     
     unsigned int params_length = 0;
@@ -340,10 +318,18 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 
     CassStatement* stm = cass_statement_new_n(BIN_TO_STR(query.data), query.size, params_length);
     
-    CassError cass_result = cass_statement_set_consistency(stm, consistencyLevel);
+    CassError cass_result = cass_statement_set_consistency(stm, consistency_level);
     
     if(cass_result != CASS_OK)
         return cass_error_to_nif_term(env, cass_result);
+    
+    if(serial_consistency_level != CASS_CONSISTENCY_ANY)
+    {
+        cass_result = cass_statement_set_serial_consistency(stm, serial_consistency_level);
+        
+        if(cass_result != CASS_OK)
+            return cass_error_to_nif_term(env, cass_result);
+    }
     
     if(params_length)
     {
@@ -387,7 +373,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 }
 
 
-ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, CassConsistency consistency)
+ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, CassConsistency cl, CassConsistency serial_cl)
 {
     enif_cass_statement *enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(resource_type, sizeof(enif_cass_statement)));
     
@@ -396,10 +382,18 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource
     
     enif_obj->statement = cass_prepared_bind(prep);
     
-    CassError cass_result = cass_statement_set_consistency(enif_obj->statement, consistency);
+    CassError cass_result = cass_statement_set_consistency(enif_obj->statement, cl);
     
     if(cass_result != CASS_OK)
         return cass_error_to_nif_term(env, cass_result);
+    
+    if(serial_cl != CASS_CONSISTENCY_ANY )
+    {
+        cass_result = cass_statement_set_serial_consistency(enif_obj->statement, serial_cl);
+        
+        if(cass_result != CASS_OK)
+            return cass_error_to_nif_term(env, cass_result);
+    }
     
     ERL_NIF_TERM term = enif_make_resource(env, enif_obj);
     enif_release_resource(enif_obj);

@@ -260,10 +260,15 @@ prepared_bind_by_name_index(_Config) ->
     CollectionValue2 = <<"my_value_2">>,
     Key1 = 5,
     Key2 = 10,
-    QueryInsert  = <<"UPDATE erlang_driver_test.test_map SET value[?] = ? WHERE key = ?">>,
+    QueryInsertDefaultConsistencyLevel  = <<"UPDATE erlang_driver_test.test_map SET value[?] = ? WHERE key = ?">>,
+    QueryInsertLocalQuorum  = {<<"UPDATE erlang_driver_test.test_map SET value[?] = ? WHERE key = ?">>, ?CASS_CONSISTENCY_LOCAL_QUORUM},
+    QueryInsertSerialConsistency  = {<<"UPDATE erlang_driver_test.test_map SET value[?] = ? WHERE key = ? IF EXISTS">>, [
+        {serial_consistency_level, ?CASS_CONSISTENCY_LOCAL_SERIAL}]},
     QuerySelect  = <<"SELECT value FROM erlang_driver_test.test_map where key = ?">>,
 
-    ok = erlcass:add_prepare_statement(insert_test_bind, QueryInsert),
+    ok = erlcass:add_prepare_statement(insert_test_bind, QueryInsertDefaultConsistencyLevel),
+    ok = erlcass:add_prepare_statement(insert_test_bind_local_q, QueryInsertLocalQuorum),
+    ok = erlcass:add_prepare_statement(insert_test_bind_serial_q, QueryInsertSerialConsistency),
     ok = erlcass:add_prepare_statement(select_test_bind, QuerySelect),
 
     {ok, []} = erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [
@@ -411,7 +416,10 @@ batches(_Config) ->
     {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
     ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
 
-    {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]),
+    {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [
+        {consistency_level, ?CASS_CONSISTENCY_QUORUM},
+        {serial_consistency_level, ?CASS_CONSISTENCY_LOCAL_SERIAL}
+    ]),
 
     {ok, Result} = erlcass:execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>),
     ListLength = 2,

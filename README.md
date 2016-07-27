@@ -7,7 +7,6 @@ In case you want to discuss based on this project join me on [WowApp][2]
 ### TODO List:
 
 - Add support for multiple sessions
-- Add support for setting serial consistency,
 - Add support for pagination,
 - Add support for UDT
 - Add support for sending and relieving custom payloads to and from Cassandra
@@ -23,6 +22,7 @@ In case you want to discuss based on this project join me on [WowApp][2]
 
 - Updated cpp-driver to 2.4.2
 - Improved the native code build speed
+- Add support for setting serial consistency level
 
 ##### v2.3
 
@@ -539,12 +539,28 @@ ok = erlcass:add_prepare_statement(select_blogpost,
 
 In case you want to overwrite the default consistency level for that prepare statement use a tuple for the query argument: *{Query, ConsistencyLevelHere}*
 
+Also this is possible using *{Query, Options}* where options is a proplist with the following options supported:
+                                                                           
+- `consistency_level` - If it's missing the statement will be executed using the default consistency level value.
+- `serial_consistency_level` - That consistency can only be either `?CASS_CONSISTENCY_SERIAL` or `?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be ignored for anything else that a conditional update/insert.
+
 Example:
 
 ```erlang
 ok = erlcass:add_prepare_statement(
                 select_blogpost,
                 { <<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM }).
+```
+
+or 
+
+```erlang
+ok = erlcass:add_prepare_statement(
+                insert_blogpost,
+                {<<"UPDATE blogposts SET author = ? WHERE domain = ? IF EXISTS">>, [
+                    {consistency_level, ?CASS_CONSISTENCY_LOCAL_QUORUM},
+                    {serial_consistency_level, ?CASS_CONSISTENCY_LOCAL_SERIAL}
+                ]}).
 ```
 
 ### Run a prepared statement query
@@ -643,8 +659,10 @@ First argument is the batch type and is defined as:
 
 The second one is a list of statements (prepared or normal statements) that needs to be executed in the batch.
 
-The third argument is a list of options currently ony `consistency_level` is available. If it's missing the batch will be
-executed using the default consistency level value.
+The third argument is a list of options in `{Key, Value}` format (proplist):
+
+- `consistency_level` - If it's missing the batch will be executed using the default consistency level value.
+- `serial_consistency_level` - That consistency can only be either `?CASS_CONSISTENCY_SERIAL` or `?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be ignored for anything else that a conditional update/insert.
 
 Example:
 

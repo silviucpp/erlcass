@@ -13,6 +13,7 @@ const char kAtomTrue[] = "true";
 const char kAtomFalse[] = "false";
 const char kAtomNull[] = "null";
 const char kAtomConsistencyLevel[] = "consistency_level";
+const char kAtomSerialConsistencyLevel[] = "serial_consistency_level";
 const char kAtomLogMsgRecord[] = "log_msg";
 
 //events atoms
@@ -98,6 +99,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomFalse = make_atom(env, kAtomFalse);
     ATOMS.atomNull = make_atom(env, kAtomNull);
     ATOMS.atomConsistencyLevel = make_atom(env, kAtomConsistencyLevel);
+    ATOMS.atomSerialConsistencyLevel = make_atom(env, kAtomSerialConsistencyLevel);
     ATOMS.atomLogMsgRecord = make_atom(env, kAtomLogMsgRecord);
     
     //events atoms

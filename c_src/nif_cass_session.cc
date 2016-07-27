@@ -50,6 +50,7 @@ struct callback_statement_info
     ERL_NIF_TERM arguments;
     ErlNifResourceType* prepared_res;
     CassConsistency consistencyLevel;
+    CassConsistency serial_cl;
     CassSession* session;
 };
 
@@ -131,7 +132,7 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     {
         const CassPrepared* prep = cass_future_get_prepared(future);
         
-        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel);
+        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel, cb->serial_cl);
         
         if(enif_is_tuple(cb->env, term))
         {
@@ -255,34 +256,15 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
-    
-    ERL_NIF_TERM queryTerm;
+
+    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+        return enif_make_badarg(env);
+
     ErlNifBinary query;
-    CassConsistency consistencyLevel;
+    CassConsistency consistency_level = data->defaultConsistencyLevel;
+    CassConsistency serial_consistency_level = CASS_CONSISTENCY_ANY;
     
-    if(enif_is_tuple(env, argv[1]))
-    {
-        const ERL_NIF_TERM *items;
-        int arity;
-        
-        if(!enif_get_tuple(env, argv[1], &arity, &items) || arity != 2)
-            return enif_make_badarg(env);
-        
-        queryTerm = items[0];
-        int cLevel;
-        
-        if(!enif_get_int(env, items[1], &cLevel))
-            return enif_make_badarg(env);
-        
-        consistencyLevel = static_cast<CassConsistency>(cLevel);
-    }
-    else
-    {
-        queryTerm = argv[1];
-        consistencyLevel = data->defaultConsistencyLevel;
-    }
-    
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session) || !get_bstring(env, queryTerm, &query))
+    if(!parse_query_term(env, argv[1], &query, &consistency_level, &serial_consistency_level))
         return enif_make_badarg(env);
     
     ErlNifPid pid;
@@ -295,7 +277,8 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     callback->prepared_res = data->resCassPrepared;
     callback->env = enif_alloc_env();
     callback->arguments = enif_make_copy(callback->env, argv[2]);
-    callback->consistencyLevel = consistencyLevel;
+    callback->consistencyLevel = consistency_level;
+    callback->serial_cl = serial_consistency_level;
     callback->session = enif_session->session;
     
     CassFuture* future = cass_session_prepare_n(enif_session->session, BIN_TO_STR(query.data), query.size);
@@ -369,33 +352,25 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
         if(error != CASS_OK)
             return cass_error_to_nif_term(env, error);
     }
-
-    ERL_NIF_TERM options_list = argv[3];
+    
     CassConsistency consistency_level = data->defaultConsistencyLevel;
+    CassConsistency serial_consistency_level = CASS_CONSISTENCY_ANY;
 
-    while(enif_get_list_cell(env, options_list, &head, &options_list))
-    {
-        const ERL_NIF_TERM *items;
-        int arity;
-        
-        if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return enif_make_badarg(env);
-        
-        if(!enif_is_identical(items[0], ATOMS.atomConsistencyLevel))
-            return enif_make_badarg(env);
-        
-        int cLevel;
-        
-        if(!enif_get_int(env, items[1], &cLevel))
-            return enif_make_badarg(env);
-        
-        consistency_level = static_cast<CassConsistency>(cLevel);
-    }
+    if(!parse_consistency_level_options(env, argv[3], &consistency_level, &serial_consistency_level))
+         return enif_make_badarg(env);
 
     CassError error = cass_batch_set_consistency(batch.get(), consistency_level);
     
     if(error != CASS_OK)
         return cass_error_to_nif_term(env, error);
+    
+    if(serial_consistency_level != CASS_CONSISTENCY_ANY)
+    {
+        error = cass_batch_set_serial_consistency(batch.get(), serial_consistency_level);
+        
+        if(error != CASS_OK)
+            return cass_error_to_nif_term(env, error);
+    }
     
     ErlNifPid pid;
     

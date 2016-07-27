@@ -12,7 +12,7 @@
 #include "erl_nif.h"
 #include "cassandra.h"
 
-ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prepared, CassConsistency consistency);
+ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* rs, const CassPrepared* prep, CassConsistency cl, CassConsistency serial_cl);
 ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 void nif_cass_prepared_free(ErlNifEnv* env, void* obj);
 

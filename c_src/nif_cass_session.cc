@@ -49,7 +49,7 @@ struct callback_statement_info
     ErlNifPid pid;
     ERL_NIF_TERM arguments;
     ErlNifResourceType* prepared_res;
-    CassConsistency consistencyLevel;
+    CassConsistency cl;
     CassConsistency serial_cl;
     CassSession* session;
 };
@@ -132,7 +132,7 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     {
         const CassPrepared* prep = cass_future_get_prepared(future);
         
-        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistencyLevel, cb->serial_cl);
+        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->cl, cb->serial_cl);
         
         if(enif_is_tuple(cb->env, term))
         {
@@ -277,7 +277,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     callback->prepared_res = data->resCassPrepared;
     callback->env = enif_alloc_env();
     callback->arguments = enif_make_copy(callback->env, argv[2]);
-    callback->consistencyLevel = consistency_level;
+    callback->cl = consistency_level;
     callback->serial_cl = serial_consistency_level;
     callback->session = enif_session->session;
     

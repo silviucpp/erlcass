@@ -18,7 +18,7 @@ In case you want to discuss based on this project join me on [WowApp][2]
 
 ### Changelog:
 
-##### v2.4 (not released yet)
+##### v2.4
 
 - Updated cpp-driver to 2.4.2
 - Improved the native code build speed

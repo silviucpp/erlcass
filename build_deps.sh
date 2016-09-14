@@ -50,7 +50,9 @@ case $OS in
 
     Darwin)
         brew install libuv cmake openssl
-        brew link --force openssl
+        export OPENSSL_ROOT_DIR=$(brew --prefix openssl)
+        export OPENSSL_INCLUDE_DIR=$OPENSSL_ROOT_DIR/include/
+        export OPENSSL_LIBRARIES=$OPENSSL_ROOT_DIR/lib
         ;;
 
     *) echo "Your system $OS is not supported"

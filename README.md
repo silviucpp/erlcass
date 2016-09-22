@@ -59,7 +59,6 @@ Mac OS:
 
 ```sh
 brew install libuv cmake openssl
-brew link --force openssl
 ```
 
 ### Data types

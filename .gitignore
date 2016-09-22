@@ -1,12 +1,8 @@
-/DerivedData/
 /priv/
 /.rebar/
 /.idea/
 *.DS_Store
-/erlcass.xcodeproj/
 /erlcass_nif.xcodeproj/
-/ebin
-/cpp-driver
 *.iml
-/deps/
 /.eunit/
+/_build/

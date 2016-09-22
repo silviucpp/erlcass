@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
+
+DEPS_LOCATION=_build/deps
+
+if [ -d "$DEPS_LOCATION" ]; then
+    echo "cpp-driver fork already exist. delete $DEPS_LOCATION for a fresh checkout."
+    exit 0
+fi
+
 OS=$(uname -s)
 KERNEL=$(echo $(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | head -n1 | awk '{print $1;}') | awk '{print $1;}')
 
 ##echo $OS
 ##echo $KERNEL
 
-CPP_DRIVER_REPO=$1
+CPP_DRIVER_REPO=https://github.com/datastax/cpp-driver.git
 CPP_DRIVER_REV=$2
 
 case $OS in
@@ -58,11 +66,11 @@ case $OS in
     *) echo "Your system $OS is not supported"
 esac
 
-mkdir -p deps
+mkdir -p $DEPS_LOCATION
 
 #checkout repo
 
-pushd deps
+pushd $DEPS_LOCATION
 git clone ${CPP_DRIVER_REPO}
 pushd cpp-driver
 git checkout ${CPP_DRIVER_REV}
@@ -71,8 +79,8 @@ popd
 
 #build
 
-mkdir -p deps/cpp-driver/build
-pushd deps/cpp-driver/build
+mkdir -p $DEPS_LOCATION/cpp-driver/build
+pushd $DEPS_LOCATION/cpp-driver/build
 cmake ..
 make -j 12
 popd

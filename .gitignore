@@ -6,3 +6,4 @@
 *.iml
 /.eunit/
 /_build/
+/ebin/

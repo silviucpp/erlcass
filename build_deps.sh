@@ -14,7 +14,7 @@ KERNEL=$(echo $(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | h
 ##echo $KERNEL
 
 CPP_DRIVER_REPO=https://github.com/datastax/cpp-driver.git
-CPP_DRIVER_REV=$2
+CPP_DRIVER_REV=$1
 
 case $OS in
     Linux)

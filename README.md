@@ -12,35 +12,7 @@ to install all dependencies. Also you can check [wiki section][2] for more detai
 
 ### Data types
 
-Here is a correspondence of Cassandra column types with their equivalent Erlang types
-
-Cassandra Column Type      | Erlang types                                 | Examples
--------------------------- | -------------------------------------------- | :----------------------------:
-ascii                      | binary or string                             | <<"hello">> or "hello"
-varchar                    | binary or string                             | <<"hello">> or "hello"
-text                       | binary or string                             | <<"hello">> or "hello"
-bigint                     | integer (signed 64-bit)                      | 9223372036854775807
-timestamp                  | integer (signed 64-bit)                      | 9223372036854775807
-counter                    | integer (signed 64-bit)                      | 9223372036854775807
-time                       | integer (signed 64-bit)                      | 86399999999999
-blob                       | binary                                       | <<1,2,3,4,5,6,7,8,9,10>>
-varint                     | binary                                       | <<"12423423423423423423243432432">>
-boolean                    | `true`, `false`                              | true
-decimal                    | `{Unscaled :: binary(), Scale :: integer()}` | {<<"1234">>, 5}
-double                     | float (signed 64-bit)                        | 5.1235131241221e-6
-float                      | float (signed 32-bit)                        | 5.12351e-6
-tinyint                    | integer (signed 8-bit)                       | 127
-smallint                   | integer (signed 16-bit)                      | 32767
-int                        | integer (signed 32-bit)                      | 2147483647
-date                       | integer (unsigned 32-bit)                    | 2147483648 	
-uuid                       | binary                                       | <<"61c16fb1-44ca-4591-9317-ac96ddbd8694">>
-varint                     | binary                                       | <<"1928301970128391280192830198049113123">>
-timeuuid                   | binary                                       | <<"076a46c0-0ad7-11e5-b314-3d7bf89b87a1">>
-inet                       | binary                                       | <<"127.0.0.1">>
-tuple                      | erlang tuple                                 | {<<"aaa">>, 1}
-
-In order to generate a uuid v4 you can use `erlcass_uuid:gen_random()` for uuid v1 you can use `erlcass_uuid:gen_time()`.
-For more details please see the section dedicated to uuid's
+In order to see the relation between Cassandra colmn types and Erlang types please check this [wiki section][3]
 
 ### Starting the application
 
@@ -686,3 +658,4 @@ execute(Identifier, Params) ->
 
 [1]:https://github.com/datastax/cpp-driver
 [2]:https://github.com/silviucpp/erlcass/wiki/Getting-started
+[3]:https://github.com/silviucpp/erlcass/wiki/Data-types

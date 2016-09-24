@@ -69,29 +69,24 @@ ok = erlcass:set_cluster_options([
 or inside your `app.config` file:
 
 ```erlang
-{
-    erlcass,
-    [
-        {
-            cluster_options,
-            [
-                {contact_points, <<"172.17.3.129,172.17.3.130,172.17.3.131">>},
-                {port, 9042},
-                {load_balance_dc_aware, {<<"dc-name">>, 0, false}},
-                {latency_aware_routing, true},
-                {token_aware_routing, true},
-                {number_threads_io, 4},
-                {queue_size_io, 128000},
-                {max_connections_host, 5},
-                {pending_requests_high_watermark, 128000},
-                {tcp_nodelay, true},
-                {tcp_keepalive, {true, 1800}},
-                {default_consistency_level, 6}
-            ]
-        }
-    ]
-},
- 
+{erlcass, [
+    {log_level, 3},
+    {keyspace, <<"keyspace">>},
+    {cluster_options,[
+        {contact_points, <<"172.17.3.129,172.17.3.130,172.17.3.131">>},
+        {port, 9042},
+        {load_balance_dc_aware, {<<"dc-name">>, 0, false}},
+        {latency_aware_routing, true},
+        {token_aware_routing, true},
+        {number_threads_io, 4},
+        {queue_size_io, 128000},
+        {max_connections_host, 5},
+        {pending_requests_high_watermark, 128000},
+        {tcp_nodelay, true},
+        {tcp_keepalive, {true, 1800}},
+        {default_consistency_level, 6}
+    ]}
+]},
 ```
 
 Tips for production environment:

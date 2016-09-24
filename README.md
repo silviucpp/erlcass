@@ -56,334 +56,51 @@ or under `{_Severity, Msg, Args}` format (for all messages generated from Erlang
 
 ### Setting the cluster options
 
+The cluster options can be set at runtime using `erlcass:set_cluster_options/1` method as follow:
+
 ```erlang
 ok = erlcass:set_cluster_options([
-            {contact_points,<<"172.17.3.129">>},
-            {load_balance_dc_aware, {<<"dc-beta">>, 0, false}},
-            {default_consistency_level, ?CASS_CONSISTENCY_ONE},
-            {number_threads_io, 4},
-            {queue_size_io, 124000},
-            {core_connections_host, 5},
-            {max_connections_host, 5},
-            {tcp_nodelay, true},
-            {tcp_keepalive, {true, 60}},
-            {pending_requests_high_watermark, 128000}
+    {contact_points, <<"172.17.3.129,172.17.3.130,172.17.3.131">>},
+    {port, 9042},
+    ...
 ]).
 ```
 
-Available options:
-
-##### contact_points (Mandatory)
-
-Example : {contact_points, <<"172.17.3.129">>}
-
-Sets/Appends contact points. The first call sets the contact points and any subsequent calls appends additional contact points.
-Passing an empty string will clear the contact points. White space is striped from the contact points.
-Accepted values: <<"127.0.0.1">> <<"127.0.0.1,127.0.0.2">>, <<"server1.domain.com">>
-
-##### port
-
-Example: {port, 9042}
-
-Sets the port.
-
-Default: 9042
-
-##### ssl
-
-Example:
+or inside your `app.config` file:
 
 ```erlang
-{ssl, [
-            {trusted_certs, [<<"cert1">>, <<"cert2">>]},
-            {cert, <<"cert_here">>},
-            {private_key, {<<"private_key_here">>, <<"private_key_pwd_here">>}},
-            {verify_flags, ?CASS_SSL_VERIFY_PEER_CERT}
-        ]
-}
+{
+    erlcass,
+    [
+        {
+            cluster_options,
+            [
+                {contact_points, <<"172.17.3.129,172.17.3.130,172.17.3.131">>},
+                {port, 9042},
+                {load_balance_dc_aware, {<<"dc-name">>, 0, false}},
+                {latency_aware_routing, true},
+                {token_aware_routing, true},
+                {number_threads_io, 4},
+                {queue_size_io, 128000},
+                {max_connections_host, 5},
+                {pending_requests_high_watermark, 128000},
+                {tcp_nodelay, true},
+                {tcp_keepalive, {true, 1800}},
+                {default_consistency_level, 6}
+            ]
+        }
+    ]
+},
+ 
 ```
 
-Sets the SSL context and enables SSL.
+Tips for production environment:
 
-Default: None
+- Use `token_aware_routing` and `latency_aware_routing`
+- Don't use `number_threads_io` bigger than the number of your cores.
+- Use `tcp_nodelay` and also enable `tcp_keepalive` 
 
-###### Params:
-
-```erlang
-{ssl, [
-        {trusted_certs, CertsList::list()},
-        {cert, Cert::binary()},
-        {private_key, {PrivateKey::binary(), KeyPassword::binary()}},
-        {verify_flags, VerifyFlags::integer()}
-       ]
-}
-```
-
-- `trusted_certs` : Adds one or more trusted certificate. This is used to verify the peer's certificate.
-- `cert` : Set client-side certificate chain. This is used to authenticate the client on the server-side. This should contain the entire Certificate chain starting with the certificate itself.
-- `private_key` : Set client-side private key. This is used to authenticate the client on the server-side. PrivateKey is a key PEM formatted key string and KeyPassword is the password used to decrypt key
-- `verify_flags` : Sets verification performed on the peer's certificate.
-
-For verify_flags use one of the values defined in `erlcass.hrl` :
-
-```erlang
--define(CASS_SSL_VERIFY_NONE, 0).
--define(CASS_SSL_VERIFY_PEER_CERT, 1).
--define(CASS_SSL_VERIFY_PEER_IDENTITY, 2).
-```
-
-- `CASS_SSL_VERIFY_NONE` - No verification is performed
-- `CASS_SSL_VERIFY_PEER_CERT` - Certificate is present and valid
-- `CASS_SSL_VERIFY_PEER_IDENTITY` - IP address matches the certificate's common name or one of its subject alternative names. This implies the certificate is also present.
-
-You can use also a combination like : `?CASS_SSL_VERIFY_PEER_CERT bor ?CASS_SSL_VERIFY_PEER_IDENTITY`
-
-Default: `CASS_SSL_VERIFY_PEER_CERT`
-
-##### protocol_version
-
-Example: `{protocol_version, 2}`
-
-Sets the protocol version. This will automatically downgrade to the lowest protocol version supported.
-
-Default: 4
-
-##### number_threads_io
-
-Example: `{number_threads_io, 1}`
-
-Sets the number of IO threads. This is the number of threads that will handle query requests.
-
-Default: 1
-
-##### queue_size_io
-
-Example: `{queue_size_io, 8192}`
-
-Sets the size of the the fixed size queue that stores pending requests.
-
-Default: 8192
-
-##### queue_size_event
-
-Example: `{queue_size_event, 8192}`
-
-Sets the size of the the fixed size queue that stores events.
-
-Default: 8192
-
-##### core_connections_host
-
-Example: `{core_connections_host, 1}`
-
-Sets the number of connections made to each server in each IO thread.
-
-Default: 1
-
-##### max_connections_host
-
-Example: `{max_connections_host, 2}`
-
-Sets the maximum number of connections made to each server in each IO thread.
-
-Default: 2
-
-##### reconnect_wait_time
-
-Example: `{reconnect_wait_time, 2000}`
-
-Sets the amount of time to wait before attempting to reconnect.
-
-Default: 2000 milliseconds
-
-##### max_concurrent_creation
-
-Example: `{max_concurrent_creation, 1}`
-
-Sets the maximum number of connections that will be created concurrently.
-Connections are created when the current connections are unable to keep up with request throughput.
-
-Default: 1
-
-##### max_requests_threshold
-
-Example: `{max_requests_threshold, 100}`
-
-Sets the threshold for the maximum number of concurrent requests in-flight on a connection before creating a new connection.
-The number of new connections created will not exceed max_connections_host.
-
-Default: 100
-
-##### requests_per_flush
-
-Example: `{requests_per_flush, 128}`
-
-Sets the maximum number of requests processed by an IO worker per flush.
-
-Default: 128
-
-##### write_bytes_high_watermark
-
-Example: `{write_bytes_high_watermark, 65536}`
-
-Sets the high water mark for the number of bytes outstanding on a connection.
-Disables writes to a connection if the number of bytes queued exceed this value.
-
-Default: 64 KB
-
-##### write_bytes_low_watermark
-
-Example: `{write_bytes_low_watermark, 32768}`
-
-Sets the low water mark for number of bytes outstanding on a connection.
-After exceeding high water mark bytes, writes will only resume once the number of bytes fall below this value.
-
-Default: 32 KB
-
-##### pending_requests_high_watermark
-
-Example: `{pending_requests_high_watermark, 256}`
-
-Sets the high water mark for the number of requests queued waiting for a connection in a connection pool.
-Disables writes to a host on an IO worker if the number of requests queued exceed this value.
-
-Default: 256
-
-
-##### pending_requests_low_watermark
-
-Example: `{pending_requests_low_watermark, 128}`
-
-Sets the low water mark for the number of requests queued waiting for a connection in a connection pool.
-After exceeding high water mark requests, writes to a host will only resume once the number of requests fall below this value.
-
-Default: 128
-
-##### connect_timeout
-
-Example: `{connect_timeout, 5000}`
-
-Sets the timeout for connecting to a node.
-
-Default: 5000 milliseconds
-
-##### heartbeat_interval
-
-Example: {heartbeat_interval, 30}
-
-Sets the amount of time between heartbeat messages and controls the amount of time the connection must be idle before sending heartbeat messages.
-This is useful for preventing intermediate network devices from dropping connections.
-
-Default: 30 seconds
-
-##### idle_timeout
-
-Example: `{idle_timeout, 60}`
-
-Sets the amount of time a connection is allowed to be without a successful heartbeat response before being terminated and scheduled for reconnection.
-
-Default: 60 seconds
-
-##### request_timeout
-
-Example: `{request_timeout, 12000}`
-
-Sets the timeout for waiting for a response from a node.
-
-Default: 12000 milliseconds
-
-##### credentials
-
-Example: `{credentials, {<<"username">>, <<"password">>}}`
-
-Sets credentials for plain text authentication.
-
-##### load_balance_round_robin
-
-Example: `{load_balance_round_robin, true}`
-
-Configures the cluster to use round-robin load balancing.
-The driver discovers all nodes in a cluster and cycles through them per request. All are considered 'local'.
-
-##### load_balance_dc_aware
-
-Example: `{load_balance_dc_aware, {"dc_name", 2, true}}`
-
-Configures the cluster to use DC-aware load balancing.
-For each query, all live nodes in a primary 'local' DC are tried first, followed by any node from other DCs.
-
-###### Note:
-
-This is the default, and does not need to be called unless switching an existing from another policy or changing settings.
-Without further configuration, a default local_dc is chosen from the first connected contact point, and no remote hosts are considered in query plans.
-If relying on this mechanism, be sure to use only contact points from the local DC.
-
-###### Params:
-
-`{load_balance_dc_aware, {LocalDc, UsedHostsPerRemoteDc, AllowRemoteDcsForLocalCl}}`*
-
-- `LocalDc` - The primary data center to try first
-- `UsedHostsPerRemoteDc` - The number of host used in each remote DC if no hosts are available in the local dc
-- `AllowRemoteDcsForLocalCl` - Allows remote hosts to be used if no local dc hosts are available and the consistency level is `LOCAL_ONE` or `LOCAL_QUORUM`
-
-##### token_aware_routing
-
-Example: `{token_aware_routing, true}`
-
-Configures the cluster to use token-aware request routing, or not.
-This routing policy composes the base routing policy, routing requests first to replicas on nodes considered 'local' by the base load balancing policy.
-
-Default is true (enabled).
-
-#### latency_aware_routing
-
-Example:
-
-- `{latency_aware_routing, true}`
-- `{latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}}`
-
-Configures the cluster to use latency-aware request routing, or not.
-This routing policy is a top-level routing policy.
-It uses the base routing policy to determine locality (dc-aware) and/or placement (token-aware) before considering the latency.
-
-###### Params:
-
-`{Enabled, {ExclusionThreshold, ScaleMs, RetryPeriodMs, UpdateRateMs, MinMeasured}}`
-
-- `Enabled` : State of the future
-- `ExclusionThreshold` - Controls how much worse the latency must be compared to the average latency of the best performing node before it penalized.
-- `ScaleMs` - Controls the weight given to older latencies when calculating the average latency of a node. A bigger scale will give more weight to older latency measurements.
-- `RetryPeriodMs` -  The amount of time a node is penalized by the policy before being given a second chance when the current average latency exceeds the calculated threshold (ExclusionThreshold * BestAverageLatency).
-- `UpdateRateMs` - The rate at  which the best average latency is recomputed.
-- `MinMeasured` - The minimum number of measurements per-host required to be considered by the policy.
-
-Defaults: {false, {2.0, 100, 10000, 100 , 50}}
-
-###### Note: In case you use only true false atom the tuning settings will not change.
-
-##### tcp_nodelay
-
-Example: `{tcp_nodelay, false}`
-
-Enable/Disable Nagel's algorithm on connections.
-
-Default: true (disabled).
-
-##### tcp_keepalive
-
-Example: `{tcp_keepalive, {true, 60}}`
-
-Enable/Disable TCP keep-alive
-
-Default: `false` (disabled).
-
-##### default_consistency_level
-
-Example: `{default_consistency_level, ?CASS_CONSISTENCY_LOCAL_QUORUM}`
-
-Set the default consistency level
-
-Default: `?CASS_CONSISTENCY_LOCAL_QUORUM`
+All available options are described in the following [wiki section][4].
 
 ### Creating a session
 
@@ -659,3 +376,4 @@ execute(Identifier, Params) ->
 [1]:https://github.com/datastax/cpp-driver
 [2]:https://github.com/silviucpp/erlcass/wiki/Getting-started
 [3]:https://github.com/silviucpp/erlcass/wiki/Data-types
+[4]:https://github.com/silviucpp/erlcass/wiki/Available-cluster-options

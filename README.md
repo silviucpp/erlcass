@@ -1,65 +1,14 @@
 # ErlCass
 
-*An Erlang Cassandra driver, based on [Datastax cpp driver][2] focused on performance.*
+*An Erlang Cassandra driver, based on [Datastax cpp driver][1] focused on performance.*
 
-### TODO List:
 
-- Add support for multiple sessions
-- Add support for pagination,
-- Add support for UDT
-- Add support for sending and relieving custom payloads to and from Cassandra
-- Add support for server-side warnings
-- Add support for retry policies settings
-- Add support for client-side timestamps settings
-- Add support for Sets/Appends whitelist hosts
-- Add support for schema metadata API
+### Getting started:
 
-### Getting starting:
+The application is compatible with both `rebar` or `rebar3`.
 
-*Usually the rebar script will install for you all dependencies on Cent OS, Ubuntu and Mac OS. So you can skip this section.*
-
-This dependecies are required to compile the Datastax c++ driver.
-More details [here][1].
-
-For example:
-
-Centos:
-
-```sh
-sudo yum install automake cmake gcc-c++ git libtool openssl-devel wget
-pushd /tmp
-wget http://dist.libuv.org/dist/v1.8.0/libuv-v1.8.0.tar.gz
-pushd libuv-v1.8.0
-tar xzf libuv-v1.8.0.tar.gz
-sh autogen.sh
-./configure
-sudo make install
-popd
-popd
-```
-
-Also on CentOS you need to add `﻿usr/local/lib` into `ldconfig` search path.
-
-```sh
-su -
-﻿nano /etc/ld.so.conf.d/usrlocal.conf
-﻿add inside the file: usr/local/lib
-﻿ldconfig -v
-```
-
-Ubuntu:
-
-```sh
-sudo apt-add-repository ppa:linuxjedi/ppa
-sudo apt-get update
-sudo apt-get install g++ make cmake libuv-dev libssl-dev
-```
-
-Mac OS:
-
-```sh
-brew install libuv cmake openssl
-```
+In case you receive any error related to compiling of the Datastax driver you can try to run `rebar` with `sudo` in order 
+to install all dependencies. Also you can check [wiki section][2] for more details
 
 ### Data types
 
@@ -734,5 +683,6 @@ execute(Identifier, Params) ->
     execute_statement(Statement).
 ```
 
-[1]:http://datastax.github.io/cpp-driver/topics/building/
-[2]:https://github.com/datastax/cpp-driver
+
+[1]:https://github.com/datastax/cpp-driver
+[2]:https://github.com/silviucpp/erlcass/wiki/Getting-started

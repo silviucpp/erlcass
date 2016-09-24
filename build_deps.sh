@@ -28,9 +28,9 @@ case $OS in
                     then echo "libuv has already been installed"
                 else
                     pushd /tmp
-                    wget http://dist.libuv.org/dist/v1.7.5/libuv-v1.7.5.tar.gz
-                    tar xzf libuv-v1.7.5.tar.gz
-                    pushd libuv-v1.7.5
+                    wget http://dist.libuv.org/dist/v1.8.0/libuv-v1.8.0.tar.gz
+                    tar xzf libuv-v1.8.0.tar.gz
+                    pushd libuv-v1.8.0
                     sh autogen.sh
                     ./configure
                     sudo make install

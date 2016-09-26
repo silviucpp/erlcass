@@ -1,15 +1,15 @@
 # ErlCass
 
-*An Erlang Cassandra driver, based on [Datastax cpp driver][1] focused on performance.*
+*An Erlang Cassandra driver, based on [DataStax cpp driver][1] focused on performance.*
 
 ### Implementation note
  
 #### How ErlCass affects the Erlang schedulers
 
-It's well known that NIF's can affect the Erlang schedulers performances in case they block the threads for more than 1-2 ms. 
+It's well known that NIF's can affect the Erlang schedulers performances in case the functions are not returning in less than 1-2 ms and blocks the threads. 
 
-Because the Datastax cpp driver is async, `ErlCass` won't block the scheduler threads and all calls to the native functions will return immediately.
-The datastax driver use it's own threads for managing the requests. Also the responses are received on this threads and sent back to Erlang calling process using `enif_send` in a async manner. 
+Because the DataStax cpp driver is async, `ErlCass` won't block the scheduler threads and all calls to the native functions will return immediately.
+The DataStax driver use it's own threads for managing the requests. Also the responses are received on this threads and sent back to Erlang calling process using `enif_send` in a async manner. 
 
 #### Changelog
 
@@ -19,12 +19,12 @@ Changelog is available [here][5].
 
 The application is compatible with both `rebar` or `rebar3`.
 
-In case you receive any error related to compiling of the Datastax driver you can try to run `rebar` with `sudo` in order 
+In case you receive any error related to compiling of the DataStax driver you can try to run `rebar` with `sudo` in order 
 to install all dependencies. Also you can check [wiki section][2] for more details
 
 ### Data types
 
-In order to see the relation between Cassandra colmn types and Erlang types please check this [wiki section][3]
+In order to see the relation between Cassandra column types and Erlang types please check this [wiki section][3]
 
 ### Starting the application
 
@@ -46,7 +46,7 @@ Available Log levels are:
 -define(CASS_LOG_TRACE, 6).
 ```
 
-In order to change the log level for the native driver you need to set the `log_level` environment variable for erlcass into your config file.
+In order to change the log level for the native driver you need to set the `log_level` environment variable for ErlCass into your config file.
 By default the logs are printed to console. In order to print them into an external log system you can use the `set_log_function` method.
 The callback should be a function with arity 1 which will receive a record of `log_msg` type defined as
 
@@ -111,7 +111,7 @@ All available options are described in the following [wiki section][4].
 
 ### Creating a session
 
-*Currently this is limited to one session per application. This is a Datastax recommendations as well*
+*Currently this is limited to one session per application. This is a DataStax recommendations as well*
 
 In order to connect the session to a keyspace as well use as option:
 
@@ -135,9 +135,9 @@ ok = erlcass:add_prepare_statement(select_blogpost,
                                    <<"select * from blogposts where domain = ? LIMIT 1">>),
 ```
 
-In case you want to overwrite the default consistency level for that prepare statement use a tuple for the query argument: *{Query, ConsistencyLevelHere}*
+In case you want to overwrite the default consistency level for that prepare statement use a tuple for the query argument: `{Query, ConsistencyLevelHere}`
 
-Also this is possible using *{Query, Options}* where options is a proplist with the following options supported:
+Also this is possible using `{Query, Options}` where options is a proplist with the following options supported:
                                                                            
 - `consistency_level` - If it's missing the statement will be executed using the default consistency level value.
 - `serial_consistency_level` - That consistency can only be either `?CASS_CONSISTENCY_SERIAL` or `?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be ignored for anything else that a conditional update/insert.
@@ -163,7 +163,7 @@ ok = erlcass:add_prepare_statement(
 
 ### Run a prepared statement query
 
-In case the first parameter for *erlcass:execute* is an atom then the driver will try to find the associated prepared statement and to run it.
+In case the first parameter for `erlcass:execute` is an atom then the driver will try to find the associated prepared statement and to run it.
 You can bind the parameters in 2 ways: by name and by index. You can use `?BIND_BY_INDEX` and `?BIND_BY_NAME` from execute/3 in order to specify the desired method. By default is binding by index
 
 Example:
@@ -190,10 +190,10 @@ erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [{<<"key(value)">>, CollectionI
 
 ### Async queries and blocking queries
 
-For blocking operations use *erlcass:execute*, for async execution use : *erlcass:async_execute*.
+For blocking operations use `erlcass:execute`, for async execution use : `erlcass:async_execute`.
 The blocking operation will block the current erlang process (still async into the native code in order to avoid freezing of the VM threads) until will get the result from the cluster.
 
-In case of an async execution the calling process will receive a message of the following form: *{execute_statement_result, Tag, Result}*
+In case of an async execution the calling process will receive a message of the following form: `{execute_statement_result, Tag, Result}`
 
 For example:
 
@@ -208,7 +208,7 @@ For example:
 ### Non prepared statements queries
 
 The only downside is that you have to provide metadata about the types of the fields that are bound.
-The datatypes can be found into *erlcass.hrl* file as follow:
+The data types can be found into `erlcass.hrl` file as follow:
 
 ```erlang
 -define(CASS_TEXT, text).                         %use for (ascii, text, varchar)
@@ -378,7 +378,6 @@ execute(Identifier, Params) ->
     end,
     execute_statement(Statement).
 ```
-
 
 [1]:https://github.com/datastax/cpp-driver
 [2]:https://github.com/silviucpp/erlcass/wiki/Getting-started

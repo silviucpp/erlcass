@@ -1,6 +1,6 @@
 ### Changelog:
 
-##### v2.5 (not released yet)
+##### v2.5
 
 - Updated cpp-driver to 2.4.3 (require c++ 11)
 - Compatible with both `rebar` and `rebar3`

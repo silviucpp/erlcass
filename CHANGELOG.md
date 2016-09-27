@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v2.6
+
+- Improved performances for `gen_time/0`, `gen_random/0` and `gen_from_ts/1` from `erlcass_uuid`
+- Small internal refactoring for constants
+
 ##### v2.5
 
 - Updated cpp-driver to 2.4.3 (require c++ 11)

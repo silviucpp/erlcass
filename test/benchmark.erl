@@ -16,7 +16,7 @@
 -define(DRIVER_CQERL, cqerl).
 %-define(DRIVER_MARINA, marina).
 
--export([load_test/3, start/1]).
+-export([run/3, start/1]).
 
 start(Module) ->
     case application:ensure_all_started(Module) of
@@ -100,14 +100,14 @@ receive_response(?DRIVER_CQERL) ->
 receive_response(_Module) ->
     throw(invalid_module).
 
-%benchamark internals
+%benchmark internals
 
-consumer_loop(Module, TotalResults, SuccessResults, FailedResults, 0) ->
-    io:format("**** Test Completed => module: ~p results: ~p success: ~p failed: ~p **** ~n",[Module,
-        TotalResults,
-        SuccessResults,
-        FailedResults
-    ]),
+consumer_loop(_Module, TotalResults, SuccessResults, FailedResults, 0) ->
+%%    io:format("**** Test Completed => module: ~p results: ~p success: ~p failed: ~p **** ~n",[Module,
+%%        TotalResults,
+%%        SuccessResults,
+%%        FailedResults
+%%    ]),
     {TotalResults, SuccessResults, FailedResults};
 
 consumer_loop(Module, TotalResults, SuccessResults, FailedResults, LimitReq) ->
@@ -125,7 +125,7 @@ producer_loop(Module, Client, NumRequests) ->
     ok = execute_async(Module, Client),
     producer_loop(Module, Client, NumRequests -1).
 
-load_test(Module, NrProcesses, NrReq) ->
+run(Module, NrProcesses, NrReq) ->
     start(Module),
 
     io:format("Test will start in 1 sec ...~n"),

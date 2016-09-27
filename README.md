@@ -11,6 +11,29 @@ It's well known that NIF's can affect the Erlang schedulers performances in case
 Because the DataStax cpp driver is async, `ErlCass` won't block the scheduler threads and all calls to the native functions will return immediately.
 The DataStax driver use it's own threads for managing the requests. Also the responses are received on this threads and sent back to Erlang calling process using `enif_send` in a async manner. 
 
+#### Benchmark comparing with other drivers
+
+The benchmark (`test/benchmark.erl`) is spawning N processes that will run a total of X request using the async api's and then waits to read X responses.
+In `test/test.config` you can find the config's for every application. During test in case of unexpected results from driver will log errors in console.
+
+Notes:
+
+- `marina` is currently disabled. Seems is not compiling with rebar on OSX because of one of it's deps.
+- Test was run on MacBook Pro with OSX El Capitan
+- The schema was created using `load_test:prepare_load_test_table` from `test/load_test.erl`. Basically the schema contains all possible 
+data types and the query is based on a primary key (will return the same row all the time which is fine because we test the driver performances and not the server one)
+ 
+```erlang
+benchmark:run(Module, NrProcesses, NrReq).
+```
+
+Used 100 concurrent processes that sends 100k queries. Measured the average time for 3 runs:
+ 
+| cassandra driver   | Time to complete (ms) | Req/sec  |
+|:------------------:|:---------------------:|:--------:|
+| erlcass v2.5       | 2131                  | 46926    | 
+| cqerl v1.0.1       | 4544                  | 22007    |
+
 #### Changelog
 
 Changelog is available [here][5].

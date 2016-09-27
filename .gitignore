@@ -7,3 +7,4 @@
 /.eunit/
 /_build/
 /ebin/
+/deps/

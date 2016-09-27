@@ -83,13 +83,13 @@ struct atoms
 struct cassandra_data
 {
     CassCluster* cluster;
+    CassUuidGen* uuid_gen;
     ErlNifPid log_pid;
     
     CassConsistency defaultConsistencyLevel;
     ErlNifResourceType* resCassSession;
     ErlNifResourceType* resCassPrepared;
     ErlNifResourceType* resCassStatement;
-    ErlNifResourceType* resCassUuidGen;
 };
 
 extern atoms ATOMS;

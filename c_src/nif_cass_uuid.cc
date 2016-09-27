@@ -10,36 +10,7 @@
 #include "erlcass.h"
 #include "nif_utils.h"
 #include "uuid_serialization.h"
-
-struct enif_cass_uuid_gen
-{
-    CassUuidGen* gen;
-};
-
-ERL_NIF_TERM nif_cass_uuid_gen_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
-    enif_cass_uuid_gen *enif_gen = static_cast<enif_cass_uuid_gen*>(enif_alloc_resource(data->resCassUuidGen, sizeof(enif_cass_uuid_gen)));
-    
-    if(enif_gen == NULL)
-        return make_error(env, "enif_alloc_resource failed");
-    
-    enif_gen->gen = cass_uuid_gen_new();
-    
-    ERL_NIF_TERM term = enif_make_resource(env, enif_gen);
-    enif_release_resource(enif_gen);
-    
-    return enif_make_tuple2(env, ATOMS.atomOk, term);
-}
-
-void nif_cass_uuid_gen_free(ErlNifEnv* env, void* obj)
-{
-    enif_cass_uuid_gen *enif_gen = static_cast<enif_cass_uuid_gen*>(obj);
-    
-    if(enif_gen->gen != NULL)
-        cass_uuid_gen_free(enif_gen->gen);
-}
+#include "constants.h"
 
 ERL_NIF_TERM cass_uuid_to_nif(ErlNifEnv* env, const CassUuid& obj)
 {
@@ -53,13 +24,11 @@ ERL_NIF_TERM nif_cass_uuid_gen_time(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
-    enif_cass_uuid_gen * enif_gen = NULL;
-    
-    if(!enif_get_resource(env, argv[0], data->resCassUuidGen, (void**) &enif_gen))
-        return enif_make_badarg(env);
+    if(!data->uuid_gen)
+        return make_error(env, erlcass::kInvalidUuidGeneratorMsg);
     
     CassUuid obj;
-    cass_uuid_gen_time(enif_gen->gen, &obj);
+    cass_uuid_gen_time(data->uuid_gen, &obj);
     return cass_uuid_to_nif(env, obj);
 }
 
@@ -67,13 +36,11 @@ ERL_NIF_TERM nif_cass_uuid_gen_random(ErlNifEnv* env, int argc, const ERL_NIF_TE
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
-    enif_cass_uuid_gen * enif_gen = NULL;
-    
-    if(!enif_get_resource(env, argv[0], data->resCassUuidGen, (void**) &enif_gen))
-        return enif_make_badarg(env);
+    if(!data->uuid_gen)
+        return make_error(env, erlcass::kInvalidUuidGeneratorMsg);
     
     CassUuid obj;
-    cass_uuid_gen_random(enif_gen->gen, &obj);
+    cass_uuid_gen_random(data->uuid_gen, &obj);
     return cass_uuid_to_nif(env, obj);
 }
 
@@ -81,18 +48,16 @@ ERL_NIF_TERM nif_cass_uuid_gen_from_time(ErlNifEnv* env, int argc, const ERL_NIF
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
-    enif_cass_uuid_gen * enif_gen = NULL;
-    
-    if(!enif_get_resource(env, argv[0], data->resCassUuidGen, (void**) &enif_gen))
-        return enif_make_badarg(env);
+    if(!data->uuid_gen)
+        return make_error(env, erlcass::kInvalidUuidGeneratorMsg);
     
     unsigned long timestamp;
     
-    if(!enif_get_uint64(env, argv[1], &timestamp))
+    if(!enif_get_uint64(env, argv[0], &timestamp))
         return enif_make_badarg(env);
     
     CassUuid obj;
-    cass_uuid_gen_from_time(enif_gen->gen, timestamp, &obj);
+    cass_uuid_gen_from_time(data->uuid_gen, timestamp, &obj);
     return cass_uuid_to_nif(env, obj);
 }
 

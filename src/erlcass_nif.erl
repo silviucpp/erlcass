@@ -23,9 +23,9 @@
     cass_session_execute_batch/5,
     cass_session_get_metrics/1,
     cass_uuid_gen_new/0,
-    cass_uuid_gen_time/1,
-    cass_uuid_gen_random/1,
-    cass_uuid_gen_from_time/2,
+    cass_uuid_gen_time/0,
+    cass_uuid_gen_random/0,
+    cass_uuid_gen_from_time/1,
     cass_uuid_min_from_time/1,
     cass_uuid_max_from_time/1,
     cass_uuid_timestamp/1,
@@ -109,13 +109,13 @@ cass_session_get_metrics(_SessionRef) ->
 cass_uuid_gen_new() ->
     ?NOT_LOADED.
 
-cass_uuid_gen_time(_Generator) ->
+cass_uuid_gen_time() ->
     ?NOT_LOADED.
 
-cass_uuid_gen_random(_Generator) ->
+cass_uuid_gen_random() ->
     ?NOT_LOADED.
 
-cass_uuid_gen_from_time(_Generator, _Ts) ->
+cass_uuid_gen_from_time(_Ts) ->
     ?NOT_LOADED.
 
 cass_uuid_min_from_time(_Ts) ->

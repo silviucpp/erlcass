@@ -213,7 +213,6 @@ init([]) ->
 
     {ok, _LogPid} = erlcass_log:start_link(),
     ok = erlcass_nif:cass_cluster_create(),
-    {ok, _UuidPid} = erlcass_uuid:start_link(),
 
     SessionRef = case application:get_env(erlcass, cluster_options) of
         {ok, ClusterOptions} ->

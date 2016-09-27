@@ -88,7 +88,6 @@ void open_resources(ErlNifEnv* env, cassandra_data* data)
     data->resCassSession = enif_open_resource_type(env, NULL, "enif_cass_session", nif_cass_session_free, flags, NULL);
     data->resCassPrepared = enif_open_resource_type(env, NULL, "enif_cass_prepared", nif_cass_prepared_free, flags, NULL);
     data->resCassStatement = enif_open_resource_type(env, NULL, "enif_cass_statement", nif_cass_statement_free, flags, NULL);
-    data->resCassUuidGen = enif_open_resource_type(env, NULL, "enif_cass_uuid_gen", nif_cass_uuid_gen_free, flags, NULL);
 }
 
 int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
@@ -168,6 +167,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
     data->cluster = NULL;
+    data->uuid_gen = cass_uuid_gen_new();
     data->defaultConsistencyLevel = CASS_CONSISTENCY_LOCAL_QUORUM;
     
     open_resources(env, data);
@@ -183,6 +183,9 @@ void on_nif_unload(ErlNifEnv* env, void* priv_data)
     if(data->cluster)
         cass_cluster_free(data->cluster);
     
+    if(data->uuid_gen)
+        cass_uuid_gen_free(data->uuid_gen);
+
     enif_free(data);
 }
 
@@ -192,10 +195,12 @@ int on_nif_upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM in
     
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
     data->cluster = old_data->cluster;
+    data->uuid_gen = old_data->uuid_gen;
     data->defaultConsistencyLevel = old_data->defaultConsistencyLevel;
     open_resources(env, data);
     
     old_data->cluster = NULL;
+    old_data->uuid_gen = NULL;
     *priv = data;
     
     return 0;
@@ -228,10 +233,9 @@ static ErlNifFunc nif_funcs[] =
     
     //CassUuidGen
     
-    {"cass_uuid_gen_new", 0, nif_cass_uuid_gen_new},
-    {"cass_uuid_gen_time", 1, nif_cass_uuid_gen_time},
-    {"cass_uuid_gen_random", 1, nif_cass_uuid_gen_random},
-    {"cass_uuid_gen_from_time", 2, nif_cass_uuid_gen_from_time},
+    {"cass_uuid_gen_time", 0, nif_cass_uuid_gen_time},
+    {"cass_uuid_gen_random", 0, nif_cass_uuid_gen_random},
+    {"cass_uuid_gen_from_time", 1, nif_cass_uuid_gen_from_time},
     
     //CassUuid
     

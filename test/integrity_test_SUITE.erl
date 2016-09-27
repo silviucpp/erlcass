@@ -8,7 +8,7 @@
 
 -define(CONTACT_POINTS, <<"127.0.0.1">>).
 
-%%ct_run -suite integrity_test_SUITE -pa ebin -include include
+%%ct_run -suite integrity_test_SUITE -pa ebin -include include -logdir _build
 
 all() ->
 [

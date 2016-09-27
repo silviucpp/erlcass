@@ -13,14 +13,14 @@ The DataStax driver use it's own threads for managing the requests. Also the res
 
 #### Benchmark comparing with other drivers
 
-The benchmark (`test/benchmark.erl`) is spawning N processes that will run a total of X request using the async api's and then waits to read X responses.
-In `test/test.config` you can find the config's for every application. During test in case of unexpected results from driver will log errors in console.
+The benchmark (`benchmarks/benchmark.erl`) is spawning N processes that will run a total of X request using the async api's and then waits to read X responses.
+In `benchmarks/test.config` you can find the config's for every application. During test in case of unexpected results from driver will log errors in console.
 
 Notes:
 
 - `marina` is currently disabled. Seems is not compiling with rebar on OSX because of one of it's deps.
 - Test was run on MacBook Pro with OSX El Capitan
-- The schema was created using `load_test:prepare_load_test_table` from `test/load_test.erl`. Basically the schema contains all possible 
+- The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`. Basically the schema contains all possible 
 data types and the query is based on a primary key (will return the same row all the time which is fine because we test the driver performances and not the server one)
  
 ```erlang

@@ -12,6 +12,7 @@
 #include "erlcass.h"
 #include "uuid_serialization.h"
 #include "cassandra.h"
+#include "constants.h"
 
 ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const SchemaColumn& type, ERL_NIF_TERM value)
 {
@@ -189,7 +190,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
         }
             
         default:
-            return make_error(env, "failed to set unknown type into the tuple");
+            return make_error(env, erlcass::kFailedToSetUnknownTypeInTuple);
     }
 }
 

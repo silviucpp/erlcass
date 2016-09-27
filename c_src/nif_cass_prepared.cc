@@ -9,6 +9,7 @@
 #include "nif_cass_prepared.h"
 #include "nif_cass_statement.h"
 #include "nif_utils.h"
+#include "constants.h"
 
 struct enif_cass_prepared
 {
@@ -22,7 +23,7 @@ ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* rs, const
     enif_cass_prepared *enif_obj = static_cast<enif_cass_prepared*>(enif_alloc_resource(rs, sizeof(enif_cass_prepared)));
     
     if(enif_obj == NULL)
-        return make_error(env, "enif_alloc_resource failed");
+        return make_error(env, erlcass::kFailedToAllocResourceMsg);
     
     enif_obj->prepared = prep;
     enif_obj->cl = cl;

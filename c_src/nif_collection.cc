@@ -11,6 +11,7 @@
 #include "nif_tuple.h"
 #include "erlcass.h"
 #include "uuid_serialization.h"
+#include "constants.h"
 
 ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value)
 {
@@ -189,7 +190,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             
         //not implemented types
         default:
-            return make_error(env, "failed to add unknown type to the collection");
+            return make_error(env, erlcass::kFailedToAddUnknownTypeInCollection);
     }
 }
 

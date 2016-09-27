@@ -12,6 +12,7 @@
 #include "data_conversion.h"
 #include "metadata.h"
 #include "nif_utils.h"
+#include "constants.h"
 #include <string.h>
 
 #define UINT64_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_uint64(env, Property))
@@ -180,7 +181,7 @@ ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
     enif_cass_session *enif_session = static_cast<enif_cass_session*>(enif_alloc_resource(data->resCassSession, sizeof(enif_cass_session)));
     
     if(enif_session == NULL)
-        return make_error(env, "enif_alloc_resource failed");
+        return make_error(env, erlcass::kFailedToAllocResourceMsg);
 
     enif_session->session = cass_session_new();
     
@@ -211,7 +212,7 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
     callback_info* callback = callback_info_alloc(env, argv[1]);
 
     if(callback == NULL)
-        return make_error(env, "failed to get the parent pid");
+        return make_error(env, erlcass::kFailedToGetParentIdMsg);
     
     CassFuture* future;
     
@@ -239,7 +240,7 @@ ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     callback_info* callback = callback_info_alloc(env, ref);
     
     if(callback == NULL)
-        return make_error(env, "failed to get the parent pid");
+        return make_error(env, erlcass::kFailedToGetParentIdMsg);
     
     CassFuture* future = cass_session_close(enif_session->session);
     CassError error = cass_future_set_callback(future, on_session_closed, callback);
@@ -270,7 +271,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     ErlNifPid pid;
     
     if(enif_self(env, &pid) == NULL)
-        make_error(env, "failed to get the parent pid");
+        return make_error(env, erlcass::kFailedToGetParentIdMsg);
     
     callback_statement_info* callback = static_cast<callback_statement_info*>(enif_alloc(sizeof(callback_info)));
     callback->pid = pid;
@@ -305,12 +306,12 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
     ErlNifPid pid;
     
     if(enif_get_local_pid(env, argv[2], &pid) == 0)
-        return make_error(env, "failed to get the parent pid");
+        return make_error(env, erlcass::kFailedToGetParentIdMsg);
     
     callback_info* callback = callback_info_alloc(env, pid, argv[3]);
     
     if(callback == NULL)
-        return make_error(env, "failed to create callback info");
+        return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
 
     CassFuture* future = cass_session_execute(enif_session->session, stm);
     CassError error = cass_future_set_callback(future, on_statement_executed, callback);
@@ -335,7 +336,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     CassBatchScope batch(cass_batch_new(static_cast<CassBatchType>(batch_type)));
     
     if(!batch.get())
-        return make_error(env, "failed to create the batch object");
+        return make_error(env, erlcass::kFailedToCreateBatchObjectMsg);
     
     ERL_NIF_TERM statements_list = argv[2];
     ERL_NIF_TERM head;
@@ -375,14 +376,14 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     ErlNifPid pid;
     
     if(enif_get_local_pid(env, argv[4], &pid) == 0)
-        return make_error(env, "failed to get the parent pid");
+        return make_error(env, erlcass::kFailedToGetParentIdMsg);
     
     ERL_NIF_TERM tag = enif_make_ref(env);
 
     callback_info* callback = callback_info_alloc(env, pid, tag);
     
     if(callback == NULL)
-        return make_error(env, "failed to create callback info");
+        return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
     
     CassFuture* future = cass_session_execute_batch(enif_session->session, batch.get());
     error = cass_future_set_callback(future, on_statement_executed, callback);

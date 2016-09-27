@@ -14,6 +14,7 @@
 #include "uuid_serialization.h"
 #include "execute_request.hpp"
 #include "external_types.hpp"
+#include "constants.h"
 
 #define BIND_BY_INDEX 1
 #define BIND_BY_NAME  2
@@ -219,7 +220,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
 
         //not implemented data types
         default:
-            return make_error(env, "bind failed: not implemented column type");
+            return make_error(env, erlcass::kBindFailedUnknownColumnType);
     }
     
 }
@@ -362,7 +363,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     enif_cass_statement *enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(data->resCassStatement, sizeof(enif_cass_statement)));
     
     if(enif_obj == NULL)
-        return make_error(env, "enif_alloc_resource failed");
+        return make_error(env, erlcass::kFailedToAllocResourceMsg);
     
     enif_obj->statement = stm;
     
@@ -378,7 +379,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource
     enif_cass_statement *enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(resource_type, sizeof(enif_cass_statement)));
     
     if(enif_obj == NULL)
-        return make_error(env, "enif_alloc_resource failed");
+        return make_error(env, erlcass::kFailedToAllocResourceMsg);
     
     enif_obj->statement = cass_prepared_bind(prep);
     

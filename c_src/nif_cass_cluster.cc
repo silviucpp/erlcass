@@ -9,6 +9,7 @@
 #include "nif_cass_cluster.h"
 #include "erlcass.h"
 #include "nif_utils.h"
+#include "constants.h"
 
 #include <string.h>
 
@@ -357,12 +358,12 @@ ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TER
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     if(data->cluster)
-        return make_error(env, "Cluster object already exist");
+        return make_error(env, erlcass::kClusterObjectAlreadyExistMsg);
     
     data->cluster = cass_cluster_new();
     
     if(data->cluster == NULL)
-        return make_error(env, "Failed to create the cluster object");
+        return make_error(env, erlcass::kClusterObjectFailedToCreateMsg);
     
     return ATOMS.atomOk;
 }
@@ -372,7 +373,7 @@ ERL_NIF_TERM nif_cass_cluster_release(ErlNifEnv* env, int argc, const ERL_NIF_TE
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     if(!data->cluster)
-        return make_error(env, "Cluster object doesn't exist");
+        return make_error(env, erlcass::kClusterObjectNotCreatedMsg);
     
     cass_cluster_free(data->cluster);
     data->cluster = NULL;
@@ -438,7 +439,7 @@ ERL_NIF_TERM nif_cass_log_set_level_and_callback(ErlNifEnv* env, int argc, const
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     if(data->cluster)
-        return make_error(env, "Log level and callback should be set before any other function");
+        return make_error(env, erlcass::kLogLevelSetFirstMsg);
     
     int log_level;
     

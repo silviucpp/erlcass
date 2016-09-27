@@ -6,79 +6,7 @@
 #include "nif_cass_uuid.h"
 #include "nif_date_time.h"
 #include "nif_utils.h"
-
-const char kAtomOk[] = "ok";
-const char kAtomError[] = "error";
-const char kAtomTrue[] = "true";
-const char kAtomFalse[] = "false";
-const char kAtomNull[] = "null";
-const char kAtomConsistencyLevel[] = "consistency_level";
-const char kAtomSerialConsistencyLevel[] = "serial_consistency_level";
-const char kAtomLogMsgRecord[] = "log_msg";
-
-//events atoms
-
-const char kAtomSessionConnected[] = "session_connected";
-const char kAtomSessionClosed[] = "session_closed";
-const char kAtomPreparedStatementResult[] = "prepared_statememt_result";
-const char kAtomExecuteStatementResult[] = "execute_statement_result";
-const char kAtomLogMessageReceived[] = "log_message_recv";
-
-//data types
-
-const char kAtomText[] = "text";
-const char kAtomTinyInt[] = "tinyint";
-const char kAtomSmallInt[] = "smallint";
-const char kAtomInt[] = "int";
-const char kAtomDate[] = "date";
-const char kAtomBigInt[] = "bigint";
-const char kAtomBlob[] = "blob";
-const char kAtomBool[] = "bool";
-const char kAtomFloat[] = "float";
-const char kAtomDouble[] = "double";
-const char kAtomInet[] = "inet";
-const char kAtomUuid[] = "uuid";
-const char kAtomDecimal[] = "decimal";
-const char kAtomList[] = "list";
-const char kAtomSet[] = "set";
-const char kAtomMap[] = "map";
-const char kAtomTuple[] = "tuple";
-
-//cluster settings atoms
-
-const char kAtomClusterDefaultConsistencyLevel[] = "default_consistency_level";
-const char kAtomClusterSettingContactPoints[] = "contact_points";
-const char kAtomClusterSettingPort[] = "port";
-const char kAtomClusterSettingProtocolVersion[] = "protocol_version";
-const char kAtomClusterSettingNumThreadsIo[] = "number_threads_io";
-const char kAtomClusterSettingQueueSizeIo[] = "queue_size_io";
-const char kAtomClusterSettingQueueSizeEvent[] = "queue_size_event";
-const char kAtomClusterSettingCoreConnectionsPerHost[] = "core_connections_host";
-const char kAtomClusterSettingMaxConnectionsPerHost[] = "max_connections_host";
-const char kAtomClusterSettingReconnectWaitTime[] = "reconnect_wait_time";
-const char kAtomClusterSettingMaxConcurrentCreation[] = "max_concurrent_creation";
-const char kAtomClusterSettingMaxConcurrentRequestsThreshold[] = "max_requests_threshold";
-const char kAtomClusterSettingMaxRequestsPerFlush[] = "requests_per_flush";
-const char kAtomClusterSettingWriteBytesHighWaterMark[] = "write_bytes_high_watermark";
-const char kAtomClusterSettingWriteBytesLowWaterMark[] = "write_bytes_low_watermark";
-const char kAtomClusterSettingPendingRequestsHighWaterMark[] = "pending_requests_high_watermark";
-const char kAtomClusterSettingPendingRequestsLowWaterMark[] = "pending_requests_low_watermark";
-const char kAtomClusterSettingConnectTimeout[] = "connect_timeout";
-const char kAtomClusterSettingRequestTimeout[] = "request_timeout";
-const char kAtomClusterSettingCredentials[] = "credentials";
-const char kAtomClusterSettingLoadBalanceRoundRobin[] = "load_balance_round_robin";
-const char kAtomClusterSettingLoadBalanceDcAware[] = "load_balance_dc_aware";
-const char kAtomClusterSettingTokenAwareRouting[] = "token_aware_routing";
-const char kAtomClusterSettingLatencyAwareRouting[] = "latency_aware_routing";
-const char kAtomClusterSettingTcpNodelay[] = "tcp_nodelay";
-const char kAtomClusterSettingTcpKeepalive[] = "tcp_keepalive";
-const char kAtomClusterSettingIdleTimeout[] = "idle_timeout";
-const char kAtomClusterSettingHeartbeatInterval[] = "heartbeat_interval";
-const char kAtomClusterSettingSsl[] = "ssl";
-const char kAtomClusterSettingSslTrustedCerts[] = "trusted_certs";
-const char kAtomClusterSettingSslVerifyFlags[] = "verify_flags";
-const char kAtomClusterSettingSslCert[] = "cert";
-const char kAtomClusterSettingSslPrivateKey[] = "private_key";
+#include "constants.h"
 
 atoms ATOMS;
 
@@ -92,78 +20,78 @@ void open_resources(ErlNifEnv* env, cassandra_data* data)
 
 int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
 {
-    ATOMS.atomOk = make_atom(env, kAtomOk);
-    ATOMS.atomError = make_atom(env, kAtomError);
-    ATOMS.atomTrue = make_atom(env, kAtomTrue);
-    ATOMS.atomFalse = make_atom(env, kAtomFalse);
-    ATOMS.atomNull = make_atom(env, kAtomNull);
-    ATOMS.atomConsistencyLevel = make_atom(env, kAtomConsistencyLevel);
-    ATOMS.atomSerialConsistencyLevel = make_atom(env, kAtomSerialConsistencyLevel);
-    ATOMS.atomLogMsgRecord = make_atom(env, kAtomLogMsgRecord);
+    ATOMS.atomOk = make_atom(env, erlcass::kAtomOk);
+    ATOMS.atomError = make_atom(env, erlcass::kAtomError);
+    ATOMS.atomTrue = make_atom(env, erlcass::kAtomTrue);
+    ATOMS.atomFalse = make_atom(env, erlcass::kAtomFalse);
+    ATOMS.atomNull = make_atom(env, erlcass::kAtomNull);
+    ATOMS.atomConsistencyLevel = make_atom(env, erlcass::kAtomConsistencyLevel);
+    ATOMS.atomSerialConsistencyLevel = make_atom(env, erlcass::kAtomSerialConsistencyLevel);
+    ATOMS.atomLogMsgRecord = make_atom(env, erlcass::kAtomLogMsgRecord);
     
     //events atoms
     
-    ATOMS.atomSessionConnected = make_atom(env, kAtomSessionConnected);
-    ATOMS.atomSessionClosed = make_atom(env, kAtomSessionClosed);
-    ATOMS.atomPreparedStatementResult = make_atom(env, kAtomPreparedStatementResult);
-    ATOMS.atomExecuteStatementResult = make_atom(env, kAtomExecuteStatementResult);
-    ATOMS.atomLogMessageReceived = make_atom(env, kAtomLogMessageReceived);
+    ATOMS.atomSessionConnected = make_atom(env, erlcass::kAtomSessionConnected);
+    ATOMS.atomSessionClosed = make_atom(env, erlcass::kAtomSessionClosed);
+    ATOMS.atomPreparedStatementResult = make_atom(env, erlcass::kAtomPreparedStatementResult);
+    ATOMS.atomExecuteStatementResult = make_atom(env, erlcass::kAtomExecuteStatementResult);
+    ATOMS.atomLogMessageReceived = make_atom(env, erlcass::kAtomLogMessageReceived);
     
     //data types
     
-    ATOMS.atomText = make_atom(env, kAtomText);
-    ATOMS.atomTinyInt = make_atom(env, kAtomTinyInt);
-    ATOMS.atomSmallInt = make_atom(env, kAtomSmallInt);
-    ATOMS.atomInt = make_atom(env, kAtomInt);
-    ATOMS.atomDate = make_atom(env, kAtomDate);
-    ATOMS.atomBigInt = make_atom(env, kAtomBigInt);
-    ATOMS.atomBlob = make_atom(env, kAtomBlob);
-    ATOMS.atomBool = make_atom(env, kAtomBool);
-    ATOMS.atomFloat = make_atom(env, kAtomFloat);
-    ATOMS.atomDouble = make_atom(env, kAtomDouble);
-    ATOMS.atomInet = make_atom(env, kAtomInet);
-    ATOMS.atomUuid = make_atom(env, kAtomUuid);
-    ATOMS.atomDecimal = make_atom(env, kAtomDecimal);
-    ATOMS.atomList = make_atom(env, kAtomList);
-    ATOMS.atomSet = make_atom(env, kAtomSet);
-    ATOMS.atomMap = make_atom(env, kAtomMap);
-    ATOMS.atomTuple = make_atom(env, kAtomTuple);
+    ATOMS.atomText = make_atom(env, erlcass::kAtomText);
+    ATOMS.atomTinyInt = make_atom(env, erlcass::kAtomTinyInt);
+    ATOMS.atomSmallInt = make_atom(env, erlcass::kAtomSmallInt);
+    ATOMS.atomInt = make_atom(env, erlcass::kAtomInt);
+    ATOMS.atomDate = make_atom(env, erlcass::kAtomDate);
+    ATOMS.atomBigInt = make_atom(env, erlcass::kAtomBigInt);
+    ATOMS.atomBlob = make_atom(env, erlcass::kAtomBlob);
+    ATOMS.atomBool = make_atom(env, erlcass::kAtomBool);
+    ATOMS.atomFloat = make_atom(env, erlcass::kAtomFloat);
+    ATOMS.atomDouble = make_atom(env, erlcass::kAtomDouble);
+    ATOMS.atomInet = make_atom(env, erlcass::kAtomInet);
+    ATOMS.atomUuid = make_atom(env, erlcass::kAtomUuid);
+    ATOMS.atomDecimal = make_atom(env, erlcass::kAtomDecimal);
+    ATOMS.atomList = make_atom(env, erlcass::kAtomList);
+    ATOMS.atomSet = make_atom(env, erlcass::kAtomSet);
+    ATOMS.atomMap = make_atom(env, erlcass::kAtomMap);
+    ATOMS.atomTuple = make_atom(env, erlcass::kAtomTuple);
     
     //cluster settings atoms
     
-    ATOMS.atomClusterDefaultConsistencyLevel = make_atom(env, kAtomClusterDefaultConsistencyLevel);
-    ATOMS.atomClusterSettingContactPoints = make_atom(env, kAtomClusterSettingContactPoints);
-    ATOMS.atomClusterSettingPort = make_atom(env, kAtomClusterSettingPort);
-    ATOMS.atomClusterSettingProtocolVersion = make_atom(env, kAtomClusterSettingProtocolVersion);
-    ATOMS.atomClusterSettingNumThreadsIo = make_atom(env, kAtomClusterSettingNumThreadsIo);
-    ATOMS.atomClusterSettingQueueSizeIo = make_atom(env, kAtomClusterSettingQueueSizeIo);
-    ATOMS.atomClusterSettingQueueSizeEvent = make_atom(env, kAtomClusterSettingQueueSizeEvent);
-    ATOMS.atomClusterSettingCoreConnectionsPerHost = make_atom(env, kAtomClusterSettingCoreConnectionsPerHost);
-    ATOMS.atomClusterSettingMaxConnectionsPerHost = make_atom(env, kAtomClusterSettingMaxConnectionsPerHost);
-    ATOMS.atomClusterSettingReconnectWaitTime = make_atom(env, kAtomClusterSettingReconnectWaitTime);
-    ATOMS.atomClusterSettingMaxConcurrentCreation = make_atom(env, kAtomClusterSettingMaxConcurrentCreation);
-    ATOMS.atomClusterSettingMaxConcurrentRequestsThreshold = make_atom(env, kAtomClusterSettingMaxConcurrentRequestsThreshold);
-    ATOMS.atomClusterSettingMaxRequestsPerFlush = make_atom(env, kAtomClusterSettingMaxRequestsPerFlush);
-    ATOMS.atomClusterSettingWriteBytesHighWaterMark = make_atom(env, kAtomClusterSettingWriteBytesHighWaterMark);
-    ATOMS.atomClusterSettingWriteBytesLowWaterMark = make_atom(env, kAtomClusterSettingWriteBytesLowWaterMark);
-    ATOMS.atomClusterSettingPendingRequestsHighWaterMark = make_atom(env, kAtomClusterSettingPendingRequestsHighWaterMark);
-    ATOMS.atomClusterSettingPendingRequestsLowWaterMark = make_atom(env, kAtomClusterSettingPendingRequestsLowWaterMark);
-    ATOMS.atomClusterSettingConnectTimeout = make_atom(env, kAtomClusterSettingConnectTimeout);
-    ATOMS.atomClusterSettingRequestTimeout = make_atom(env, kAtomClusterSettingRequestTimeout);
-    ATOMS.atomClusterSettingCredentials = make_atom(env, kAtomClusterSettingCredentials);
-    ATOMS.atomClusterSettingLoadBalanceRoundRobin = make_atom(env, kAtomClusterSettingLoadBalanceRoundRobin);
-    ATOMS.atomClusterSettingLoadBalanceDcAware = make_atom(env, kAtomClusterSettingLoadBalanceDcAware);
-    ATOMS.atomClusterSettingTokenAwareRouting = make_atom(env, kAtomClusterSettingTokenAwareRouting);
-    ATOMS.atomClusterSetringLatencyAwareRouting = make_atom(env, kAtomClusterSettingLatencyAwareRouting);
-    ATOMS.atomClusterSettingTcpNodelay = make_atom(env, kAtomClusterSettingTcpNodelay);
-    ATOMS.atomClusterSettingTcpKeepalive = make_atom(env, kAtomClusterSettingTcpKeepalive);
-    ATOMS.atomClusterSettingHeartbeatInterval = make_atom(env, kAtomClusterSettingHeartbeatInterval);
-    ATOMS.atomClusterSettingIdleTimeout = make_atom(env, kAtomClusterSettingIdleTimeout);
-    ATOMS.atomClusterSettingSsl = make_atom(env, kAtomClusterSettingSsl);
-    ATOMS.atomClusterSettingSslTrustedCerts = make_atom(env, kAtomClusterSettingSslTrustedCerts);
-    ATOMS.atomClusterSettingSslVerifyFlags = make_atom(env, kAtomClusterSettingSslVerifyFlags);
-    ATOMS.atomClusterSettingSslCert = make_atom(env, kAtomClusterSettingSslCert);
-    ATOMS.atomClusterSettingSslPrivateKey = make_atom(env, kAtomClusterSettingSslPrivateKey);
+    ATOMS.atomClusterDefaultConsistencyLevel = make_atom(env, erlcass::kAtomClusterDefaultConsistencyLevel);
+    ATOMS.atomClusterSettingContactPoints = make_atom(env, erlcass::kAtomClusterSettingContactPoints);
+    ATOMS.atomClusterSettingPort = make_atom(env, erlcass::kAtomClusterSettingPort);
+    ATOMS.atomClusterSettingProtocolVersion = make_atom(env, erlcass::kAtomClusterSettingProtocolVersion);
+    ATOMS.atomClusterSettingNumThreadsIo = make_atom(env, erlcass::kAtomClusterSettingNumThreadsIo);
+    ATOMS.atomClusterSettingQueueSizeIo = make_atom(env, erlcass::kAtomClusterSettingQueueSizeIo);
+    ATOMS.atomClusterSettingQueueSizeEvent = make_atom(env, erlcass::kAtomClusterSettingQueueSizeEvent);
+    ATOMS.atomClusterSettingCoreConnectionsPerHost = make_atom(env, erlcass::kAtomClusterSettingCoreConnectionsPerHost);
+    ATOMS.atomClusterSettingMaxConnectionsPerHost = make_atom(env, erlcass::kAtomClusterSettingMaxConnectionsPerHost);
+    ATOMS.atomClusterSettingReconnectWaitTime = make_atom(env, erlcass::kAtomClusterSettingReconnectWaitTime);
+    ATOMS.atomClusterSettingMaxConcurrentCreation = make_atom(env, erlcass::kAtomClusterSettingMaxConcurrentCreation);
+    ATOMS.atomClusterSettingMaxConcurrentRequestsThreshold = make_atom(env, erlcass::kAtomClusterSettingMaxConcurrentRequestsThreshold);
+    ATOMS.atomClusterSettingMaxRequestsPerFlush = make_atom(env, erlcass::kAtomClusterSettingMaxRequestsPerFlush);
+    ATOMS.atomClusterSettingWriteBytesHighWaterMark = make_atom(env, erlcass::kAtomClusterSettingWriteBytesHighWaterMark);
+    ATOMS.atomClusterSettingWriteBytesLowWaterMark = make_atom(env, erlcass::kAtomClusterSettingWriteBytesLowWaterMark);
+    ATOMS.atomClusterSettingPendingRequestsHighWaterMark = make_atom(env, erlcass::kAtomClusterSettingPendingRequestsHighWaterMark);
+    ATOMS.atomClusterSettingPendingRequestsLowWaterMark = make_atom(env, erlcass::kAtomClusterSettingPendingRequestsLowWaterMark);
+    ATOMS.atomClusterSettingConnectTimeout = make_atom(env, erlcass::kAtomClusterSettingConnectTimeout);
+    ATOMS.atomClusterSettingRequestTimeout = make_atom(env, erlcass::kAtomClusterSettingRequestTimeout);
+    ATOMS.atomClusterSettingCredentials = make_atom(env, erlcass::kAtomClusterSettingCredentials);
+    ATOMS.atomClusterSettingLoadBalanceRoundRobin = make_atom(env, erlcass::kAtomClusterSettingLoadBalanceRoundRobin);
+    ATOMS.atomClusterSettingLoadBalanceDcAware = make_atom(env, erlcass::kAtomClusterSettingLoadBalanceDcAware);
+    ATOMS.atomClusterSettingTokenAwareRouting = make_atom(env, erlcass::kAtomClusterSettingTokenAwareRouting);
+    ATOMS.atomClusterSetringLatencyAwareRouting = make_atom(env, erlcass::kAtomClusterSettingLatencyAwareRouting);
+    ATOMS.atomClusterSettingTcpNodelay = make_atom(env, erlcass::kAtomClusterSettingTcpNodelay);
+    ATOMS.atomClusterSettingTcpKeepalive = make_atom(env, erlcass::kAtomClusterSettingTcpKeepalive);
+    ATOMS.atomClusterSettingHeartbeatInterval = make_atom(env, erlcass::kAtomClusterSettingHeartbeatInterval);
+    ATOMS.atomClusterSettingIdleTimeout = make_atom(env, erlcass::kAtomClusterSettingIdleTimeout);
+    ATOMS.atomClusterSettingSsl = make_atom(env, erlcass::kAtomClusterSettingSsl);
+    ATOMS.atomClusterSettingSslTrustedCerts = make_atom(env, erlcass::kAtomClusterSettingSslTrustedCerts);
+    ATOMS.atomClusterSettingSslVerifyFlags = make_atom(env, erlcass::kAtomClusterSettingSslVerifyFlags);
+    ATOMS.atomClusterSettingSslCert = make_atom(env, erlcass::kAtomClusterSettingSslCert);
+    ATOMS.atomClusterSettingSslPrivateKey = make_atom(env, erlcass::kAtomClusterSettingSslPrivateKey);
     
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
     data->cluster = NULL;

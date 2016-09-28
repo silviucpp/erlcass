@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __erlcass__nif_cass_session__
-#define __erlcass__nif_cass_session__
+#ifndef ERLCASS_C_SRC_NIF_CASS_SESSION_H
+#define ERLCASS_C_SRC_NIF_CASS_SESSION_H
 
 #include "erl_nif.h"
 
@@ -20,4 +20,4 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
 ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 
-#endif /* defined(__erlcass__nif_cass_session__) */
+#endif

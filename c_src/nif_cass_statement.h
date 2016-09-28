@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __erlcass__nif_cass_statement__
-#define __erlcass__nif_cass_statement__
+#ifndef ERLCASS_C_SRC_NIF_CASS_STATEMENT_H
+#define ERLCASS_C_SRC_NIF_CASS_STATEMENT_H
 
 #include "erlcass.h"
 
@@ -17,4 +17,4 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource
 ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 void nif_cass_statement_free(ErlNifEnv* env, void* obj);
 
-#endif /* defined(__erlcass__nif_cass_statement__) */
+#endif

@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __erlcass__metadata__
-#define __erlcass__metadata__
+#ifndef ERLCASS_C_SRC_METADATA_H
+#define ERLCASS_C_SRC_METADATA_H
 
 #include "erl_nif.h"
 #include "cassandra.h"
@@ -28,4 +28,4 @@ struct SchemaColumn
 
 SchemaColumn atom_to_schema_column(ErlNifEnv* env, ERL_NIF_TERM value);
 
-#endif /* defined(__erlcass__metadata__) */
+#endif

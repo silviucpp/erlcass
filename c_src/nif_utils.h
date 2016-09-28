@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __erlcass__utils__
-#define __erlcass__utils__
+#ifndef ERLCASS_C_SRC_NIF_UTILS_H
+#define ERLCASS_C_SRC_NIF_UTILS_H
 
 #include "erl_nif.h"
 #include "cassandra.h"

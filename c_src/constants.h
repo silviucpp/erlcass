@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef constants_h
-#define constants_h
+#ifndef ERLCASS_C_SRC_CONSTANTS_H
+#define ERLCASS_C_SRC_CONSTANTS_H
 
 namespace erlcass {
 

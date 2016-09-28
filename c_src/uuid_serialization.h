@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __erlcass__uuid_serialization__
-#define __erlcass__uuid_serialization__
+#ifndef ERLCASS_C_SRC_UUID_SERIALIZATION_H
+#define ERLCASS_C_SRC_UUID_SERIALIZATION_H
 
 #include "cassandra.h"
 
@@ -18,4 +18,4 @@ CassError cass_uuid_from_string_n(const char* str, size_t str_length, CassUuid* 
     
 }
 
-#endif /* defined(__erlcass__uuid_serialization__) */
+#endif

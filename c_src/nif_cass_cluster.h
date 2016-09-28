@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __erlcass__nif_cass_cluster__
-#define __erlcass__nif_cass_cluster__
+#ifndef ERLCASS_C_SRC_NIF_CASS_CLUSTER_H
+#define ERLCASS_C_SRC_NIF_CASS_CLUSTER_H
 
 #include "erl_nif.h"
 
@@ -17,4 +17,4 @@ ERL_NIF_TERM nif_cass_cluster_release(ErlNifEnv* env, int argc, const ERL_NIF_TE
 ERL_NIF_TERM nif_cass_log_set_level_and_callback(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 
-#endif /* defined(__erlcass__nif_cass_cluster__) */
+#endif

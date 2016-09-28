@@ -1,5 +1,5 @@
-#ifndef erlcass_erlcass_h
-#define erlcass_erlcass_h
+#ifndef ERLCASS_C_SRC_ERLCASS_H
+#define ERLCASS_C_SRC_ERLCASS_H
 
 #include "erl_nif.h"
 #include "cassandra.h"

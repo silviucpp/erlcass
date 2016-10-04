@@ -10,76 +10,70 @@
 
 %%ct_run -suite integrity_test_SUITE -pa ebin -include include
 
-all() ->
-[
+all() -> [
     {group, database}
 ].
 
-groups() ->
-[
-    {
-        database, [sequence],
-        [
-            set_cluster_options,
-            connect,
-            create_keyspace,
-            create_table,
-            simple_insertion_roundtrip,
-            async_insertion_roundtrip,
-            emptiness,
-            all_datatypes,
-            prepared_bind_by_name_index,
-            collection_types,
-            nested_collections,
-            tuples,
-            batches,
-            uuid_testing,
-            date_time_testing,
-            get_metrics,
-            drop_keyspace
-        ]
-    }
+groups() -> [
+    {database, [sequence], [
+        set_cluster_options,
+        connect,
+        create_keyspace,
+        create_table,
+        simple_insertion_roundtrip,
+        async_insertion_roundtrip,
+        emptiness,
+        all_datatypes,
+        prepared_bind_by_name_index,
+        collection_types,
+        nested_collections,
+        tuples,
+        batches,
+        uuid_testing,
+        date_time_testing,
+        get_metrics,
+        drop_keyspace
+    ]}
 ].
 
 init_per_suite(Config) ->
-    ok = application:start(erlcass),
+    {ok,  _} = application:ensure_all_started(erlcass),
     Config.
 
 end_per_suite(_Config) ->
     application:stop(erlcass).
 
 set_cluster_options(_Config) ->
-    ok = erlcass:set_cluster_options(
-        [
-            {contact_points, ?CONTACT_POINTS},
-            {port, 9042},
-            %{protocol_version, 4},
-            {number_threads_io, 1},
-            {queue_size_io, 4096},
-            {queue_size_event, 4096},
-            {core_connections_host, 1},
-            {max_connections_host, 2},
-            {reconnect_wait_time, 2000},
-            {max_concurrent_creation, 1},
-            {max_requests_threshold, 100},
-            {requests_per_flush, 128},
-            {write_bytes_high_watermark, 65536},
-            {write_bytes_low_watermark, 32768},
-            {pending_requests_high_watermark, 128},
-            {pending_requests_low_watermark, 64},
-            {connect_timeout, 5000},
-            {request_timeout, 12000},
-            %{credentials, {<<"username">>, <<"password">>}},
-            {load_balance_round_robin, true},
-            %{load_balance_dc_aware, {<<"dc-beta">>, 0, false}},
-            {token_aware_routing, true},
-            {latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}},
-            {tcp_nodelay, true},
-            {tcp_keepalive, {true, 60}},
-            {heartbeat_interval, 30},
-            {idle_timeout, 60},
-            {default_consistency_level, ?CASS_CONSISTENCY_ONE}
-        ]).
+    ok = erlcass:set_cluster_options([
+        {contact_points, ?CONTACT_POINTS},
+        {port, 9042},
+        %{protocol_version, 4},
+        %{credentials, {<<"username">>, <<"password">>}},
+        %{load_balance_dc_aware, {<<"dc-beta">>, 0, false}},
+        {number_threads_io, 1},
+        {queue_size_io, 4096},
+        {queue_size_event, 4096},
+        {core_connections_host, 1},
+        {max_connections_host, 2},
+        {reconnect_wait_time, 2000},
+        {max_concurrent_creation, 1},
+        {max_requests_threshold, 100},
+        {requests_per_flush, 128},
+        {write_bytes_high_watermark, 65536},
+        {write_bytes_low_watermark, 32768},
+        {pending_requests_high_watermark, 128},
+        {pending_requests_low_watermark, 64},
+        {connect_timeout, 5000},
+        {request_timeout, 12000},
+        {load_balance_round_robin, true},
+        {token_aware_routing, true},
+        {latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}},
+        {tcp_nodelay, true},
+        {tcp_keepalive, {true, 60}},
+        {heartbeat_interval, 30},
+        {idle_timeout, 60},
+        {default_consistency_level, ?CASS_CONSISTENCY_ONE}
+    ]).
 
 connect(_Config) ->
     ok = erlcass:create_session([]).
@@ -92,21 +86,19 @@ create_table(_Config) ->
     {ok, []} = erlcass:execute(<<"CREATE TABLE erlang_driver_test.entries1 (id varchar, age int, email varchar, PRIMARY KEY(id))">>).
 
 simple_insertion_roundtrip(_Config) ->
-
     Id = <<"hello">>,
     Age = 18,
     Email = <<"test@test.com">>,
 
     {ok, []} = erlcass:execute(<<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES (?, ?, ?)">>, [
-                                {?CASS_TEXT, Id},
-                                {?CASS_INT, Age},
-                                {?CASS_TEXT, Email}
+        {?CASS_TEXT, Id},
+        {?CASS_INT, Age},
+        {?CASS_TEXT, Email}
     ]),
 
     {ok, [{Id, Age, Email}]} = erlcass:execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>).
 
 emptiness(_Config) ->
-
     {ok, []} = erlcass:execute(<<"update erlang_driver_test.entries1 set email = null where id = 'hello';">>),
     {ok, [{null}]} = erlcass:execute(<<"select email from erlang_driver_test.entries1 where id = 'hello';">>),
 
@@ -114,7 +106,6 @@ emptiness(_Config) ->
     {ok, [{null}]} = erlcass:execute(<<"select age from erlang_driver_test.entries1 where id = 'hello';">>).
 
 async_insertion_roundtrip(_Config) ->
-
     Id = <<"hello_async">>,
     Age = 32,
     Email = <<"zz@test.com">>,
@@ -139,6 +130,7 @@ async_insertion_roundtrip(_Config) ->
         {execute_statement_result, Tag2, Result2} ->
             {ok, List} = Result2,
             {Id, Age, Email} = lists:last(List)
+
         after 10000 ->
             ct:fail("Timeout on executing query ~n", [])
     end,
@@ -182,27 +174,26 @@ all_datatypes(_Config) ->
     InsertQuery = <<"INSERT INTO erlang_driver_test.entries2(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
     SelectQuery = <<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18 FROM erlang_driver_test.entries2 WHERE col1 =?">>,
 
-    {ok, []} = erlcass:execute(InsertQuery,
-        [
-            {?CASS_TEXT, AsciiValBin},
-            {?CASS_BIGINT, BigIntPositive},
-            {?CASS_BLOB, Blob},
-            {?CASS_BOOLEAN, BooleanTrue},
-            {?CASS_DECIMAL, DecimalPositive},
-            {?CASS_DOUBLE, DoublePositive},
-            {?CASS_FLOAT, FloatPositive},
-            {?CASS_INT, IntPositive},
-            {?CASS_BIGINT, Timestamp},
-            {?CASS_UUID, Uuid},
-            {?CASS_TEXT, Varchar1},
-            {?CASS_BLOB, Varint1},
-            {?CASS_UUID, Timeuuid},
-            {?CASS_INET, Inet},
-            {?CASS_TINYINT, TinyIntPositive},
-            {?CASS_SMALLINT, SmallIntPositive},
-            {?CASS_DATE, Date},
-            {?CASS_BIGINT, Time}
-        ]),
+    {ok, []} = erlcass:execute(InsertQuery, [
+        {?CASS_TEXT, AsciiValBin},
+        {?CASS_BIGINT, BigIntPositive},
+        {?CASS_BLOB, Blob},
+        {?CASS_BOOLEAN, BooleanTrue},
+        {?CASS_DECIMAL, DecimalPositive},
+        {?CASS_DOUBLE, DoublePositive},
+        {?CASS_FLOAT, FloatPositive},
+        {?CASS_INT, IntPositive},
+        {?CASS_BIGINT, Timestamp},
+        {?CASS_UUID, Uuid},
+        {?CASS_TEXT, Varchar1},
+        {?CASS_BLOB, Varint1},
+        {?CASS_UUID, Timeuuid},
+        {?CASS_INET, Inet},
+        {?CASS_TINYINT, TinyIntPositive},
+        {?CASS_SMALLINT, SmallIntPositive},
+        {?CASS_DATE, Date},
+        {?CASS_BIGINT, Time}
+    ]),
 
     {ok, [Result]} = erlcass:execute(SelectQuery, [{?CASS_TEXT, AsciiValBin}]),
 
@@ -263,7 +254,8 @@ prepared_bind_by_name_index(_Config) ->
     QueryInsertDefaultConsistencyLevel  = <<"UPDATE erlang_driver_test.test_map SET value[?] = ? WHERE key = ?">>,
     QueryInsertLocalQuorum  = {<<"UPDATE erlang_driver_test.test_map SET value[?] = ? WHERE key = ?">>, ?CASS_CONSISTENCY_LOCAL_QUORUM},
     QueryInsertSerialConsistency  = {<<"UPDATE erlang_driver_test.test_map SET value[?] = ? WHERE key = ? IF EXISTS">>, [
-        {serial_consistency_level, ?CASS_CONSISTENCY_LOCAL_SERIAL}]},
+        {serial_consistency_level, ?CASS_CONSISTENCY_LOCAL_SERIAL}
+    ]},
     QuerySelect  = <<"SELECT value FROM erlang_driver_test.test_map where key = ?">>,
 
     ok = erlcass:add_prepare_statement(insert_test_bind, QueryInsertDefaultConsistencyLevel),
@@ -301,21 +293,19 @@ collection_types(_Config) ->
 
     %%insert using normal query, prepapred query (bind by name and bind by index)
 
-    {ok, []} = erlcass:execute(InsertQ,
-        [
-            {?CASS_TEXT, Key1},
-            {?CASS_LIST(?CASS_INT), List},
-            {?CASS_SET(?CASS_TEXT), Set},
-            {?CASS_MAP(?CASS_INT, ?CASS_TEXT), Map}
-        ]),
+    {ok, []} = erlcass:execute(InsertQ, [
+        {?CASS_TEXT, Key1},
+        {?CASS_LIST(?CASS_INT), List},
+        {?CASS_SET(?CASS_TEXT), Set},
+        {?CASS_MAP(?CASS_INT, ?CASS_TEXT), Map}
+    ]),
 
-    {ok, []} = erlcass:execute(insert_collection_types, ?BIND_BY_NAME,
-        [
-            {<<"key">>, Key2},
-            {<<"numbers">>, List},
-            {<<"names">>, Set},
-            {<<"phones">>, Map}
-        ]),
+    {ok, []} = erlcass:execute(insert_collection_types, ?BIND_BY_NAME, [
+        {<<"key">>, Key2},
+        {<<"numbers">>, List},
+        {<<"names">>, Set},
+        {<<"phones">>, Map}
+    ]),
 
     {ok, []} = erlcass:execute(insert_collection_types, [Key3, List, Set, Map]),
 
@@ -323,7 +313,6 @@ collection_types(_Config) ->
     {Key1, List, Set, Map} = Rs,
     {ok, [{Key2, List, Set, Map}]} = erlcass:execute(select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
     {ok, [{Key3, List, Set, Map}]} = erlcass:execute(select_collection_types, ?BIND_BY_INDEX, [Key3]),
-
     ok.
 
 nested_collections(_Config) ->
@@ -343,17 +332,8 @@ nested_collections(_Config) ->
 
     %%insert using normal query, prepapred query (bind by name and bind by index)
 
-    {ok, []} = erlcass:execute(InsertQ,
-        [
-            {?CASS_TEXT, Key1},
-            {?CASS_LIST(?CASS_MAP(?CASS_INT, ?CASS_TEXT)), List}]),
-
-    {ok, []} = erlcass:execute(nest_insert_collection_types, ?BIND_BY_NAME,
-        [
-            {<<"key">>, Key2},
-            {<<"numbers">>, List}
-        ]),
-
+    {ok, []} = erlcass:execute(InsertQ, [{?CASS_TEXT, Key1}, {?CASS_LIST(?CASS_MAP(?CASS_INT, ?CASS_TEXT)), List}]),
+    {ok, []} = erlcass:execute(nest_insert_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}, {<<"numbers">>, List}]),
     {ok, []} = erlcass:execute(nest_insert_collection_types, [Key3, List]),
 
     {ok, [{Key1, List}]} = erlcass:execute(SelectQ, [{?CASS_TEXT, Key1}]),
@@ -379,18 +359,17 @@ tuples(_Config) ->
     ok = erlcass:add_prepare_statement(insert_tuple_types, InsertQ),
     ok = erlcass:add_prepare_statement(select_tuple_types, SelectQ),
 
-    {ok, []} = erlcass:execute(InsertQ,
-        [
-            {?CASS_TEXT, Key1},
-            {?CASS_TUPLE([?CASS_TEXT, ?CASS_LIST(?CASS_INT)]), Item1},
-            {?CASS_TUPLE([?CASS_TUPLE([?CASS_TEXT, ?CASS_BIGINT])]), Item2}]),
+    {ok, []} = erlcass:execute(InsertQ, [
+        {?CASS_TEXT, Key1},
+        {?CASS_TUPLE([?CASS_TEXT, ?CASS_LIST(?CASS_INT)]), Item1},
+        {?CASS_TUPLE([?CASS_TUPLE([?CASS_TEXT, ?CASS_BIGINT])]), Item2}
+    ]),
 
-    {ok, []} = erlcass:execute(insert_tuple_types, ?BIND_BY_NAME,
-        [
-            {<<"key">>, Key2},
-            {<<"item1">>, Item1},
-            {<<"item2">>, Item2}
-        ]),
+    {ok, []} = erlcass:execute(insert_tuple_types, ?BIND_BY_NAME, [
+        {<<"key">>, Key2},
+        {<<"item1">>, Item1},
+        {<<"item2">>, Item2}
+    ]),
 
     {ok, []} = erlcass:execute(insert_tuple_types, [Key3, Item1, Item2]),
 

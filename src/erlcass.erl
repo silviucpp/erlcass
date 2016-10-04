@@ -10,16 +10,16 @@
 
 -record(erlcass_stm, {session, stm}).
 
--export([start_link/0, stop/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -export([
+    start_link/0,
+    stop/0,
     set_cluster_options/1,
     create_session/1,
     set_log_function/1,
     get_metrics/0,
     add_prepare_statement/2,
-
     async_execute/1,
     async_execute/2,
     async_execute/3,
@@ -28,7 +28,6 @@
     execute/3,
     batch_execute/3,
     batch_async_execute/3,
-
     create_statement/1,
     create_statement/2,
     bind_prepared_statement/1,
@@ -132,15 +131,14 @@ execute_statement(StatementRef) ->
     {ok, Tag} = async_execute_statement(StatementRef),
     receive_response(Tag).
 
-
 -spec(async_execute(Identifier :: atom() | binary()) ->
     {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
 
 async_execute(Identifier) ->
-    if
-        is_atom(Identifier) ->
-            {ok, Statement} = bind_prepared_statement(Identifier);
+    case is_atom(Identifier) of
         true ->
+            {ok, Statement} = bind_prepared_statement(Identifier);
+        _ ->
             {ok, Statement} = create_statement(Identifier)
     end,
 
@@ -156,12 +154,11 @@ async_execute(Identifier, Params) ->
     {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
 
 async_execute(Identifier, BindType, Params) ->
-    if
-        is_atom(Identifier) ->
+    case is_atom(Identifier) of
+        true ->
             {ok, Stm} = bind_prepared_statement(Identifier),
             ok = erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, BindType, Params);
-
-        true ->
+        _ ->
             {ok, Stm} = create_statement(Identifier, Params)
     end,
 
@@ -236,10 +233,10 @@ init([]) ->
             undefined
     end,
 
-    if
-        SessionRef == error ->
+    case SessionRef of
+        error ->
             {stop, session_connect_timeout, shutdown, #state{}};
-        true ->
+        _ ->
             {ok, #state{connected = false, session = SessionRef}}
     end.
 
@@ -264,12 +261,10 @@ handle_call(get_metrics, _From, State) ->
 
 handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
 
-    AlreadyExist = erlcass_prep_utils:does_exist(Identifier),
-
-    if
-        AlreadyExist ->
-            {reply, already_exist, State};
+    case erlcass_prep_utils:does_exist(Identifier) of
         true ->
+            {reply, already_exist, State};
+        _ ->
             ok = erlcass_nif:cass_session_prepare(State#state.session, Query, {From, Identifier}),
             {noreply, State}
     end;
@@ -295,15 +290,13 @@ handle_info({session_connected, {Status, FromPid}}, State) ->
 
     erlcass_log:send(?CASS_LOG_INFO, <<"Session connected result : ~p">>, [Status]),
 
-    if
-        Status =:= ok ->
-            NewState = State#state{connected = true},
-            gen_server:reply(FromPid, ok);
-        true ->
-            NewState = State,
-            gen_server:reply(FromPid, Status)
+    NewState = case Status of
+        ok ->
+            State#state{connected = true};
+        _ ->
+            State
     end,
-
+    gen_server:reply(FromPid, Status),
     {noreply, NewState};
 
 handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
@@ -326,9 +319,8 @@ handle_info(Info, State) ->
 terminate(Reason, State) ->
     erlcass_log:send(?CASS_LOG_INFO, <<"Closing driver with reason: ~p">>, [Reason]),
 
-    if
-        State#state.connected =:= true ->
-
+    case State#state.connected of
+        true ->
             {ok, Tag} = erlcass_nif:cass_session_close(State#state.session),
 
             receive
@@ -338,8 +330,7 @@ terminate(Reason, State) ->
             after ?TIMEOUT ->
                 erlcass_log:send(?CASS_LOG_ERROR, <<"Session closed timeout">>,[])
             end;
-
-        true ->
+        _ ->
             ok
     end,
 

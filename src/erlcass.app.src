@@ -2,7 +2,7 @@
     {description, "ErlCass - Erlang Cassandra Driver"},
     {vsn, "2.7"},
     {registered, []},
-    {applications, [kernel, stdlib]},
+    {applications, [kernel, stdlib, lager]},
     {mod, {erlcass_app, []}},
     {env, []}
 ]}.

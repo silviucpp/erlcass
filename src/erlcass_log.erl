@@ -2,66 +2,42 @@
 -author("silviu.caragea").
 
 -include("erlcass.hrl").
+-include("erlcass_internals.hrl").
 
--export([start_link/0, init/1, send/4, update_function/2]).
+-record(log_msg, {severity, file, line, function, message}).
+
+-define(MSG_FORMAT, "~p on ~p at file ~s line ~p").
+
+-export([start_link/0, init/1]).
 
 start_link() ->
     proc_lib:start_link(?MODULE, init, [self()]).
 
-update_function(LogPid, Callback) ->
-    case erlang:is_function(Callback, 1) of
-        true ->
-            LogPid ! {update_fun, Callback};
-        _ ->
-            case Callback of
-                undefined ->
-                    %switch back to default function
-                    LogPid ! {update_fun, fun(X) -> default_log_function(X) end};
-                _ ->
-                    badarg
-            end
-    end.
-
-send(LogPid, Severity, Msg, Args) ->
-    LogPid ! {log_message_recv, {Severity, Msg, Args}}.
-
 %internals
 
 init(Parent) ->
+    Self = self(),
+    ok = erlcass_cluster:set_log_process_receiver(Self),
+    ok = proc_lib:init_ack(Parent, {ok, Self}),
+    loop().
 
-    LogLevel = case erlcass_utils:get_env(log_level) of
-       {ok, Level} ->
-           Level;
-       _ ->
-           ?CASS_LOG_WARN
-    end,
-
-    ok = erlcass_nif:cass_log_set_level_and_callback(LogLevel, self()),
-    ok = proc_lib:init_ack(Parent, {ok, self()}),
-    loop(fun(X) -> default_log_function(X) end).
-
-loop(Fun) ->
+loop() ->
     receive
         {log_message_recv, Msg} ->
-            try
-                Fun(Msg)
-            catch
-                _:_ -> ok
-            end,
-            loop(Fun);
-        {update_fun, NewFun} ->
-            loop(NewFun)
+            log_message(Msg),
+            loop()
     end.
 
-default_log_function({_Severity, Msg, Args}) ->
-    io:format(<<Msg/binary, " ~n">>, Args);
-default_log_function(Msg) ->
-    io:format(<<"Log received ts: ~p severity: ~s (~p) file: ~s line: ~p function: ~s message: ~s ~n">>, [
-        Msg#log_msg.ts,
-        Msg#log_msg.severity_str,
-        Msg#log_msg.severity,
-        Msg#log_msg.file,
-        Msg#log_msg.line,
-        Msg#log_msg.function,
-        Msg#log_msg.message
-    ]).
+log_message(#log_msg{message = Msg, function = Fun, file = File, line = Line, severity = Severity}) ->
+    case Severity of
+        ?CASS_LOG_CRITICAL ->
+            ?CRITICAL_MSG(?MSG_FORMAT, [Msg, Fun, File, Line]);
+        ?CASS_LOG_ERROR ->
+            ?ERROR_MSG(?MSG_FORMAT, [Msg, Fun, File, Line]);
+        ?CASS_LOG_WARN ->
+            ?WARNING_MSG(?MSG_FORMAT, [Msg, Fun, File, Line]);
+        ?CASS_LOG_INFO ->
+            ?INFO_MSG(?MSG_FORMAT, [Msg, Fun, File, Line]);
+        _ ->
+            ?DEBUG_MSG(?MSG_FORMAT, [Msg, Fun, File, Line])
+    end.

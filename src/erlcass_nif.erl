@@ -1,6 +1,8 @@
 -module(erlcass_nif).
 -author("silviu.caragea").
 
+-include("erlcass_internals.hrl").
+
 -define(NOT_LOADED, not_loaded(?LINE)).
 
 -on_load(load_nif/0).
@@ -8,7 +10,8 @@
 -export([
     cass_cluster_create/0,
     cass_cluster_release/0,
-    cass_log_set_level_and_callback/2,
+    cass_log_set_level/1,
+    cass_log_set_callback/1,
     cass_cluster_set_options/1,
     cass_session_new/0,
     cass_session_connect/2,
@@ -39,7 +42,7 @@
 
 load_nif() ->
     SoName = get_nif_library_path(),
-    io:format(<<"Loading library: ~p ~n">>, [SoName]),
+    ?INFO_MSG(<<"Loading library: ~p ~n">>, [SoName]),
     ok = erlang:load_nif(SoName, 0).
 
 get_nif_library_path() ->
@@ -64,7 +67,10 @@ cass_cluster_create() ->
 cass_cluster_release() ->
     ?NOT_LOADED.
 
-cass_log_set_level_and_callback(_Level, _LogPid) ->
+cass_log_set_callback(_LogPid) ->
+    ?NOT_LOADED.
+
+cass_log_set_level(_Level) ->
     ?NOT_LOADED.
 
 cass_cluster_set_options(_OptionList) ->

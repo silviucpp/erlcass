@@ -63,5 +63,3 @@
 -define(CASS_LOG_INFO, 4).
 -define(CASS_LOG_DEBUG,5).
 -define(CASS_LOG_TRACE, 6).
-
--record(log_msg, {ts, severity, severity_str, file, line, function, message}).

@@ -6,34 +6,18 @@
 -export([start/0, profile/3, profile/4, prepare_load_test_table/0]).
 
 -define(KEYSPACE, <<"load_test_erlcass">>).
--define(CONTACT_POINTS, <<"172.17.3.129,172.17.3.130,172.17.3.131">>).
--define(CLUSTER_NAME, <<"dc-beta">>).
 -define(QUERY, {<<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14 FROM test_table WHERE col1 =?">>, ?CASS_CONSISTENCY_ONE}).
 -define(QUERY_ARGS, [<<"hello">>]).
+-define(CLUSTER_NAME, <<"dc-beta">>).
 
 start() ->
-    Result = application:start(erlcass),
-
-    if
-        Result =:= ok ->
-
-            ok = erlcass:set_cluster_options(
-            [
-                {contact_points, ?CONTACT_POINTS},
-                {load_balance_dc_aware, {?CLUSTER_NAME, 0, false}},
-                {latency_aware_routing, true},
-                {token_aware_routing, true},
-                {number_threads_io, 8},
-                {queue_size_io, 128000},
-                {core_connections_host, 5},
-                {max_connections_host, 5},
-                {tcp_nodelay, true},
-                {tcp_keepalive, {true, 60}},
-                {pending_requests_high_watermark, 128000}
-            ]),
-            true;
-        true ->
-            false
+    case application:ensure_all_started(erlcass) of
+        {ok, [_|_]} ->
+            ok = erlcass:add_prepare_statement(execute_query, ?QUERY);
+        {ok, []} ->
+            ok;
+        UnexpectedError ->
+            UnexpectedError
     end.
 
 datatypes_columns(Cols) ->
@@ -46,7 +30,6 @@ datatypes_columns(I, [ColumnType|Rest], Bin) ->
 
 prepare_load_test_table() ->
     start(),
-    ok = erlcass:create_session([]),
     erlcass:execute(<<"DROP KEYSPACE ", (?KEYSPACE)/binary>>),
     {ok, []} = erlcass:execute(<<"CREATE KEYSPACE ", (?KEYSPACE)/binary, " WITH replication = {'class': 'NetworkTopologyStrategy', '", (?CLUSTER_NAME)/binary, "': 3  }">>),
 
@@ -172,15 +155,8 @@ profile(NrProc, RequestsNr, RepeatNumber, UseOneSatement) ->
 do_profiling(NrProc, RequestsNr, RepeatNumber, UseOneSatement) ->
     eprof:start(),
     eprof:start_profiling([self()]),
-    Rs = start(),
-
-    case Rs of
-        true ->
-            ok = erlcass:create_session([{keyspace, ?KEYSPACE}]),
-            ok = erlcass:add_prepare_statement(execute_query, ?QUERY);
-        false ->
-            ok
-    end,
+    ok = application:set_env(erlcass, keyspace, ?KEYSPACE),
+    start(),
 
     St = get_statement(UseOneSatement),
 

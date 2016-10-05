@@ -1,10 +1,13 @@
 -module(erlcass_utils).
 -author("silviu").
 
--export([get_env/1, lookup/2, lookup/3]).
+-export([get_env/1, get_env/2, lookup/2, lookup/3]).
 
 get_env(Key) ->
     application:get_env(erlcass, Key).
+
+get_env(Key, Default) ->
+    application:get_env(erlcass, Key, Default).
 
 lookup(Key, List, Default) ->
     case lists:keyfind(Key, 1, List) of

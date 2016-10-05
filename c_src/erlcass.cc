@@ -140,7 +140,8 @@ static ErlNifFunc nif_funcs[] =
     
     {"cass_cluster_create", 0, nif_cass_cluster_create},
     {"cass_cluster_release", 0, nif_cass_cluster_release},
-    {"cass_log_set_level_and_callback", 2, nif_cass_log_set_level_and_callback},
+    {"cass_log_set_callback", 1, nif_cass_log_set_callback},
+    {"cass_log_set_level", 1, nif_cass_log_set_level},
     {"cass_cluster_set_options", 1, nif_cass_cluster_set_options},
     
     //CassSession

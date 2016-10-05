@@ -14,5 +14,5 @@ clean:
 	${REBAR} clean
 
 ct:
-	mkdir -p logs
-	ct_run -suite integrity_test_SUITE -pa ebin -include include -logdir logs
+	mkdir -p log
+	ct_run -suite integrity_test_SUITE -pa ebin -pa deps/*/ebin -include include -logdir log -config test/test.config

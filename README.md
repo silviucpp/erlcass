@@ -14,7 +14,7 @@ The DataStax driver use it's own threads for managing the requests. Also the res
 #### Benchmark comparing with other drivers
 
 The benchmark (`benchmarks/benchmark.erl`) is spawning N processes that will run a total of X request using the async api's and then waits to read X responses.
-In `benchmarks/test.config` you can find the config's for every application. During test in case of unexpected results from driver will log errors in console.
+In `benchmarks/benchmark.config` you can find the config's for every application. During test in case of unexpected results from driver will log errors in console.
 
 Notes:
 
@@ -55,7 +55,11 @@ In order to see the relation between Cassandra column types and Erlang types ple
 application:start(erlcass).
 ```
 
-### Enable logs and setting custom log handler
+### Setting the log level
+
+`Erlcass` is using `lager` for logging the errors. Beside the fact that you can set in lager the desired log level, for better performances it's better to set also in `erlcass`
+the desired level otherwise there will be a lot of resources consumed by lager to format the messages and then drop them. Also the native driver performances can be affected because 
+of the time spent in generating the logs and sending them from C++ into Erlang.  
 
 Available Log levels are:
 
@@ -69,41 +73,13 @@ Available Log levels are:
 -define(CASS_LOG_TRACE, 6).
 ```
 
-In order to change the log level for the native driver you need to set the `log_level` environment variable for ErlCass into your config file.
-By default the logs are sent to console. In order to send them into an external log system you can use the `set_log_function` method.
-The callback should be a function with arity 1 which will receive a record of `log_msg` type defined as
+In order to change the log level for the native driver you need to set the `log_level` environment variable for `erlcass` into your config file.
 
-```erlang
--record(log_msg, {ts, severity, severity_str, file, line, function, message}).
-```
-
-where
-
-- `ts` is The millisecond timestamp (since the Epoch) when the message was logged (int)
-- `severity` The severity of the log message (int value from 1 to 6)
-- `severity_str` The severity of the log message as a string value (binary string)
-- `file` The file where the message was logged (binary string)
-- `line` The line in the file where the message was logged (int)
-- `function` The function where the message was logged (binary string)
-- `message` The message (binary string)
-
-or under `{_Severity, Msg, Args}` format (for all messages generated from Erlang code)
-
-In case you want to switch back to the default logging function just call `set_log_function` with `undefined` as argument
+Example: `{log_level, 3}`.
 
 ### Setting the cluster options
 
-The cluster options can be set at runtime using `erlcass:set_cluster_options/1` method as follow:
-
-```erlang
-ok = erlcass:set_cluster_options([
-    {contact_points, <<"172.17.3.129,172.17.3.130,172.17.3.131">>},
-    {port, 9042},
-    ...
-]).
-```
-
-or inside your `app.config` file:
+The cluster options can be set inside your `app.config` file under the `cluster_options` key:
 
 ```erlang
 {erlcass, [
@@ -126,30 +102,13 @@ or inside your `app.config` file:
 ]},
 ```
 
-Tips for production environment:
+*Tips for production environment:*
 
 - Use `token_aware_routing` and `latency_aware_routing`
 - Don't use `number_threads_io` bigger than the number of your cores.
 - Use `tcp_nodelay` and also enable `tcp_keepalive` 
 
 All available options are described in the following [wiki section][4].
-
-### Creating a session
-
-*Currently this is limited to one session per application. This is a DataStax recommendations as well*
-
-In order to connect the session to a keyspace as well use as option:
-
-```erlang
- [{keyspace, <<"keyspace_name_here">>}].
-```
-In case you don't want to connect the session to any keyspace use as argument an empty list.
-
-Example:
-
-```erlang
-ok = erlcass:create_session([{keyspace, <<"stresscql">>}]).
-```
 
 ### Add a prepare statement
 

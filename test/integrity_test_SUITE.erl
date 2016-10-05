@@ -6,16 +6,12 @@
 
 -compile(export_all).
 
--define(CONTACT_POINTS, <<"127.0.0.1">>).
-
 all() -> [
     {group, database}
 ].
 
 groups() -> [
     {database, [sequence], [
-        set_cluster_options,
-        connect,
         create_keyspace,
         create_table,
         simple_insertion_roundtrip,
@@ -34,47 +30,17 @@ groups() -> [
     ]}
 ].
 
+suite() ->
+    [{timetrap, {seconds, 40}}, {require, cluster_options, erlcass_cluster_options}].
+
 init_per_suite(Config) ->
+    ClusterOpt = ct:get_config(cluster_options),
+    ok = application:set_env(erlcass, cluster_options, ClusterOpt),
     {ok,  _} = application:ensure_all_started(erlcass),
     Config.
 
 end_per_suite(_Config) ->
     application:stop(erlcass).
-
-set_cluster_options(_Config) ->
-    ok = erlcass:set_cluster_options([
-        {contact_points, ?CONTACT_POINTS},
-        {port, 9042},
-        %{protocol_version, 4},
-        %{credentials, {<<"username">>, <<"password">>}},
-        %{load_balance_dc_aware, {<<"dc-beta">>, 0, false}},
-        {number_threads_io, 1},
-        {queue_size_io, 4096},
-        {queue_size_event, 4096},
-        {core_connections_host, 1},
-        {max_connections_host, 2},
-        {reconnect_wait_time, 2000},
-        {max_concurrent_creation, 1},
-        {max_requests_threshold, 100},
-        {requests_per_flush, 128},
-        {write_bytes_high_watermark, 65536},
-        {write_bytes_low_watermark, 32768},
-        {pending_requests_high_watermark, 128},
-        {pending_requests_low_watermark, 64},
-        {connect_timeout, 5000},
-        {request_timeout, 20000},
-        {load_balance_round_robin, true},
-        {token_aware_routing, true},
-        {latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}},
-        {tcp_nodelay, true},
-        {tcp_keepalive, {true, 60}},
-        {heartbeat_interval, 30},
-        {idle_timeout, 60},
-        {default_consistency_level, ?CASS_CONSISTENCY_ONE}
-    ]).
-
-connect(_Config) ->
-    ok = erlcass:create_session([]).
 
 create_keyspace(_Config) ->
     erlcass:execute(<<"DROP KEYSPACE erlang_driver_test">>),

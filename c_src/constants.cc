@@ -16,7 +16,6 @@ const char kInvalidUuidGeneratorMsg[] = "invalid uuid generator";
 const char kClusterObjectAlreadyExistMsg[] = "cluster object already exist";    
 const char kClusterObjectFailedToCreateMsg[] = "failed to create the cluster object";
 const char kClusterObjectNotCreatedMsg[] = "cluster object doesn't exist";
-const char kLogLevelSetFirstMsg[] = "log level and callback should be set before any other function";
 const char kFailedToAllocResourceMsg[] = "enif_alloc_resource failed";
 const char kFailedToGetParentIdMsg[] = "failed to get the parent pid";
 const char kFailedToCreateCallbackInfoMsg[] = "failed to create callback info";

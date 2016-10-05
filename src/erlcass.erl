@@ -39,7 +39,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {session, connected}).
+-record(state, {session, connected, log_pid, log_fun}).
 
 -spec(set_cluster_options(OptionList :: list()) ->
     ok | badarg | {error, Reason :: binary()}).
@@ -57,7 +57,7 @@ create_session(Args) ->
     ok | badarg | {error, Reason :: binary()}).
 
 set_log_function(Func) ->
-    erlcass_log:update_function(Func).
+    gen_server:call(?MODULE, {update_log_function, Func}).
 
 -spec(get_metrics() ->
     {ok, MetricsList :: list()} | badarg | {error, Reason :: binary()}).
@@ -208,7 +208,7 @@ init([]) ->
 
     ok = erlcass_prep_utils:create(),
 
-    {ok, _LogPid} = erlcass_log:start_link(),
+    {ok, LogPid} = erlcass_log:start_link(),
     ok = erlcass_nif:cass_cluster_create(),
 
     SessionRef = case application:get_env(erlcass, cluster_options) of
@@ -226,7 +226,7 @@ init([]) ->
             receive
                 {session_connected, _Pid} -> S
             after ?CONNECT_TIMEOUT ->
-                erlcass_log:send(?CASS_LOG_ERROR, <<"Session connection timeout">>, []),
+                erlcass_log:send(LogPid, ?CASS_LOG_ERROR, <<"Session connection timeout">>, []),
                 error
             end;
         _ ->
@@ -237,7 +237,7 @@ init([]) ->
         error ->
             {stop, session_connect_timeout, shutdown, #state{}};
         _ ->
-            {ok, #state{connected = false, session = SessionRef}}
+            {ok, #state{connected = false, session = SessionRef, log_pid = LogPid}}
     end.
 
 handle_call({set_cluster_options, Options}, _From, State) ->
@@ -280,6 +280,9 @@ handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
     Result = erlcass_nif:cass_session_execute_batch(State#state.session, BatchType, filter_stm_list(StmList), Options, FromPid),
     {reply, Result, State};
 
+handle_call({update_log_function, Func}, _From, State) ->
+    {reply, erlcass_log:update_function(State#state.log_pid, Func), State#state{log_fun = Func}};
+
 handle_call(stop, _From, State) ->
     {stop, normal, shutdown, State}.
 
@@ -288,7 +291,7 @@ handle_cast(_Request, State) ->
 
 handle_info({session_connected, {Status, FromPid}}, State) ->
 
-    erlcass_log:send(?CASS_LOG_INFO, <<"Session connected result : ~p">>, [Status]),
+    erlcass_log:send(State#state.log_pid, ?CASS_LOG_INFO, <<"Session connected result : ~p">>, [Status]),
 
     NewState = case Status of
         ok ->
@@ -301,7 +304,7 @@ handle_info({session_connected, {Status, FromPid}}, State) ->
 
 handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
 
-    erlcass_log:send(?CASS_LOG_INFO, <<"Prepared statement id: ~p result: ~p">>, [Identifier, Result]),
+    erlcass_log:send(State#state.log_pid, ?CASS_LOG_INFO, <<"Prepared statement id: ~p result: ~p">>, [Identifier, Result]),
 
     case Result of
         {ok, StatementRef} ->
@@ -312,12 +315,26 @@ handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
     end,
     {noreply, State};
 
+handle_info({'EXIT', Pid, Reason}, #state{log_pid = Pid} = State) ->
+    {ok, LogPid} = erlcass_log:start_link(),
+
+    case State#state.log_fun of
+        undefined ->
+            ok;
+        Fun ->
+            ok = erlcass_log:update_function(LogPid, Fun)
+    end,
+
+    erlcass_log:send(LogPid, ?CASS_LOG_ERROR, <<"erlcass log process stopped with reason: ~p. new pid: ~p">>, [Reason, LogPid]),
+
+    {noreply, State#state{log_pid = LogPid}};
+
 handle_info(Info, State) ->
-    erlcass_log:send(?CASS_LOG_ERROR, <<"driver received: ~p">>, [Info]),
+    erlcass_log:send(State#state.log_pid, ?CASS_LOG_ERROR, <<"driver received: ~p">>, [Info]),
     {noreply, State}.
 
-terminate(Reason, State) ->
-    erlcass_log:send(?CASS_LOG_INFO, <<"Closing driver with reason: ~p">>, [Reason]),
+terminate(Reason, #state{log_pid = LogPid} = State) ->
+    erlcass_log:send(LogPid, ?CASS_LOG_INFO, <<"Closing driver with reason: ~p">>, [Reason]),
 
     case State#state.connected of
         true ->
@@ -325,10 +342,10 @@ terminate(Reason, State) ->
 
             receive
                 {session_closed, Tag, Result} ->
-                    erlcass_log:send(?CASS_LOG_INFO, <<"Session closed with result: ~p">>,[Result])
+                    erlcass_log:send(LogPid, ?CASS_LOG_INFO, <<"Session closed with result: ~p">>,[Result])
 
             after ?TIMEOUT ->
-                erlcass_log:send(?CASS_LOG_ERROR, <<"Session closed timeout">>,[])
+                erlcass_log:send(LogPid, ?CASS_LOG_ERROR, <<"Session closed timeout">>,[])
             end;
         _ ->
             ok

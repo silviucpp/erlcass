@@ -3,24 +3,27 @@
 
 -include("erlcass.hrl").
 
--define(LOG_PROCCESS_NAME, erlcass_log_proc).
-
--export([start_link/0, init/1, send/3, update_function/1]).
+-export([start_link/0, init/1, send/4, update_function/2]).
 
 start_link() ->
     proc_lib:start_link(?MODULE, init, [self()]).
 
-update_function(Callback) ->
+update_function(LogPid, Callback) ->
     case erlang:is_function(Callback, 1) of
         true ->
-            ?LOG_PROCCESS_NAME ! {update_fun, Callback},
-            ok;
-        false ->
-            badarg
+            LogPid ! {update_fun, Callback};
+        _ ->
+            case Callback of
+                undefined ->
+                    %switch back to default function
+                    LogPid ! {update_fun, fun(X) -> default_log_function(X) end};
+                _ ->
+                    badarg
+            end
     end.
 
-send(Severity, Msg, Args) ->
-    ?LOG_PROCCESS_NAME ! {log_message_recv, {Severity, Msg, Args}}.
+send(LogPid, Severity, Msg, Args) ->
+    LogPid ! {log_message_recv, {Severity, Msg, Args}}.
 
 %internals
 
@@ -34,8 +37,6 @@ init(Parent) ->
     end,
 
     ok = erlcass_nif:cass_log_set_level_and_callback(LogLevel, self()),
-
-    true = register(?LOG_PROCCESS_NAME, self()),
     ok = proc_lib:init_ack(Parent, {ok, self()}),
     loop(fun(X) -> default_log_function(X) end).
 

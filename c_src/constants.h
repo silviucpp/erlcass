@@ -17,7 +17,6 @@ extern const char kInvalidUuidGeneratorMsg[];
 extern const char kClusterObjectAlreadyExistMsg[];
 extern const char kClusterObjectFailedToCreateMsg[];
 extern const char kClusterObjectNotCreatedMsg[];
-extern const char kLogLevelSetFirstMsg[];
 extern const char kFailedToAllocResourceMsg[];
 extern const char kFailedToGetParentIdMsg[];
 extern const char kFailedToCreateCallbackInfoMsg[];

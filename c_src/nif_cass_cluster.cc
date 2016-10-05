@@ -413,6 +413,9 @@ ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NI
 
 void cass_log_callback(const CassLogMessage* message, void* data)
 {
+    if(data == NULL)
+        return;
+
     ErlNifPid* pid = reinterpret_cast<ErlNifPid*>(data);
     
     ErlNifEnv* env = enif_alloc_env();
@@ -437,10 +440,7 @@ void cass_log_callback(const CassLogMessage* message, void* data)
 ERL_NIF_TERM nif_cass_log_set_level_and_callback(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
-    if(data->cluster)
-        return make_error(env, erlcass::kLogLevelSetFirstMsg);
-    
+
     int log_level;
     
     if(!enif_get_int(env, argv[0], &log_level))

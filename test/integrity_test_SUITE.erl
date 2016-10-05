@@ -62,7 +62,7 @@ set_cluster_options(_Config) ->
         {pending_requests_high_watermark, 128},
         {pending_requests_low_watermark, 64},
         {connect_timeout, 5000},
-        {request_timeout, 12000},
+        {request_timeout, 20000},
         {load_balance_round_robin, true},
         {token_aware_routing, true},
         {latency_aware_routing, {true, {2.0, 100, 10000, 100 , 50}}},

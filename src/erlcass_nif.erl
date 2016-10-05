@@ -8,23 +8,23 @@
 -on_load(load_nif/0).
 
 -export([
-    cass_cluster_create/0,
-    cass_cluster_release/0,
     cass_log_set_level/1,
     cass_log_set_callback/1,
+    cass_cluster_create/0,
+    cass_cluster_release/0,
     cass_cluster_set_options/1,
     cass_session_new/0,
     cass_session_connect/2,
     cass_session_connect_keyspace/3,
     cass_session_close/1,
     cass_session_prepare/3,
-    cass_prepared_bind/1,
-    cass_statement_new/2,
-    cass_statement_new/1,
-    cass_statement_bind_parameters/3,
     cass_session_execute/4,
     cass_session_execute_batch/5,
     cass_session_get_metrics/1,
+    cass_prepared_bind/1,
+    cass_statement_new/1,
+    cass_statement_new/2,
+    cass_statement_bind_parameters/3,
     cass_uuid_gen_new/0,
     cass_uuid_gen_time/0,
     cass_uuid_gen_random/0,
@@ -33,8 +33,8 @@
     cass_uuid_max_from_time/1,
     cass_uuid_timestamp/1,
     cass_uuid_version/1,
-    cass_date_from_epoch/1,
     cass_time_from_epoch/1,
+    cass_date_from_epoch/1,
     cass_date_time_to_epoch/2
 ]).
 
@@ -61,16 +61,16 @@ get_priv_dir() ->
 not_loaded(Line) ->
     erlang:nif_error({not_loaded, [{module, ?MODULE}, {line, Line}]}).
 
-cass_cluster_create() ->
-    ?NOT_LOADED.
-
-cass_cluster_release() ->
+cass_log_set_level(_Level) ->
     ?NOT_LOADED.
 
 cass_log_set_callback(_LogPid) ->
     ?NOT_LOADED.
 
-cass_log_set_level(_Level) ->
+cass_cluster_create() ->
+    ?NOT_LOADED.
+
+cass_cluster_release() ->
     ?NOT_LOADED.
 
 cass_cluster_set_options(_OptionList) ->
@@ -91,18 +91,6 @@ cass_session_close(_SessionRef) ->
 cass_session_prepare(_SessionRef, _Query, _Info) ->
     ?NOT_LOADED.
 
-cass_prepared_bind(_PrepStatementRef) ->
-    ?NOT_LOADED.
-
-cass_statement_new(_Query, _Params) ->
-    ?NOT_LOADED.
-
-cass_statement_new(_Query) ->
-    ?NOT_LOADED.
-
-cass_statement_bind_parameters(_StatementRef, _BindType, _Args)->
-    ?NOT_LOADED.
-
 cass_session_execute(_SessionRef, _StatementRef, _FromPid, _Tag) ->
     ?NOT_LOADED.
 
@@ -110,6 +98,18 @@ cass_session_execute_batch(_SessionRef, _BatchType, _StmList, _Options, _Pid) ->
     ?NOT_LOADED.
 
 cass_session_get_metrics(_SessionRef) ->
+    ?NOT_LOADED.
+
+cass_prepared_bind(_PrepStatementRef) ->
+    ?NOT_LOADED.
+
+cass_statement_new(_Query) ->
+    ?NOT_LOADED.
+
+cass_statement_new(_Query, _Params) ->
+    ?NOT_LOADED.
+
+cass_statement_bind_parameters(_StatementRef, _BindType, _Args)->
     ?NOT_LOADED.
 
 cass_uuid_gen_new() ->
@@ -136,10 +136,10 @@ cass_uuid_timestamp(_Uuid) ->
 cass_uuid_version(_Uuid) ->
     ?NOT_LOADED.
 
-cass_date_from_epoch(_EpochSecs) ->
+cass_time_from_epoch(_EpochSecs) ->
     ?NOT_LOADED.
 
-cass_time_from_epoch(_EpochSecs) ->
+cass_date_from_epoch(_EpochSecs) ->
     ?NOT_LOADED.
 
 cass_date_time_to_epoch(_Date, _Time) ->

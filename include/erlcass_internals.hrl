@@ -24,3 +24,8 @@
 
 -define(CRITICAL_MSG(Format, Args),
     lager:critical(Format, Args)).
+
+%timeouts
+
+-define(RESPONSE_TIMEOUT, 20000).
+-define(CONNECT_TIMEOUT, 5000).

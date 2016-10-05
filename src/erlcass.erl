@@ -4,9 +4,6 @@
 -include("erlcass.hrl").
 -include("erlcass_internals.hrl").
 
--define(RESPONSE_TIMEOUT, 20000).
--define(CONNECT_TIMEOUT, 5000).
-
 -behaviour(gen_server).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).

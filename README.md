@@ -70,12 +70,12 @@ Available Log levels are:
 ```
 
 In order to change the log level for the native driver you need to set the `log_level` environment variable for ErlCass into your config file.
-By default the logs are printed to console. In order to print them into an external log system you can use the `set_log_function` method.
+By default the logs are sent to console. In order to send them into an external log system you can use the `set_log_function` method.
 The callback should be a function with arity 1 which will receive a record of `log_msg` type defined as
 
-`
+```erlang
 -record(log_msg, {ts, severity, severity_str, file, line, function, message}).
-`
+```
 
 where
 
@@ -88,6 +88,8 @@ where
 - `message` The message (binary string)
 
 or under `{_Severity, Msg, Args}` format (for all messages generated from Erlang code)
+
+In case you want to switch back to the default logging function just call `set_log_function` with `undefined` as argument
 
 ### Setting the cluster options
 

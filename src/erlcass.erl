@@ -13,7 +13,6 @@
 
 -export([
     start_link/0,
-    stop/0,
     get_metrics/0,
     add_prepare_statement/2,
     async_execute/1,
@@ -162,9 +161,6 @@ batch_execute(BatchType, StmList, Options) ->
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
-stop() ->
-    gen_server:call(?MODULE, stop).
-
 %internal functions
 
 init([]) ->
@@ -201,10 +197,7 @@ handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
     end;
 
 handle_call(get_metrics, _From, State) ->
-    {reply, erlcass_nif:cass_session_get_metrics(State#state.session), State};
-
-handle_call(stop, _From, State) ->
-    {stop, normal, shutdown, State}.
+    {reply, erlcass_nif:cass_session_get_metrics(State#state.session), State}.
 
 handle_cast(Request, State) ->
     ?ERROR_MSG(<<"session ~p received unexpected cast: ~p">>, [self(), Request]),

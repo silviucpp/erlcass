@@ -23,6 +23,7 @@ groups() -> [
         nested_collections,
         tuples,
         batches,
+        erlcass_crash,
         uuid_testing,
         date_time_testing,
         get_metrics,
@@ -367,6 +368,13 @@ batches(_Config) ->
     {ok, Result} = erlcass:execute(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>),
     ListLength = 2,
     ListLength = length(Result),
+    ok.
+
+erlcass_crash(_Config) ->
+    exit(whereis(erlcass), kill),
+    Key3 = <<"somekeyhere_3">>,
+    timer:sleep(2000),
+    {ok, _} = erlcass:execute(select_tuple_types, ?BIND_BY_INDEX, [Key3]),
     ok.
 
 uuid_testing(_Config) ->

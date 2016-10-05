@@ -2,8 +2,8 @@
 
 ##### v2.7 (not released yet)
 
-- Improved `erlcass` logging system. In case the logging process it's crashing it's restarted
 - Integrated `lager` as dependency
+- Improved logging system. In case the logging process it's crashing it's restarted
 - Removed support for the following methods: `set_cluster_options/1`, `create_session/1,` and `set_log_function/1`
 - Proper restarting `erlcass` process in case dies and also reprepare all statements again
 

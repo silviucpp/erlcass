@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v2.7 (not released yet)
+
+- Improved `erlcass` logging system. In case the logging process it's crashing it's restarted
+
 ##### v2.6
 
 - Improved performances for `gen_time/0`, `gen_random/0` and `gen_from_ts/1` from `erlcass_uuid`

@@ -3,12 +3,10 @@
 
 -include("erlcass.hrl").
 
--define(TIMEOUT, 20000).
+-define(RESPONSE_TIMEOUT, 20000).
 -define(CONNECT_TIMEOUT, 5000).
 
 -behaviour(gen_server).
-
--record(erlcass_stm, {session, stm}).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -39,100 +37,88 @@
 
 -define(SERVER, ?MODULE).
 
+-record(erlcass_stm, {session, stm}).
 -record(state, {session, connected, log_pid, log_fun}).
 
--spec(set_cluster_options(OptionList :: list()) ->
-    ok | badarg | {error, Reason :: binary()}).
+-type ec_error() :: badarg | {error, Reason :: term()}.
+-type ec_stm() :: binary() | {binary(), integer()} | {binary(), list()}.
+
+-spec(set_cluster_options(OptionList :: list()) -> ok | ec_error()).
 
 set_cluster_options(Options) ->
     gen_server:call(?MODULE, {set_cluster_options, Options}).
 
--spec(create_session(Args :: list()) ->
-    ok | badarg | {error, Reason :: binary()}).
+-spec(create_session(Args :: list()) -> ok | ec_error()).
 
 create_session(Args) ->
     gen_server:call(?MODULE, {create_session, Args}, ?CONNECT_TIMEOUT).
 
--spec(set_log_function(Func :: term()) ->
-    ok | badarg | {error, Reason :: binary()}).
+-spec(set_log_function(Func :: term()) -> ok | ec_error()).
 
 set_log_function(Func) ->
     gen_server:call(?MODULE, {update_log_function, Func}).
 
--spec(get_metrics() ->
-    {ok, MetricsList :: list()} | badarg | {error, Reason :: binary()}).
+-spec(get_metrics() -> {ok, MetricsList :: list()} | ec_error()).
 
 get_metrics() ->
     gen_server:call(?MODULE, get_metrics).
 
--spec(create_statement(Query :: binary() | {binary(), integer()}, BindParams :: list()) ->
-    {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
+-spec(create_statement(Query :: ec_stm(), BindParams :: list()) -> {ok, StmRef :: reference()} | ec_error()).
 
 create_statement(Query, BindParams) ->
     erlcass_nif:cass_statement_new(Query, BindParams).
 
--spec(create_statement(Query :: binary() | {binary(), integer()}) ->
-    {ok, StatementRef :: reference()} | badarg | {error, Reason :: binary()}).
+-spec(create_statement(Query :: ec_stm()) -> {ok, StmRef :: reference()} | ec_error()).
 
 create_statement(Query) ->
     erlcass_nif:cass_statement_new(Query).
 
--spec(add_prepare_statement(Identifier :: atom(), Query :: binary() | {binary(), integer()}) ->
-    ok | already_exist | badarg | {error, Reason :: binary()}).
+-spec(add_prepare_statement(Identifier :: atom(), Query :: ec_stm()) -> ok | ec_error()).
 
 add_prepare_statement(Identifier, Query) ->
-    gen_server:call(?MODULE, {add_prepare_statement, Identifier, Query}, ?TIMEOUT).
+    gen_server:call(?MODULE, {add_prepare_statement, Identifier, Query}, ?RESPONSE_TIMEOUT).
 
--spec(bind_prepared_statement(Identifier :: atom()) ->
-    {ok, Statement :: #erlcass_stm{}} | badarg | {error, Reason :: binary()}).
+-spec(bind_prepared_statement(Identifier :: atom()) -> {ok, Stm :: #erlcass_stm{}} | ec_error()).
 
 bind_prepared_statement(Identifier) ->
     case erlcass_prep_utils:get(Identifier) of
         undefined ->
             {error, undefined};
         {Session, PrepStatement} ->
-            {ok, StatementRef} = erlcass_nif:cass_prepared_bind(PrepStatement),
-            {ok, #erlcass_stm{session = Session, stm = StatementRef}}
+            {ok, StmRef} = erlcass_nif:cass_prepared_bind(PrepStatement),
+            {ok, #erlcass_stm{session = Session, stm = StmRef}}
     end.
 
--spec(bind_prepared_params_by_name(Stm :: #erlcass_stm{} | reference() , Params :: list()) ->
-    ok | badarg | {error, Reason :: binary()}).
+-spec(bind_prepared_params_by_name(Stm :: #erlcass_stm{} | reference() , Params :: list()) -> ok | ec_error()).
 
 bind_prepared_params_by_name(Stm, Params) when is_record(Stm, erlcass_stm) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_NAME, Params);
-
 bind_prepared_params_by_name(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_NAME, Params).
 
--spec(bind_prepared_params_by_index(Stm :: #erlcass_stm{} | reference(), Params :: list()) ->
-    ok | badarg | {error, Reason :: binary()}).
+-spec(bind_prepared_params_by_index(Stm :: #erlcass_stm{} | reference(), Params :: list()) -> ok | ec_error()).
 
 bind_prepared_params_by_index(Stm, Params) when is_record(Stm, erlcass_stm) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_INDEX, Params);
-
 bind_prepared_params_by_index(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_INDEX, Params).
 
--spec(async_execute_statement(Stm :: reference() | #erlcass_stm{}) ->
-    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
+-spec(async_execute_statement(Stm :: reference() | #erlcass_stm{}) -> {ok, Tag :: reference()} | ec_error()).
 
 async_execute_statement(Stm) when is_record(Stm, erlcass_stm) ->
     Tag = make_ref(),
     Result = erlcass_nif:cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, self(), Tag),
     {Result, Tag};
-
 async_execute_statement(Stm) ->
     gen_server:call(?MODULE, {execute_normal_statements, Stm}).
 
--spec(execute_statement(StatementRef :: reference()) ->
-    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+-spec(execute_statement(StmRef :: reference()) -> {ok, Result :: list()} | ec_error()).
 
-execute_statement(StatementRef) ->
-    {ok, Tag} = async_execute_statement(StatementRef),
+execute_statement(StmRef) ->
+    {ok, Tag} = async_execute_statement(StmRef),
     receive_response(Tag).
 
--spec(async_execute(Identifier :: atom() | binary()) ->
-    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
+-spec(async_execute(Identifier :: atom() | binary()) -> {ok, Tag :: reference()} | ec_error()).
 
 async_execute(Identifier) ->
     case is_atom(Identifier) of
@@ -144,14 +130,12 @@ async_execute(Identifier) ->
 
     async_execute_statement(Statement).
 
--spec(async_execute(Identifier :: atom() | binary(), Params :: list()) ->
-    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
+-spec(async_execute(Identifier :: atom() | binary(), Params :: list()) -> {ok, Tag :: reference()} | ec_error()).
 
 async_execute(Identifier, Params) ->
     async_execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec(async_execute(Identifier :: atom() | binary(), BindType :: integer(), Params :: list()) ->
-    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
+-spec(async_execute(Identifier :: atom() | binary(), BindType :: integer(), Params :: list()) -> {ok, Tag :: reference()} | ec_error()).
 
 async_execute(Identifier, BindType, Params) ->
     case is_atom(Identifier) of
@@ -164,34 +148,29 @@ async_execute(Identifier, BindType, Params) ->
 
     async_execute_statement(Stm).
 
--spec(execute(Identifier :: atom() | binary()) ->
-    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+-spec(execute(Identifier :: atom() | binary()) -> {ok, Result :: list()} | ec_error()).
 
 execute(Identifier) ->
     {ok, Tag} = async_execute(Identifier),
     receive_response(Tag).
 
--spec(execute(Identifier :: atom() | binary(), Params :: list()) ->
-    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+-spec(execute(Identifier :: atom() | binary(), Params :: list()) -> {ok, Result :: list()} | ec_error()).
 
 execute(Identifier, Params) ->
     execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec(execute(Identifier :: atom() | binary(), BindType :: integer(), Params :: list()) ->
-    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+-spec(execute(Identifier :: atom() | binary(), BindType :: integer(), Params :: list()) -> {ok, Result :: list()} | ec_error()).
 
 execute(Identifier, BindType, Params) ->
     {ok, Tag} = async_execute(Identifier, BindType, Params),
     receive_response(Tag).
 
--spec(batch_async_execute(BatchType :: integer(), StmList :: list(), Options :: list()) ->
-    {ok, Tag :: reference()} | badarg | {error, Reason :: binary()}).
+-spec(batch_async_execute(BatchType :: integer(), StmList :: list(), Options :: list()) -> {ok, Tag :: reference()} | ec_error()).
 
 batch_async_execute(BatchType, StmList, Options) ->
     gen_server:call(?MODULE, {batch_execute, BatchType, StmList, Options}).
 
--spec(batch_execute(BatchType :: integer(), StmList :: list(), Options :: list()) ->
-    {ok, Result :: list()} | badarg | {error, Reason :: binary()}).
+-spec(batch_execute(BatchType :: integer(), StmList :: list(), Options :: list()) -> {ok, Result :: list()} | ec_error()).
 
 batch_execute(BatchType, StmList, Options) ->
     {ok, Tag} = batch_async_execute(BatchType, StmList, Options),
@@ -263,16 +242,16 @@ handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
 
     case erlcass_prep_utils:does_exist(Identifier) of
         true ->
-            {reply, already_exist, State};
+            {reply, {error, already_exist}, State};
         _ ->
             ok = erlcass_nif:cass_session_prepare(State#state.session, Query, {From, Identifier}),
             {noreply, State}
     end;
 
-handle_call({execute_normal_statements, StatementRef}, From, State) ->
+handle_call({execute_normal_statements, StmRef}, From, State) ->
     Tag = make_ref(),
     {FromPid, _} = From,
-    Result = erlcass_nif:cass_session_execute(State#state.session, StatementRef, FromPid, Tag),
+    Result = erlcass_nif:cass_session_execute(State#state.session, StmRef, FromPid, Tag),
     {reply, {Result, Tag}, State};
 
 handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
@@ -307,8 +286,8 @@ handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
     erlcass_log:send(State#state.log_pid, ?CASS_LOG_INFO, <<"Prepared statement id: ~p result: ~p">>, [Identifier, Result]),
 
     case Result of
-        {ok, StatementRef} ->
-            erlcass_prep_utils:set(Identifier, State#state.session, StatementRef),
+        {ok, StmRef} ->
+            erlcass_prep_utils:set(Identifier, State#state.session, StmRef),
             gen_server:reply(From, ok);
         _ ->
             gen_server:reply(From, Result)
@@ -344,7 +323,7 @@ terminate(Reason, #state{log_pid = LogPid} = State) ->
                 {session_closed, Tag, Result} ->
                     erlcass_log:send(LogPid, ?CASS_LOG_INFO, <<"Session closed with result: ~p">>,[Result])
 
-            after ?TIMEOUT ->
+            after ?RESPONSE_TIMEOUT ->
                 erlcass_log:send(LogPid, ?CASS_LOG_ERROR, <<"Session closed timeout">>,[])
             end;
         _ ->
@@ -361,8 +340,8 @@ receive_response(Tag) ->
         {execute_statement_result, Tag, Result} ->
             Result
 
-        after ?TIMEOUT ->
-            timeout
+    after ?RESPONSE_TIMEOUT ->
+        timeout
     end.
 
 filter_stm_list(StmList) ->
@@ -376,4 +355,3 @@ filter_stm_list([H|T], Acc) when is_record(H, erlcass_stm) ->
 
 filter_stm_list([H|T], Acc) ->
     filter_stm_list(T, [H | Acc]).
-

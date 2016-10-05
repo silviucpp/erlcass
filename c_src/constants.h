@@ -14,7 +14,6 @@ namespace erlcass {
 //message errors
 
 extern const char kInvalidUuidGeneratorMsg[];
-extern const char kClusterObjectAlreadyExistMsg[];
 extern const char kClusterObjectFailedToCreateMsg[];
 extern const char kClusterObjectNotCreatedMsg[];
 extern const char kFailedToAllocResourceMsg[];

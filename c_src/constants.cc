@@ -13,7 +13,6 @@ namespace erlcass {
 //message errors
 
 const char kInvalidUuidGeneratorMsg[] = "invalid uuid generator";
-const char kClusterObjectAlreadyExistMsg[] = "cluster object already exist";    
 const char kClusterObjectFailedToCreateMsg[] = "failed to create the cluster object";
 const char kClusterObjectNotCreatedMsg[] = "cluster object doesn't exist";
 const char kFailedToAllocResourceMsg[] = "enif_alloc_resource failed";

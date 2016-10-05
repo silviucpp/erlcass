@@ -358,7 +358,11 @@ ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TER
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     if(data->cluster)
-        return make_error(env, erlcass::kClusterObjectAlreadyExistMsg);
+    {
+    	//this can happened in case the erlcass gen_server is crashes
+        cass_cluster_free(data->cluster);
+        data->cluster = NULL;
+    }
     
     data->cluster = cass_cluster_new();
     

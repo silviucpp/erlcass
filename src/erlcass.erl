@@ -81,7 +81,7 @@ add_prepare_statement(Identifier, Query) ->
 -spec(bind_prepared_statement(Identifier :: atom()) -> {ok, Stm :: #erlcass_stm{}} | ec_error()).
 
 bind_prepared_statement(Identifier) ->
-    case erlcass_prep_utils:get(Identifier) of
+    case erlcass_stm_sessions:get(Identifier) of
         undefined ->
             {error, undefined};
         {Session, PrepStatement} ->
@@ -187,7 +187,7 @@ stop() ->
 init([]) ->
     process_flag(trap_exit, true),
 
-    ok = erlcass_prep_utils:create(),
+    ok = erlcass_stm_sessions:create(),
 
     {ok, LogPid} = erlcass_log:start_link(),
     ok = erlcass_nif:cass_cluster_create(),
@@ -205,7 +205,8 @@ init([]) ->
             end,
 
             receive
-                {session_connected, _Pid} -> S
+                {session_connected, _Pid} ->
+                    S
             after ?CONNECT_TIMEOUT ->
                 erlcass_log:send(LogPid, ?CASS_LOG_ERROR, <<"Session connection timeout">>, []),
                 error
@@ -218,6 +219,7 @@ init([]) ->
         error ->
             {stop, session_connect_timeout, shutdown, #state{}};
         _ ->
+            session_prepare_cached_statements(SessionRef, LogPid),
             {ok, #state{connected = false, session = SessionRef, log_pid = LogPid}}
     end.
 
@@ -241,13 +243,12 @@ handle_call(get_metrics, _From, State) ->
     {reply, erlcass_nif:cass_session_get_metrics(State#state.session), State};
 
 handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
-
-    case erlcass_prep_utils:does_exist(Identifier) of
+    case erlcass_stm_cache:find(Identifier) of
+        false ->
+            ok = erlcass_nif:cass_session_prepare(State#state.session, Query, {From, Identifier, Query}),
+            {noreply, State};
         true ->
-            {reply, {error, already_exist}, State};
-        _ ->
-            ok = erlcass_nif:cass_session_prepare(State#state.session, Query, {From, Identifier}),
-            {noreply, State}
+            {reply, {error, already_exist}, State}
     end;
 
 handle_call({execute_normal_statements, StmRef}, From, State) ->
@@ -283,13 +284,14 @@ handle_info({session_connected, {Status, FromPid}}, State) ->
     gen_server:reply(FromPid, Status),
     {noreply, NewState};
 
-handle_info({prepared_statememt_result, Result, {From, Identifier}}, State) ->
+handle_info({prepared_statememt_result, Result, {From, Identifier, Query}}, State) ->
 
     erlcass_log:send(State#state.log_pid, ?CASS_LOG_INFO, <<"Prepared statement id: ~p result: ~p">>, [Identifier, Result]),
 
     case Result of
         {ok, StmRef} ->
-            erlcass_prep_utils:set(Identifier, State#state.session, StmRef),
+            erlcass_stm_cache:set(Identifier, Query),
+            erlcass_stm_sessions:set(Identifier, State#state.session, StmRef),
             gen_server:reply(From, ok);
         _ ->
             gen_server:reply(From, Result)
@@ -345,6 +347,28 @@ receive_response(Tag) ->
     after ?RESPONSE_TIMEOUT ->
         timeout
     end.
+
+session_prepare_cached_statements(SessionRef, LogPid) ->
+    FunPrepareStm = fun({Identifier, Query}) ->
+        Tag = make_ref(),
+        ok = erlcass_nif:cass_session_prepare(SessionRef, Query, Tag),
+
+        receive
+            {prepared_statememt_result, Result, Tag} ->
+                erlcass_log:send(LogPid, ?CASS_LOG_INFO, <<"Prepared cached statement id: ~p result: ~p">>, [Identifier, Result]),
+
+                case Result of
+                    {ok, StmRef} ->
+                        erlcass_stm_sessions:set(Identifier, SessionRef, StmRef);
+                    _ ->
+                        throw({error, {failed_to_prepare_cached_stm, Identifier, Result}})
+                end
+
+        after ?RESPONSE_TIMEOUT ->
+            throw({error, {failed_to_prepare_cached_stm, Identifier, timeout}})
+        end
+    end,
+    ok = lists:foreach(FunPrepareStm, erlcass_stm_cache:to_list()).
 
 filter_stm_list(StmList) ->
     filter_stm_list(StmList, []).

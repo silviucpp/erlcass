@@ -29,7 +29,7 @@ send(LogPid, Severity, Msg, Args) ->
 
 init(Parent) ->
 
-    LogLevel = case application:get_env(erlcass, log_level) of
+    LogLevel = case erlcass_utils:get_env(log_level) of
        {ok, Level} ->
            Level;
        _ ->

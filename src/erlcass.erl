@@ -182,6 +182,8 @@ start_link() ->
 stop() ->
     gen_server:call(?MODULE, stop).
 
+%internal functions
+
 init([]) ->
     process_flag(trap_exit, true),
 
@@ -190,12 +192,12 @@ init([]) ->
     {ok, LogPid} = erlcass_log:start_link(),
     ok = erlcass_nif:cass_cluster_create(),
 
-    SessionRef = case application:get_env(erlcass, cluster_options) of
+    SessionRef = case erlcass_utils:get_env(cluster_options) of
         {ok, ClusterOptions} ->
             erlcass_nif:cass_cluster_set_options(ClusterOptions),
             {ok, S} = erlcass_nif:cass_session_new(),
 
-            case application:get_env(erlcass, keyspace) of
+            case erlcass_utils:get_env(keyspace) of
                 {ok, Keyspace} ->
                     erlcass_nif:cass_session_connect_keyspace(S, self(), Keyspace);
                 _ ->
@@ -226,11 +228,11 @@ handle_call({set_cluster_options, Options}, _From, State) ->
 handle_call({create_session, Args}, From, State) ->
     {ok, SessionRef} = erlcass_nif:cass_session_new(),
 
-    case lists:keyfind(keyspace, 1, Args) of
-        {_Key, Value} ->
-            ok = erlcass_nif:cass_session_connect_keyspace(SessionRef, From, Value);
-        false ->
-            ok = erlcass_nif:cass_session_connect(SessionRef, From)
+    case erlcass_utils:lookup(keyspace, Args) of
+        null ->
+            ok = erlcass_nif:cass_session_connect(SessionRef, From);
+        Keyspace ->
+            ok = erlcass_nif:cass_session_connect_keyspace(SessionRef, From, Keyspace)
     end,
 
     {noreply, State#state{session = SessionRef}};

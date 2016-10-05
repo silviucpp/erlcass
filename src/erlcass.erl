@@ -299,11 +299,9 @@ session_prepare_cached_statements(SessionRef) ->
 filter_stm_list(StmList) ->
     filter_stm_list(StmList, []).
 
-filter_stm_list([], Acc) ->
-    Acc;
-
 filter_stm_list([H|T], Acc) when is_record(H, erlcass_stm) ->
     filter_stm_list(T, [H#erlcass_stm.stm | Acc]);
-
 filter_stm_list([H|T], Acc) ->
-    filter_stm_list(T, [H | Acc]).
+    filter_stm_list(T, [H | Acc]);
+filter_stm_list([], Acc) ->
+    Acc.

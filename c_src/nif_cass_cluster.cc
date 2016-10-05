@@ -424,8 +424,6 @@ void cass_log_callback(const CassLogMessage* message, void* data)
     
     ErlNifEnv* env = enif_alloc_env();
     
-    const char* severity_str = cass_log_level_string(message->severity);
-    
     ERL_NIF_TERM log_record = enif_make_tuple6(env,
                                                ATOMS.atomLogMsgRecord,
                                                enif_make_int(env, message->severity),
@@ -441,8 +439,6 @@ void cass_log_callback(const CassLogMessage* message, void* data)
 
 ERL_NIF_TERM nif_cass_log_set_level(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-
     int log_level;
 
     if(!enif_get_int(env, argv[0], &log_level))

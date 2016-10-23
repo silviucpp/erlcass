@@ -1,6 +1,6 @@
 ### Changelog:
 
-##### v2.7 (not released yet)
+##### v2.7
 
 - Integrated `lager` as dependency
 - Improved logging system. In case the logging process it's crashing it's restarted

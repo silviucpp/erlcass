@@ -26,21 +26,24 @@ include $(C_SRC_ENV)
 
 # System type and C compiler/flags.
 
-UNAME_SYS := $(shell uname -s)
+UNAME_SYS_ORG := $(shell uname -s)
+UNAME_SYS = $(shell echo $(UNAME_SYS_ORG) | tr A-Z a-z)
 
-ifeq ($(UNAME_SYS), Darwin)
+ifeq ($(UNAME_SYS), darwin)
     CC ?= cc
-	CFLAGS ?= -O3 -std=c99 -arch x86_64 -finline-functions -Wall -Wmissing-prototypes
+	CFLAGS ?= -O3 -std=c99 -arch x86_64 -finline-functions -Wall
 	CXXFLAGS ?= -O3 -arch x86_64  -Wall
-    LDFLAGS ?= -arch x86_64 -flat_namespace -undefined suppress
-else ifeq ($(UNAME_SYS),freebsd)
+    LDFLAGS ?= -arch x86_64
+else ifeq ($(UNAME_SYS), freebsd)
 	CC ?= cc
-	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall
 	CXXFLAGS ?= -O3 -finline-functions -Wall
-else ifeq ($(UNAME_SYS),linux)
+    LDFLAGS ?= -Wl,--exclude-libs=ALL
+else ifeq ($(UNAME_SYS), linux)
 	CC ?= gcc
-	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall
 	CXXFLAGS ?= -O3 -finline-functions -Wall
+    LDFLAGS ?= -Wl,--exclude-libs=ALL
 endif
 
 CFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)

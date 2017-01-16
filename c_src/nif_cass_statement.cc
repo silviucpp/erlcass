@@ -13,7 +13,6 @@
 #include "nif_tuple.h"
 #include "uuid_serialization.h"
 #include "execute_request.hpp"
-#include "external_types.hpp"
 #include "constants.h"
 
 #define BIND_BY_INDEX 1

@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v2.8 (under development)
+
+- Updated cpp-driver to 2.5.0
+- Updated lager to 3.2.4
+
 ##### v2.7
 
 - Integrated `lager` as dependency

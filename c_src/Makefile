@@ -4,8 +4,10 @@ PROJECT_NIF_NAME=erlcass_nif
 include nif.mk
 
 ifeq ($(UNAME_SYS), Darwin)
-	CXXFLAGS += -I/usr/local/opt/openssl/include
-	LDFLAGS += -L/usr/local/opt/openssl/lib
+	CXXFLAGS += -I/usr/local/opt/openssl/include \
+				-I/usr/local/include/
+	LDFLAGS +=  -L/usr/local/opt/openssl/lib \
+				-L/usr/local/lib/
 else ifeq ($(UNAME_SYS), Linux)
 	CXXFLAGS += -Wno-unused-local-typedefs
 endif

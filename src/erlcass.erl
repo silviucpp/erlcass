@@ -15,6 +15,8 @@
     async_execute/1,
     async_execute/2,
     async_execute/3,
+    async_execute/4,
+    async_execute/5,
     execute/1,
     execute/2,
     execute/3,
@@ -26,6 +28,7 @@
     bind_prepared_params_by_name/2,
     bind_prepared_params_by_index/2,
     async_execute_statement/1,
+    async_execute_statement/3,
     execute_statement/1
 ]).
 
@@ -89,12 +92,17 @@ bind_prepared_params_by_index(Stm, Params) ->
 -spec async_execute_statement(stm_ref() | #erlcass_stm{}) ->
     {ok, reference()} | {error, reason()}.
 
-async_execute_statement(Stm) when is_record(Stm, erlcass_stm) ->
-    Tag = make_ref(),
-    Result = erlcass_nif:cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, self(), Tag),
-    {Result, Tag};
 async_execute_statement(Stm) ->
-    gen_server:call(?MODULE, {execute_normal_statements, Stm}).
+    Tag = make_ref(),
+    {async_execute_statement(Stm, self(), Tag), Tag}.
+
+-spec async_execute_statement(stm_ref() | #erlcass_stm{}, pid(), any()) ->
+    ok | {error, reason()}.
+
+async_execute_statement(Stm, ReceiverPid, Tag) when is_record(Stm, erlcass_stm) ->
+    erlcass_nif:cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag);
+async_execute_statement(Stm, ReceiverPid, Tag) ->
+    gen_server:call(?MODULE, {execute_normal_statements, Stm, ReceiverPid, Tag}).
 
 -spec execute_statement(stm_ref()) ->
     {ok, list()} | {error, reason()}.
@@ -122,10 +130,23 @@ async_execute(Identifier) ->
 async_execute(Identifier, Params) ->
     async_execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec async_execute(atom() | binary(), integer(), list()) ->
+-spec async_execute(atom() | binary(), bind_type(), list()) ->
     {ok, reference()} | {error, reason()}.
 
 async_execute(Identifier, BindType, Params) ->
+    Tag = make_ref(),
+    {async_execute(Identifier, BindType, Params, self(), Tag), Tag}.
+
+-spec async_execute(atom() | binary(), bind_type(), list(), any()) ->
+    ok | {error, reason()}.
+
+async_execute(Identifier, BindType, Params, Tag) ->
+    async_execute(Identifier, BindType, Params, self(), Tag).
+
+-spec async_execute(atom() | binary(), bind_type(), list(), pid(), any()) ->
+    ok | {error, reason()}.
+
+async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
     case is_atom(Identifier) of
         true ->
             {ok, Stm} = bind_prepared_statement(Identifier),
@@ -134,7 +155,7 @@ async_execute(Identifier, BindType, Params) ->
             {ok, Stm} = create_statement(Identifier, Params)
     end,
 
-    async_execute_statement(Stm).
+    async_execute_statement(Stm, ReceiverPid, Tag).
 
 -spec execute(atom() | binary()) ->
     {ok, list()} | {error, reason()}.
@@ -149,7 +170,7 @@ execute(Identifier) ->
 execute(Identifier, Params) ->
     execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec execute(atom() | binary(), integer(), list()) ->
+-spec execute(atom() | binary(), bind_type(), list()) ->
     {ok, list()} | {error, reason()}.
 
 execute(Identifier, BindType, Params) ->
@@ -187,11 +208,9 @@ init([]) ->
             {stop, UnexpectedError, shutdown, #state{}}
     end.
 
-handle_call({execute_normal_statements, StmRef}, From, State) ->
-    Tag = make_ref(),
-    {FromPid, _} = From,
-    Result = erlcass_nif:cass_session_execute(State#state.session, StmRef, FromPid, Tag),
-    {reply, {Result, Tag}, State};
+handle_call({execute_normal_statements, StmRef, ReceiverPid, Tag}, _From, State) ->
+    Result = erlcass_nif:cass_session_execute(State#state.session, StmRef, ReceiverPid, Tag),
+    {reply, Result, State};
 
 handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
     {FromPid, _} = From,

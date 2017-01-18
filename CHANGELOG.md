@@ -6,6 +6,9 @@
 - Updated lager to 3.2.4
 - Fix several bugs in compiling scripts
 - Don't throw exception in case of bad arguments. Return {error, badarg} instead
+- Add more descriptive errors in case of bad options
+- Add versions for `async_execute` where caller can specify the process that's going to receive the response and the tag used to match
+the request with the response.
 
 ##### v2.7
 

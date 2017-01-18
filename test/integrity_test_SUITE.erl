@@ -19,6 +19,7 @@ groups() -> [
         emptiness,
         all_datatypes,
         prepared_bind_by_name_index,
+        async_custom_tag,
         collection_types,
         nested_collections,
         tuples,
@@ -204,6 +205,26 @@ all_datatypes(_Config) ->
 
     BinAsciiString = list_to_binary(AsciiString),
     {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet, TinyIntNegative, SmallIntNegative, Date, Time} = Result2,
+    ok.
+
+async_custom_tag(_Config) ->
+    CreationQ = <<"CREATE TABLE erlang_driver_test.async_custom_tag(key int PRIMARY KEY, value map<text,text>)">>,
+    {ok, []} = erlcass:execute(CreationQ),
+
+    QuerySelect  = <<"SELECT value FROM erlang_driver_test.async_custom_tag where key = ?">>,
+    Tag1 = {mytag, 1},
+
+    ok = erlcass:add_prepare_statement(select_async_custom_tag, QuerySelect),
+
+    ok = erlcass:async_execute(select_async_custom_tag, ?BIND_BY_INDEX, [1], self(), Tag1),
+
+    receive
+        {execute_statement_result, Tag1, Rs} ->
+            {ok, []} = Rs,
+            ok
+    after 10000 ->
+        ct:fail("Timeout on executing query ~n", [])
+    end,
     ok.
 
 prepared_bind_by_name_index(_Config) ->

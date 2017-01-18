@@ -13,24 +13,12 @@
 #include "metadata.h"
 #include "nif_utils.h"
 #include "constants.h"
+
 #include <string.h>
+#include <memory>
 
 #define UINT64_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_uint64(env, Property))
 #define DOUBLE_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_double(env, Property))
-
-class CassBatchScope
-{
-public:
-    
-    CassBatchScope(CassBatch* batch) : batch_(batch) {}
-    ~CassBatchScope() {cass_batch_free(batch_);}
-    
-    CassBatch* get() const {return batch_;}
-    
-private:
-    
-    CassBatch* batch_;
-};
 
 struct enif_cass_session
 {
@@ -333,7 +321,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     if(!enif_get_int(env, argv[1], &batch_type))
         return make_badarg(env);
     
-    CassBatchScope batch(cass_batch_new(static_cast<CassBatchType>(batch_type)));
+    std::unique_ptr<CassBatch, decltype(&cass_batch_free)> batch(cass_batch_new(static_cast<CassBatchType>(batch_type)), &cass_batch_free);
     
     if(!batch.get())
         return make_error(env, erlcass::kFailedToCreateBatchObjectMsg);

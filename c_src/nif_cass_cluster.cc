@@ -12,6 +12,7 @@
 #include "constants.h"
 
 #include <string.h>
+#include <memory>
 
 //CassCluster
 
@@ -46,19 +47,6 @@
     if(enif_is_identical(term_key, Key)) \
         return Func(env, term_value, data);
 
-class CassSslScope
-{
-public:
-    
-    CassSslScope(CassSsl* ssl) : ssl_(ssl) {}
-    ~CassSslScope() {cass_ssl_free(ssl_);}
-    
-    CassSsl* get() const {return ssl_;}
-    
-private:
-    
-    CassSsl* ssl_;
-};
 
 CassError internal_cass_cluster_set_reconnect_wait_time(CassCluster* cluster, unsigned wait_time)
 {
@@ -184,7 +172,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
 {
     ERL_NIF_TERM head;
 
-    CassSslScope ssl(cass_ssl_new());
+    std::unique_ptr<CassSsl, decltype(&cass_ssl_free)> ssl(cass_ssl_new(), &cass_ssl_free);
     
     while(enif_get_list_cell(env, term_value, &head, &term_value))
     {

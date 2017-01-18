@@ -41,6 +41,11 @@ ERL_NIF_TERM make_badarg(ErlNifEnv* env)
     return enif_make_tuple2(env, ATOMS.atomError, ATOMS.atomBadArg);
 }
 
+ERL_NIF_TERM make_bad_options(ErlNifEnv* env, ERL_NIF_TERM term)
+{
+    return make_error(env, enif_make_tuple(env, 2, ATOMS.atomOptions, term));
+}
+
 bool get_bstring(ErlNifEnv* env, ERL_NIF_TERM term, ErlNifBinary* bin)
 {
     if(enif_is_binary(env, term))
@@ -65,43 +70,48 @@ ERL_NIF_TERM cass_future_error_to_nif_term(ErlNifEnv* env, CassFuture* future)
     return make_error(env, message, message_length);
 }
 
-bool parse_consistency_level_options(ErlNifEnv* env, ERL_NIF_TERM options_list, CassConsistency* cl, CassConsistency* serial_cl)
+ERL_NIF_TERM parse_consistency_level_options(ErlNifEnv* env, ERL_NIF_TERM options_list, ConsistencyLevelOptions* cls)
 {
     ERL_NIF_TERM head;
-    int c_level;
+    const ERL_NIF_TERM *items;
+    int arity;
 
     while(enif_get_list_cell(env, options_list, &head, &options_list))
     {
-        const ERL_NIF_TERM *items;
-        int arity;
-
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return false;
+            return make_bad_options(env, head);
 
-        if(enif_is_identical(items[0], ATOMS.atomConsistencyLevel))
+        ERL_NIF_TERM key = items[0];
+        ERL_NIF_TERM value = items[1];
+
+        if(enif_is_identical(key, ATOMS.atomConsistencyLevel))
         {
-            if(!enif_get_int(env, items[1], &c_level))
-                return false;
+            int c_level;
 
-            *cl = static_cast<CassConsistency>(c_level);
+            if(!enif_get_int(env, value, &c_level))
+                return make_bad_options(env, head);
+
+            cls->cl = static_cast<CassConsistency>(c_level);
         }
-        else if(enif_is_identical(items[0], ATOMS.atomSerialConsistencyLevel))
+        else if(enif_is_identical(key, ATOMS.atomSerialConsistencyLevel))
         {
-            if(!enif_get_int(env, items[1], &c_level))
-                return make_badarg(env);
+            int c_level;
 
-            *serial_cl = static_cast<CassConsistency>(c_level);
+            if(!enif_get_int(env, value, &c_level))
+                return make_bad_options(env, head);
+
+            cls->serial_cl = static_cast<CassConsistency>(c_level);
         }
         else
         {
-            return false;
+            return make_bad_options(env, head);
         }
     }
 
-    return true;
+    return ATOMS.atomOk;
 }
 
-bool parse_query_term(ErlNifEnv* env, ERL_NIF_TERM qterm, ErlNifBinary* query, CassConsistency* cl, CassConsistency* serial_cl)
+ERL_NIF_TERM parse_query_term(ErlNifEnv* env, ERL_NIF_TERM qterm, QueryTerm* q)
 {
     if(enif_is_tuple(env, qterm))
     {
@@ -109,33 +119,30 @@ bool parse_query_term(ErlNifEnv* env, ERL_NIF_TERM qterm, ErlNifBinary* query, C
         int arity;
 
         if(!enif_get_tuple(env, qterm, &arity, &items) || arity != 2)
-            return false;
+            return make_badarg(env);
 
-        if(!get_bstring(env, items[0], query))
-            return false;
+        if(!get_bstring(env, items[0], &q->query))
+            return make_badarg(env);
 
         if(enif_is_list(env, items[1]))
         {
-            if(!parse_consistency_level_options(env, items[1], cl, serial_cl))
-                return false;
+            return parse_consistency_level_options(env, items[1], &q->consistency);
         }
         else
         {
             int c_level;
 
             if(!enif_get_int(env, items[1], &c_level))
-                return false;
+                return make_badarg(env);
 
-            *cl = static_cast<CassConsistency>(c_level);
+            q->consistency.cl = static_cast<CassConsistency>(c_level);
         }
     }
     else
     {
-        if(!get_bstring(env, qterm, query))
-            return false;
+        if(!get_bstring(env, qterm, &q->query))
+            return make_badarg(env);
     }
 
-    return true;
+    return ATOMS.atomOk;
 }
-
-

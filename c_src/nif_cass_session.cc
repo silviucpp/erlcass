@@ -38,8 +38,7 @@ struct callback_statement_info
     ErlNifPid pid;
     ERL_NIF_TERM arguments;
     ErlNifResourceType* prepared_res;
-    CassConsistency cl;
-    CassConsistency serial_cl;
+    ConsistencyLevelOptions consistency;
     CassSession* session;
 };
 
@@ -121,7 +120,7 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     {
         const CassPrepared* prep = cass_future_get_prepared(future);
         
-        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->cl, cb->serial_cl);
+        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistency);
         
         if(enif_is_tuple(cb->env, term))
         {
@@ -172,7 +171,7 @@ ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
         return make_error(env, erlcass::kFailedToAllocResourceMsg);
 
     enif_session->session = cass_session_new();
-    
+
     ERL_NIF_TERM term = enif_make_resource(env, enif_session);
     enif_release_resource(enif_session);
     
@@ -248,13 +247,13 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
-
-    ErlNifBinary query;
-    CassConsistency consistency_level = data->defaultConsistencyLevel;
-    CassConsistency serial_consistency_level = CASS_CONSISTENCY_ANY;
     
-    if(!parse_query_term(env, argv[1], &query, &consistency_level, &serial_consistency_level))
-        return make_badarg(env);
+    QueryTerm q(ConsistencyLevelOptions(data->defaultConsistencyLevel, CASS_CONSISTENCY_ANY));
+    
+    ERL_NIF_TERM parse_result = parse_query_term(env, argv[1], &q);
+    
+    if(!enif_is_identical(ATOMS.atomOk, parse_result))
+        return parse_result;
     
     ErlNifPid pid;
     
@@ -266,11 +265,10 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     callback->prepared_res = data->resCassPrepared;
     callback->env = enif_alloc_env();
     callback->arguments = enif_make_copy(callback->env, argv[2]);
-    callback->cl = consistency_level;
-    callback->serial_cl = serial_consistency_level;
+    callback->consistency = q.consistency;
     callback->session = enif_session->session;
     
-    CassFuture* future = cass_session_prepare_n(enif_session->session, BIN_TO_STR(query.data), query.size);
+    CassFuture* future = cass_session_prepare_n(enif_session->session, BIN_TO_STR(q.query.data), q.query.size);
     
     CassError error = cass_future_set_callback(future, on_statement_prepared, callback);
     cass_future_free(future);
@@ -342,20 +340,21 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
             return cass_error_to_nif_term(env, error);
     }
     
-    CassConsistency consistency_level = data->defaultConsistencyLevel;
-    CassConsistency serial_consistency_level = CASS_CONSISTENCY_ANY;
+    ConsistencyLevelOptions cls(data->defaultConsistencyLevel, CASS_CONSISTENCY_ANY);
+    
+    ERL_NIF_TERM parse_result = parse_consistency_level_options(env, argv[3], &cls);
+    
+    if(!enif_is_identical(ATOMS.atomOk, parse_result))
+         return parse_result;
 
-    if(!parse_consistency_level_options(env, argv[3], &consistency_level, &serial_consistency_level))
-         return make_badarg(env);
-
-    CassError error = cass_batch_set_consistency(batch.get(), consistency_level);
+    CassError error = cass_batch_set_consistency(batch.get(), cls.cl);
     
     if(error != CASS_OK)
         return cass_error_to_nif_term(env, error);
     
-    if(serial_consistency_level != CASS_CONSISTENCY_ANY)
+    if(cls.serial_cl != CASS_CONSISTENCY_ANY)
     {
-        error = cass_batch_set_serial_consistency(batch.get(), serial_consistency_level);
+        error = cass_batch_set_serial_consistency(batch.get(), cls.serial_cl);
         
         if(error != CASS_OK)
             return cass_error_to_nif_term(env, error);

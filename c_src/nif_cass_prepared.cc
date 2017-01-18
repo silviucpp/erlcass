@@ -14,11 +14,10 @@
 struct enif_cass_prepared
 {
     const CassPrepared* prepared;
-    CassConsistency cl;
-    CassConsistency serial_cl;
+    ConsistencyLevelOptions consistency;
 };
 
-ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* rs, const CassPrepared* prep, CassConsistency cl, CassConsistency serial_cl)
+ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* rs, const CassPrepared* prep, const ConsistencyLevelOptions& consistency)
 {
     enif_cass_prepared *enif_obj = static_cast<enif_cass_prepared*>(enif_alloc_resource(rs, sizeof(enif_cass_prepared)));
     
@@ -26,8 +25,7 @@ ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* rs, const
         return make_error(env, erlcass::kFailedToAllocResourceMsg);
     
     enif_obj->prepared = prep;
-    enif_obj->cl = cl;
-    enif_obj->serial_cl = serial_cl;
+    enif_obj->consistency = consistency;
     
     ERL_NIF_TERM term = enif_make_resource(env, enif_obj);
     enif_release_resource(enif_obj);
@@ -52,7 +50,7 @@ ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     if(!enif_get_resource(env, argv[0], data->resCassPrepared, (void**) &enif_prep))
         return make_badarg(env);
     
-    ERL_NIF_TERM term = nif_cass_statement_new(env, data->resCassStatement, enif_prep->prepared, enif_prep->cl, enif_prep->serial_cl);
+    ERL_NIF_TERM term = nif_cass_statement_new(env, data->resCassStatement, enif_prep->prepared, enif_prep->consistency);
     
     if(enif_is_tuple(env, term))
         return term;

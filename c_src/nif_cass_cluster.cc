@@ -21,7 +21,7 @@
     { \
         ErlNifBinary value; \
         if(!get_bstring(env, term_value, &value)) \
-            return false; \
+            return make_bad_options(env, term_option); \
         return cass_error_to_nif_term(env, Func(data->cluster, BIN_TO_STR(value.data), value.size)); \
     }
 
@@ -30,7 +30,7 @@
     { \
         int value; \
         if(!enif_get_int(env, term_value, &value)) \
-            return false; \
+            return make_bad_options(env, term_option); \
         return cass_error_to_nif_term(env, Func(data->cluster, value)); \
     }
 
@@ -39,13 +39,13 @@
     { \
         unsigned int value; \
         if(!enif_get_uint(env, term_value, &value)) \
-            return false; \
+            return make_bad_options(env, term_option); \
         return cass_error_to_nif_term(env, Func(data->cluster, value)); \
     }
 
 #define CUSTOM_SETTING(Key, Func) \
     if(enif_is_identical(term_key, Key)) \
-        return Func(env, term_value, data);
+        return Func(env, term_option, term_value, data);
 
 
 CassError internal_cass_cluster_set_reconnect_wait_time(CassCluster* cluster, unsigned wait_time)
@@ -78,61 +78,68 @@ CassError internal_cass_cluster_set_connection_idle_timeout(CassCluster* cluster
     return CASS_OK;
 }
 
-ERL_NIF_TERM internal_cass_cluster_set_token_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cass_cluster_set_token_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    cass_bool_t value = enif_is_identical(term_value, ATOMS.atomTrue) ? cass_true : cass_false;
-    cass_cluster_set_token_aware_routing(data->cluster, value);
+    bool value;
+
+    if(!get_boolean(term_value, &value))
+        return make_bad_options(env, term_option);
+
+    cass_cluster_set_token_aware_routing(data->cluster, value ? cass_true : cass_false);
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM internal_cass_cluster_set_tcp_nodelay(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cass_cluster_set_tcp_nodelay(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    cass_bool_t value = enif_is_identical(term_value, ATOMS.atomTrue) ? cass_true : cass_false;
-    cass_cluster_set_tcp_nodelay(data->cluster, value);
+    bool value;
+
+    if(!get_boolean(term_value, &value))
+        return make_bad_options(env, term_option);
+
+    cass_cluster_set_tcp_nodelay(data->cluster, value ? cass_true : cass_false);
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM internal_cass_cluster_set_load_balance_round_robin(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cass_cluster_set_load_balance_round_robin(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     cass_cluster_set_load_balance_round_robin(data->cluster);
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM internal_cass_cluster_set_credentials(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cass_cluster_set_credentials(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     const ERL_NIF_TERM *items;
     int arity;
-    
+
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
-        return make_badarg(env);
-    
+        return make_bad_options(env, term_option);
+
     ErlNifBinary username;
     ErlNifBinary pwd;
-    
-    if(!get_bstring(env, items[0], &username) || !get_bstring(env, items[1], &pwd))
-        return make_badarg(env);
-    
-    cass_cluster_set_credentials_n(data->cluster, BIN_TO_STR(username.data), username.size, BIN_TO_STR(pwd.data), pwd.size);
 
+    if(!get_bstring(env, items[0], &username) || !get_bstring(env, items[1], &pwd))
+        return make_bad_options(env, term_option);
+
+    cass_cluster_set_credentials_n(data->cluster, BIN_TO_STR(username.data), username.size, BIN_TO_STR(pwd.data), pwd.size);
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM internal_cass_cluster_set_load_balance_dc_aware(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cass_cluster_set_load_balance_dc_aware(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     const ERL_NIF_TERM *items;
     int arity;
-    
+
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 3)
-        return make_badarg(env);
-    
+        return make_bad_options(env, term_option);
+
     ErlNifBinary local_dc;
     unsigned int used_hosts_per_remote_dc;
-    
+
     if(!get_bstring(env, items[0], &local_dc) || !enif_get_uint(env, items[1], &used_hosts_per_remote_dc))
-        return make_badarg(env);
-    
+        return make_bad_options(env, term_option);
+
     cass_bool_t allow_remote_dcs_for_local_cl = enif_is_identical(items[2], ATOMS.atomTrue) ? cass_true : cass_false;
-    
+
     return cass_error_to_nif_term(env, cass_cluster_set_load_balance_dc_aware_n(data->cluster,
                                                                                 BIN_TO_STR(local_dc.data),
                                                                                 local_dc.size,
@@ -140,36 +147,39 @@ ERL_NIF_TERM internal_cass_cluster_set_load_balance_dc_aware(ErlNifEnv* env, ERL
                                                                                 allow_remote_dcs_for_local_cl));
 }
 
-ERL_NIF_TERM internal_cass_cluster_set_tcp_keepalive(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cass_cluster_set_tcp_keepalive(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     const ERL_NIF_TERM *items;
     int arity;
-    
+
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
-        return make_badarg(env);
-    
+        return make_bad_options(env, term_option);
+
     unsigned delay_sec;
     if(!enif_is_atom(env, items[0]) || !enif_get_uint(env, items[1], &delay_sec))
-        return make_badarg(env);
-    
+        return make_bad_options(env, term_option);
+
     cass_bool_t enabled = enif_is_identical(items[0], ATOMS.atomTrue) ? cass_true : cass_false;
     cass_cluster_set_tcp_keepalive(data->cluster, enabled, delay_sec);
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM internal_cluster_set_default_consistency_level(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cluster_set_default_consistency_level(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    int cLevel;
-    
-    if(!enif_get_int(env, term_value, &cLevel))
-        return make_badarg(env);
-    
-    data->defaultConsistencyLevel = static_cast<CassConsistency>(cLevel);
+    int level;
+
+    if(!enif_get_int(env, term_value, &level))
+        return make_bad_options(env, term_option);
+
+    data->defaultConsistencyLevel = static_cast<CassConsistency>(level);
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
+    if(!enif_is_list(env, term_value))
+        return make_bad_options(env, term_option);
+
     ERL_NIF_TERM head;
 
     std::unique_ptr<CassSsl, decltype(&cass_ssl_free)> ssl(cass_ssl_new(), &cass_ssl_free);
@@ -180,7 +190,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
         int arity;
         
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return make_badarg(env);
+            return make_bad_options(env, head);
         
         if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslTrustedCerts))
         {
@@ -192,7 +202,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             while(enif_get_list_cell(env, trust_list, &cert_head, &trust_list))
             {
                 if(!get_bstring(env, cert_head, &cert_item))
-                    return make_badarg(env);
+                    return make_bad_options(env, head);
              
                 CassError error = cass_ssl_add_trusted_cert_n(ssl.get(), BIN_TO_STR(cert_item.data), cert_item.size);
                 
@@ -205,7 +215,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             ErlNifBinary cert;
             
             if(!get_bstring(env, items[1], &cert))
-                return make_badarg(env);
+                return make_bad_options(env, head);
             
             CassError error = cass_ssl_set_cert_n(ssl.get(), BIN_TO_STR(cert.data), cert.size);
             
@@ -220,13 +230,13 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             ErlNifBinary pk_pwd;
             
             if(!enif_get_tuple(env, items[1], &pk_arity, &pk_items) || pk_arity != 2)
-                return make_badarg(env);
+                return make_bad_options(env, head);
             
             if(!get_bstring(env, pk_items[0], &pk))
-                return make_badarg(env);
+                return make_bad_options(env, head);
             
             if(!get_bstring(env, pk_items[1], &pk_pwd))
-                return make_badarg(env);
+                return make_bad_options(env, head);
             
             CassError error = cass_ssl_set_private_key_n(ssl.get(), BIN_TO_STR(pk.data), pk.size, BIN_TO_STR(pk_pwd.data), pk_pwd.size);
             
@@ -238,14 +248,13 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             int verify_flags;
             
             if(!enif_get_int(env, items[1], &verify_flags))
-                return make_badarg(env);
+                return make_bad_options(env, head);
             
             cass_ssl_set_verify_flags(ssl.get(), verify_flags);
         }
         else
         {
-            //no valid option
-            return make_badarg(env);
+            return make_bad_options(env, head);
         }
     }
     
@@ -254,14 +263,17 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     if(enif_is_atom(env, term_value))
     {
         //only enable/disable
-        
-        cass_bool_t enabled = enif_is_identical(term_value, ATOMS.atomTrue) ? cass_true : cass_false;
-        cass_cluster_set_latency_aware_routing(data->cluster, enabled);
+        bool enabled;
+
+        if(!get_boolean(term_value, &enabled))
+            return make_bad_options(env, term_option);
+
+        cass_cluster_set_latency_aware_routing(data->cluster, enabled ? cass_true : cass_false);
         return ATOMS.atomOk;
     }
     
@@ -269,15 +281,19 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
     int arity;
     
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
-        return make_badarg(env);
+        return make_bad_options(env, term_option);
     
-    cass_bool_t enabled = enif_is_identical(items[0], ATOMS.atomTrue) ? cass_true : cass_false;
-    cass_cluster_set_latency_aware_routing(data->cluster, enabled);
+    bool enabled;
+
+    if(!get_boolean(items[0], &enabled))
+        return make_bad_options(env, term_option);
+
+    cass_cluster_set_latency_aware_routing(data->cluster, enabled ? cass_true : cass_false);
     
     //set also the settings
     
     if(!enif_get_tuple(env, items[1], &arity, &items) || arity != 5)
-        return make_badarg(env);
+        return make_bad_options(env, term_option);
 
     double exclusion_threshold;
     unsigned long scale_ms;
@@ -286,25 +302,25 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
     unsigned long min_measured;
     
     if(!enif_get_double(env, items[0], &exclusion_threshold))
-        return make_badarg(env);
+        return make_bad_options(env, term_option);
     
     if(!enif_get_uint64(env, items[1], &scale_ms))
-        return make_badarg(env);
+        return make_bad_options(env, term_option);
     
     if(!enif_get_uint64(env, items[2], &retry_period_ms))
-        return make_badarg(env);
+        return make_bad_options(env, term_option);
     
     if(!enif_get_uint64(env, items[3], &update_rate_ms))
-        return make_badarg(env);
+        return make_bad_options(env, term_option);
     
     if(!enif_get_uint64(env, items[4], &min_measured))
-        return make_badarg(env);
+        return make_bad_options(env, term_option);
     
     cass_cluster_set_latency_aware_routing_settings(data->cluster, exclusion_threshold, scale_ms, retry_period_ms, update_rate_ms, min_measured);
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_NIF_TERM term_value, cassandra_data* data)
+ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_key, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     CUSTOM_SETTING(ATOMS.atomClusterDefaultConsistencyLevel, internal_cluster_set_default_consistency_level);
     
@@ -338,7 +354,7 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_N
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpNodelay, internal_cass_cluster_set_tcp_nodelay);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpKeepalive, internal_cass_cluster_set_tcp_keepalive);
     
-    return make_badarg(env);
+    return make_bad_options(env, term_option);
 }
 
 ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -375,27 +391,30 @@ ERL_NIF_TERM nif_cass_cluster_release(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
 ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    if(!enif_is_list(env, argv[0]))
-        return make_badarg(env);
- 
+    ERL_NIF_TERM options = argv[0];
+
+    if(!enif_is_list(env, options))
+        return make_bad_options(env, options);
+
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
-    ERL_NIF_TERM list = argv[0];
-    
+
     ERL_NIF_TERM head;
     const ERL_NIF_TERM *items;
     int arity;
-    
-    while(enif_get_list_cell(env, list, &head, &list))
+
+    while(enif_get_list_cell(env, options, &head, &options))
     {
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return make_badarg(env);
-        
-        if(!enif_is_atom(env, items[0]))
-            return make_badarg(env);
-        
-        ERL_NIF_TERM result = apply_cluster_settings(env, items[0], items[1], data);
-        
+            return make_bad_options(env, head);
+
+        ERL_NIF_TERM key = items[0];
+        ERL_NIF_TERM value = items[1];
+
+        if(!enif_is_atom(env, key))
+            return make_bad_options(env, head);
+
+        ERL_NIF_TERM result = apply_cluster_settings(env, head, key, value, data);
+
         if(!enif_is_identical(ATOMS.atomOk, result))
             return result;
     }

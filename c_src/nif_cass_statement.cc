@@ -45,7 +45,6 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
     
     switch (type.type)
     {
-            
         case CASS_VALUE_TYPE_VARCHAR:
         case CASS_VALUE_TYPE_ASCII:
         case CASS_VALUE_TYPE_TEXT:

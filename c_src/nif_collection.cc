@@ -95,7 +95,11 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             
         case CASS_VALUE_TYPE_BOOLEAN:
         {
-            cass_bool_t bool_value = static_cast<cass_bool_t>(enif_is_identical(ATOMS.atomTrue, value));
+            cass_bool_t bool_value;
+
+            if(!get_boolean(value, &bool_value))
+                return make_badarg(env);
+
             return cass_error_to_nif_term(env, cass_collection_append_bool(collection, bool_value));
         }
             

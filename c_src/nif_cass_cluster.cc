@@ -80,23 +80,23 @@ CassError internal_cass_cluster_set_connection_idle_timeout(CassCluster* cluster
 
 ERL_NIF_TERM internal_cass_cluster_set_token_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    bool value;
+    cass_bool_t token_aware_routing;
 
-    if(!get_boolean(term_value, &value))
+    if(!get_boolean(term_value, &token_aware_routing))
         return make_bad_options(env, term_option);
 
-    cass_cluster_set_token_aware_routing(data->cluster, value ? cass_true : cass_false);
+    cass_cluster_set_token_aware_routing(data->cluster, token_aware_routing);
     return ATOMS.atomOk;
 }
 
 ERL_NIF_TERM internal_cass_cluster_set_tcp_nodelay(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    bool value;
+    cass_bool_t nodelay;
 
-    if(!get_boolean(term_value, &value))
+    if(!get_boolean(term_value, &nodelay))
         return make_bad_options(env, term_option);
 
-    cass_cluster_set_tcp_nodelay(data->cluster, value ? cass_true : cass_false);
+    cass_cluster_set_tcp_nodelay(data->cluster, nodelay);
     return ATOMS.atomOk;
 }
 
@@ -138,7 +138,10 @@ ERL_NIF_TERM internal_cass_cluster_set_load_balance_dc_aware(ErlNifEnv* env, ERL
     if(!get_bstring(env, items[0], &local_dc) || !enif_get_uint(env, items[1], &used_hosts_per_remote_dc))
         return make_bad_options(env, term_option);
 
-    cass_bool_t allow_remote_dcs_for_local_cl = enif_is_identical(items[2], ATOMS.atomTrue) ? cass_true : cass_false;
+    cass_bool_t allow_remote_dcs_for_local_cl;
+
+    if(!get_boolean(items[2], &allow_remote_dcs_for_local_cl))
+        return make_bad_options(env, term_option);
 
     return cass_error_to_nif_term(env, cass_cluster_set_load_balance_dc_aware_n(data->cluster,
                                                                                 BIN_TO_STR(local_dc.data),
@@ -156,11 +159,15 @@ ERL_NIF_TERM internal_cass_cluster_set_tcp_keepalive(ErlNifEnv* env, ERL_NIF_TER
         return make_bad_options(env, term_option);
 
     unsigned delay_sec;
-    if(!enif_is_atom(env, items[0]) || !enif_get_uint(env, items[1], &delay_sec))
+    cass_bool_t tcp_keepalive;
+
+    if(!get_boolean(items[0], &tcp_keepalive))
         return make_bad_options(env, term_option);
 
-    cass_bool_t enabled = enif_is_identical(items[0], ATOMS.atomTrue) ? cass_true : cass_false;
-    cass_cluster_set_tcp_keepalive(data->cluster, enabled, delay_sec);
+    if(!enif_get_uint(env, items[1], &delay_sec))
+        return make_bad_options(env, term_option);
+
+    cass_cluster_set_tcp_keepalive(data->cluster, tcp_keepalive, delay_sec);
     return ATOMS.atomOk;
 }
 
@@ -268,12 +275,12 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
     if(enif_is_atom(env, term_value))
     {
         //only enable/disable
-        bool enabled;
+        cass_bool_t latency_aware_routing;
 
-        if(!get_boolean(term_value, &enabled))
+        if(!get_boolean(term_value, &latency_aware_routing))
             return make_bad_options(env, term_option);
 
-        cass_cluster_set_latency_aware_routing(data->cluster, enabled ? cass_true : cass_false);
+        cass_cluster_set_latency_aware_routing(data->cluster, latency_aware_routing);
         return ATOMS.atomOk;
     }
     
@@ -283,12 +290,12 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
         return make_bad_options(env, term_option);
     
-    bool enabled;
+    cass_bool_t latency_aware_routing;
 
-    if(!get_boolean(items[0], &enabled))
+    if(!get_boolean(items[0], &latency_aware_routing))
         return make_bad_options(env, term_option);
 
-    cass_cluster_set_latency_aware_routing(data->cluster, enabled ? cass_true : cass_false);
+    cass_cluster_set_latency_aware_routing(data->cluster, latency_aware_routing);
     
     //set also the settings
     

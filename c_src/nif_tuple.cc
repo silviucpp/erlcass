@@ -96,7 +96,11 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             
         case CASS_VALUE_TYPE_BOOLEAN:
         {
-            cass_bool_t bool_value = static_cast<cass_bool_t>(enif_is_identical(ATOMS.atomTrue, value));
+            cass_bool_t bool_value;
+
+            if(!get_boolean(value, &bool_value))
+                return make_badarg(env);
+
             return cass_error_to_nif_term(env, cass_tuple_set_bool(tuple, index, bool_value));
         }
             

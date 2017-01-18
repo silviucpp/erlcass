@@ -123,7 +123,11 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             
         case CASS_VALUE_TYPE_BOOLEAN:
         {
-            cass_bool_t bool_value = static_cast<cass_bool_t>(enif_is_identical(ATOMS.atomTrue, value));
+            cass_bool_t bool_value;
+
+            if(!get_boolean(value, &bool_value))
+                return make_badarg(env);
+
             return cass_error_to_nif_term(env, cass_statement_bind_bool(statement, index, bool_value));
         }
             

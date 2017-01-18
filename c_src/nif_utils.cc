@@ -54,17 +54,17 @@ bool get_bstring(ErlNifEnv* env, ERL_NIF_TERM term, ErlNifBinary* bin)
     return enif_inspect_iolist_as_binary(env, term, bin);
 }
 
-bool get_boolean(ERL_NIF_TERM term, bool* val)
+bool get_boolean(ERL_NIF_TERM term, cass_bool_t* val)
 {
     if(enif_is_identical(term, ATOMS.atomTrue))
     {
-        *val = true;
+        *val = cass_true;
         return true;
     }
 
     if(enif_is_identical(term, ATOMS.atomFalse))
     {
-        *val = false;
+        *val = cass_false;
         return true;
     }
 

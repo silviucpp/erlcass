@@ -34,27 +34,32 @@
 -record(erlcass_stm, {session, stm}).
 -record(state, {session}).
 
--spec get_metrics() -> {ok, list()} | {error, reason()}.
+-spec get_metrics() ->
+    {ok, list()} | {error, reason()}.
 
 get_metrics() ->
     gen_server:call(?MODULE, get_metrics).
 
--spec create_statement(stm(), list()) -> {ok, stm_ref()} | {error, reason()}.
+-spec create_statement(stm(), list()) ->
+    {ok, stm_ref()} | {error, reason()}.
 
 create_statement(Query, BindParams) ->
     erlcass_nif:cass_statement_new(Query, BindParams).
 
--spec create_statement(stm()) -> {ok, stm_ref()} | {error, reason()}.
+-spec create_statement(stm()) ->
+    {ok, stm_ref()} | {error, reason()}.
 
 create_statement(Query) ->
     erlcass_nif:cass_statement_new(Query).
 
--spec add_prepare_statement(atom(), stm()) -> ok | {error, reason()}.
+-spec add_prepare_statement(atom(), stm()) ->
+    ok | {error, reason()}.
 
 add_prepare_statement(Identifier, Query) ->
     gen_server:call(?MODULE, {add_prepare_statement, Identifier, Query}, ?RESPONSE_TIMEOUT).
 
--spec bind_prepared_statement(atom()) -> {ok, #erlcass_stm{}} | {error, reason()}.
+-spec bind_prepared_statement(atom()) ->
+    {ok, #erlcass_stm{}} | {error, reason()}.
 
 bind_prepared_statement(Identifier) ->
     case erlcass_stm_sessions:get(Identifier) of
@@ -65,21 +70,24 @@ bind_prepared_statement(Identifier) ->
             {ok, #erlcass_stm{session = Session, stm = StmRef}}
     end.
 
--spec bind_prepared_params_by_name(#erlcass_stm{} | stm_ref() , list()) -> ok | {error, reason()}.
+-spec bind_prepared_params_by_name(#erlcass_stm{} | stm_ref() , list()) ->
+    ok | {error, reason()}.
 
 bind_prepared_params_by_name(Stm, Params) when is_record(Stm, erlcass_stm) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_NAME, Params);
 bind_prepared_params_by_name(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_NAME, Params).
 
--spec bind_prepared_params_by_index(#erlcass_stm{} | stm_ref(), list()) -> ok | {error, reason()}.
+-spec bind_prepared_params_by_index(#erlcass_stm{} | stm_ref(), list()) ->
+    ok | {error, reason()}.
 
 bind_prepared_params_by_index(Stm, Params) when is_record(Stm, erlcass_stm) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_INDEX, Params);
 bind_prepared_params_by_index(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_INDEX, Params).
 
--spec async_execute_statement(stm_ref() | #erlcass_stm{}) -> {ok, reference()} | {error, reason()}.
+-spec async_execute_statement(stm_ref() | #erlcass_stm{}) ->
+    {ok, reference()} | {error, reason()}.
 
 async_execute_statement(Stm) when is_record(Stm, erlcass_stm) ->
     Tag = make_ref(),
@@ -88,13 +96,15 @@ async_execute_statement(Stm) when is_record(Stm, erlcass_stm) ->
 async_execute_statement(Stm) ->
     gen_server:call(?MODULE, {execute_normal_statements, Stm}).
 
--spec execute_statement(stm_ref()) -> {ok, list()} | {error, reason()}.
+-spec execute_statement(stm_ref()) ->
+    {ok, list()} | {error, reason()}.
 
 execute_statement(StmRef) ->
     {ok, Tag} = async_execute_statement(StmRef),
     receive_response(Tag).
 
--spec async_execute(atom() | binary()) -> {ok, reference()} | {error, reason()}.
+-spec async_execute(atom() | binary()) ->
+    {ok, reference()} | {error, reason()}.
 
 async_execute(Identifier) ->
     case is_atom(Identifier) of
@@ -106,12 +116,14 @@ async_execute(Identifier) ->
 
     async_execute_statement(Statement).
 
--spec async_execute(atom() | binary(), list()) -> {ok, reference()} | {error, reason()}.
+-spec async_execute(atom() | binary(), list()) ->
+    {ok, reference()} | {error, reason()}.
 
 async_execute(Identifier, Params) ->
     async_execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec async_execute(atom() | binary(), bind_type(), list()) -> {ok, reference()} | {error, reason()}.
+-spec async_execute(atom() | binary(), integer(), list()) ->
+    {ok, reference()} | {error, reason()}.
 
 async_execute(Identifier, BindType, Params) ->
     case is_atom(Identifier) of
@@ -124,29 +136,34 @@ async_execute(Identifier, BindType, Params) ->
 
     async_execute_statement(Stm).
 
--spec execute(atom() | binary()) -> {ok, list()} | {error, reason()}.
+-spec execute(atom() | binary()) ->
+    {ok, list()} | {error, reason()}.
 
 execute(Identifier) ->
     {ok, Tag} = async_execute(Identifier),
     receive_response(Tag).
 
--spec execute(atom() | binary(), list()) -> {ok, list()} | {error, reason()}.
+-spec execute(atom() | binary(), list()) ->
+    {ok, list()} | {error, reason()}.
 
 execute(Identifier, Params) ->
     execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec execute(atom() | binary(), bind_type(), list()) -> {ok, list()} | {error, reason()}.
+-spec execute(atom() | binary(), integer(), list()) ->
+    {ok, list()} | {error, reason()}.
 
 execute(Identifier, BindType, Params) ->
     {ok, Tag} = async_execute(Identifier, BindType, Params),
     receive_response(Tag).
 
--spec batch_async_execute(batch_type(), list(), list()) -> {ok, reference()} | {error, reason()}.
+-spec batch_async_execute(integer(), list(), list()) ->
+    {ok, reference()} | {error, reason()}.
 
 batch_async_execute(BatchType, StmList, Options) ->
     gen_server:call(?MODULE, {batch_execute, BatchType, StmList, Options}).
 
--spec batch_execute(batch_type(), list(), list()) -> {ok, list()} | {error, reason()}.
+-spec batch_execute(integer(), list(), list()) ->
+    {ok, list()} | {error, reason()}.
 
 batch_execute(BatchType, StmList, Options) ->
     {ok, Tag} = batch_async_execute(BatchType, StmList, Options),

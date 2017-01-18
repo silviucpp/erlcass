@@ -111,7 +111,7 @@ async_execute(Identifier) ->
 async_execute(Identifier, Params) ->
     async_execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec async_execute(atom() | binary(), integer(), list()) -> {ok, reference()} | {error, reason()}.
+-spec async_execute(atom() | binary(), bind_type(), list()) -> {ok, reference()} | {error, reason()}.
 
 async_execute(Identifier, BindType, Params) ->
     case is_atom(Identifier) of
@@ -135,18 +135,18 @@ execute(Identifier) ->
 execute(Identifier, Params) ->
     execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec execute(atom() | binary(), integer(), list()) -> {ok, list()} | {error, reason()}.
+-spec execute(atom() | binary(), bind_type(), list()) -> {ok, list()} | {error, reason()}.
 
 execute(Identifier, BindType, Params) ->
     {ok, Tag} = async_execute(Identifier, BindType, Params),
     receive_response(Tag).
 
--spec batch_async_execute(integer(), list(), list()) -> {ok, reference()} | {error, reason()}.
+-spec batch_async_execute(batch_type(), list(), list()) -> {ok, reference()} | {error, reason()}.
 
 batch_async_execute(BatchType, StmList, Options) ->
     gen_server:call(?MODULE, {batch_execute, BatchType, StmList, Options}).
 
--spec batch_execute(integer(), list(), list()) -> {ok, list()} | {error, reason()}.
+-spec batch_execute(batch_type(), list(), list()) -> {ok, list()} | {error, reason()}.
 
 batch_execute(BatchType, StmList, Options) ->
     {ok, Tag} = batch_async_execute(BatchType, StmList, Options),

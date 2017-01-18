@@ -68,3 +68,5 @@
 -type error()    :: {error, reason()}.
 -type stm()      :: binary() | {binary(), integer()} | {binary(), list()}.
 -type stm_ref()  :: reference().
+-type bind_type()  :: ?BIND_BY_INDEX | ?BIND_BY_NAME.
+-type batch_type()  :: ?CASS_BATCH_TYPE_LOGGED | ?CASS_BATCH_TYPE_UNLOGGED | ?CASS_BATCH_TYPE_COUNTER.

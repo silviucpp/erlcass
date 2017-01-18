@@ -24,7 +24,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_string_n(collection, BIN_TO_STR(bin.data), bin.size));
         }
@@ -34,7 +34,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_int8(collection, static_cast<cass_int8_t>(int_value)));
         }
@@ -44,7 +44,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_int16(collection, static_cast<cass_int16_t>(int_value)));
         }
@@ -54,7 +54,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_int32(collection, int_value));
         }
@@ -64,7 +64,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             unsigned int uint_value = 0;
             
             if(!enif_get_uint(env, value, &uint_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_uint32(collection, uint_value));
         }
@@ -77,7 +77,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             long long_value = 0;
             
             if(!enif_get_int64(env, value, &long_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_int64(collection, long_value));
         }
@@ -88,7 +88,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_bytes(collection, bin.data, bin.size));
         }
@@ -104,7 +104,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
         {
             double val_double;
             if(!enif_get_double(env, value, &val_double))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
                 return cass_error_to_nif_term(env, cass_collection_append_float(collection, static_cast<float>(val_double)));
@@ -117,11 +117,11 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             CassInet inet;
             if(cass_inet_from_string_n(BIN_TO_STR(bin.data), bin.size, &inet) != CASS_OK)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_inet(collection, inet));
         }
@@ -132,11 +132,11 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             CassUuid uuid;
             if(erlcass::cass_uuid_from_string_n(BIN_TO_STR(bin.data), bin.size, &uuid) != CASS_OK)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_uuid(collection, uuid));
         }
@@ -147,13 +147,13 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             int arity;
             
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             ErlNifBinary varint;
             int scale;
             
             if(!get_bstring(env, items[0], &varint) || !enif_get_int(env, items[1], &scale))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_collection_append_decimal(collection, varint.data, varint.size, scale));
         }
@@ -220,7 +220,7 @@ ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassColl
     while(enif_get_list_cell(env, list, &head, &list))
     {
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return enif_make_badarg(env);
+            return make_badarg(env);
         
         //add key
         item_term = cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], items[0]);
@@ -244,7 +244,7 @@ ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, cons
     unsigned int length;
     
     if(!enif_get_list_length(env, list, &length))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     CassCollection* collection = cass_collection_new(static_cast<CassCollectionType>(type.type), length);
     

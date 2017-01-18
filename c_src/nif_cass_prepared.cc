@@ -50,7 +50,7 @@ ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     enif_cass_prepared * enif_prep = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassPrepared, (void**) &enif_prep))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     ERL_NIF_TERM term = nif_cass_statement_new(env, data->resCassStatement, enif_prep->prepared, enif_prep->cl, enif_prep->serial_cl);
     

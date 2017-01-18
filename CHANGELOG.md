@@ -4,6 +4,8 @@
 
 - Updated cpp-driver to 2.5.0
 - Updated lager to 3.2.4
+- Fix several bugs in compiling scripts
+- Don't throw exception in case of bad arguments. Return {error, badarg} instead
 
 ##### v2.7
 

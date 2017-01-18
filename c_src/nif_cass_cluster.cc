@@ -116,13 +116,13 @@ ERL_NIF_TERM internal_cass_cluster_set_credentials(ErlNifEnv* env, ERL_NIF_TERM 
     int arity;
     
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     ErlNifBinary username;
     ErlNifBinary pwd;
     
     if(!get_bstring(env, items[0], &username) || !get_bstring(env, items[1], &pwd))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     cass_cluster_set_credentials_n(data->cluster, BIN_TO_STR(username.data), username.size, BIN_TO_STR(pwd.data), pwd.size);
 
@@ -135,13 +135,13 @@ ERL_NIF_TERM internal_cass_cluster_set_load_balance_dc_aware(ErlNifEnv* env, ERL
     int arity;
     
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 3)
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     ErlNifBinary local_dc;
     unsigned int used_hosts_per_remote_dc;
     
     if(!get_bstring(env, items[0], &local_dc) || !enif_get_uint(env, items[1], &used_hosts_per_remote_dc))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     cass_bool_t allow_remote_dcs_for_local_cl = enif_is_identical(items[2], ATOMS.atomTrue) ? cass_true : cass_false;
     
@@ -158,11 +158,11 @@ ERL_NIF_TERM internal_cass_cluster_set_tcp_keepalive(ErlNifEnv* env, ERL_NIF_TER
     int arity;
     
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     unsigned delay_sec;
     if(!enif_is_atom(env, items[0]) || !enif_get_uint(env, items[1], &delay_sec))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     cass_bool_t enabled = enif_is_identical(items[0], ATOMS.atomTrue) ? cass_true : cass_false;
     cass_cluster_set_tcp_keepalive(data->cluster, enabled, delay_sec);
@@ -174,7 +174,7 @@ ERL_NIF_TERM internal_cluster_set_default_consistency_level(ErlNifEnv* env, ERL_
     int cLevel;
     
     if(!enif_get_int(env, term_value, &cLevel))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     data->defaultConsistencyLevel = static_cast<CassConsistency>(cLevel);
     return ATOMS.atomOk;
@@ -192,7 +192,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
         int arity;
         
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return enif_make_badarg(env);
+            return make_badarg(env);
         
         if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslTrustedCerts))
         {
@@ -204,7 +204,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             while(enif_get_list_cell(env, trust_list, &cert_head, &trust_list))
             {
                 if(!get_bstring(env, cert_head, &cert_item))
-                    return enif_make_badarg(env);
+                    return make_badarg(env);
              
                 CassError error = cass_ssl_add_trusted_cert_n(ssl.get(), BIN_TO_STR(cert_item.data), cert_item.size);
                 
@@ -217,7 +217,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             ErlNifBinary cert;
             
             if(!get_bstring(env, items[1], &cert))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             CassError error = cass_ssl_set_cert_n(ssl.get(), BIN_TO_STR(cert.data), cert.size);
             
@@ -232,13 +232,13 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             ErlNifBinary pk_pwd;
             
             if(!enif_get_tuple(env, items[1], &pk_arity, &pk_items) || pk_arity != 2)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             if(!get_bstring(env, pk_items[0], &pk))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             if(!get_bstring(env, pk_items[1], &pk_pwd))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             CassError error = cass_ssl_set_private_key_n(ssl.get(), BIN_TO_STR(pk.data), pk.size, BIN_TO_STR(pk_pwd.data), pk_pwd.size);
             
@@ -250,14 +250,14 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_val
             int verify_flags;
             
             if(!enif_get_int(env, items[1], &verify_flags))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             cass_ssl_set_verify_flags(ssl.get(), verify_flags);
         }
         else
         {
             //no valid option
-            return enif_make_badarg(env);
+            return make_badarg(env);
         }
     }
     
@@ -281,7 +281,7 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
     int arity;
     
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     cass_bool_t enabled = enif_is_identical(items[0], ATOMS.atomTrue) ? cass_true : cass_false;
     cass_cluster_set_latency_aware_routing(data->cluster, enabled);
@@ -289,7 +289,7 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
     //set also the settings
     
     if(!enif_get_tuple(env, items[1], &arity, &items) || arity != 5)
-        return enif_make_badarg(env);
+        return make_badarg(env);
 
     double exclusion_threshold;
     unsigned long scale_ms;
@@ -298,19 +298,19 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
     unsigned long min_measured;
     
     if(!enif_get_double(env, items[0], &exclusion_threshold))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     if(!enif_get_uint64(env, items[1], &scale_ms))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     if(!enif_get_uint64(env, items[2], &retry_period_ms))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     if(!enif_get_uint64(env, items[3], &update_rate_ms))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     if(!enif_get_uint64(env, items[4], &min_measured))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     cass_cluster_set_latency_aware_routing_settings(data->cluster, exclusion_threshold, scale_ms, retry_period_ms, update_rate_ms, min_measured);
     return ATOMS.atomOk;
@@ -350,7 +350,7 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_key, ERL_N
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpNodelay, internal_cass_cluster_set_tcp_nodelay);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpKeepalive, internal_cass_cluster_set_tcp_keepalive);
     
-    return enif_make_badarg(env);
+    return make_badarg(env);
 }
 
 ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -388,7 +388,7 @@ ERL_NIF_TERM nif_cass_cluster_release(ErlNifEnv* env, int argc, const ERL_NIF_TE
 ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     if(!enif_is_list(env, argv[0]))
-        return enif_make_badarg(env);
+        return make_badarg(env);
  
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
@@ -401,10 +401,10 @@ ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NI
     while(enif_get_list_cell(env, list, &head, &list))
     {
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-            return enif_make_badarg(env);
+            return make_badarg(env);
         
         if(!enif_is_atom(env, items[0]))
-            return enif_make_badarg(env);
+            return make_badarg(env);
         
         ERL_NIF_TERM result = apply_cluster_settings(env, items[0], items[1], data);
         
@@ -442,7 +442,7 @@ ERL_NIF_TERM nif_cass_log_set_level(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     int log_level;
 
     if(!enif_get_int(env, argv[0], &log_level))
-        return enif_make_badarg(env);
+        return make_badarg(env);
 
     cass_log_set_level(static_cast<CassLogLevel>(log_level));
     return ATOMS.atomOk;
@@ -459,7 +459,7 @@ ERL_NIF_TERM nif_cass_log_set_callback(ErlNifEnv* env, int argc, const ERL_NIF_T
     else
     {
         if(!enif_get_local_pid(env, argv[1], &data->log_pid))
-            return enif_make_badarg(env);
+            return make_badarg(env);
 
         cass_log_set_callback(cass_log_callback, &data->log_pid);
     }

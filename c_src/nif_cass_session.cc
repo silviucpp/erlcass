@@ -198,7 +198,7 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
     enif_cass_session* enif_session = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     ErlNifBinary keyspace;
     memset(&keyspace, 0, sizeof(keyspace));
@@ -206,7 +206,7 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(argc == 3)
     {
         if(!get_bstring(env, argv[2], &keyspace))
-            return enif_make_badarg(env);
+            return make_badarg(env);
     }
     
     callback_info* callback = callback_info_alloc(env, argv[1]);
@@ -234,7 +234,7 @@ ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     enif_cass_session * enif_session = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     ERL_NIF_TERM ref = enif_make_ref(env);
     callback_info* callback = callback_info_alloc(env, ref);
@@ -259,14 +259,14 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     enif_cass_session * enif_session = NULL;
 
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
-        return enif_make_badarg(env);
+        return make_badarg(env);
 
     ErlNifBinary query;
     CassConsistency consistency_level = data->defaultConsistencyLevel;
     CassConsistency serial_consistency_level = CASS_CONSISTENCY_ANY;
     
     if(!parse_query_term(env, argv[1], &query, &consistency_level, &serial_consistency_level))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     ErlNifPid pid;
     
@@ -296,12 +296,12 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
     enif_cass_session * enif_session = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
-        return enif_make_badarg(env);
+        return make_badarg(env);
 
     CassStatement* stm = get_statement(env, data->resCassStatement, argv[1]);
     
     if(stm == NULL)
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     ErlNifPid pid;
     
@@ -326,12 +326,12 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     enif_cass_session * enif_session = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session) || !enif_is_list(env, argv[2]) || !enif_is_list(env, argv[3]))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     int batch_type;
     
     if(!enif_get_int(env, argv[1], &batch_type))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     CassBatchScope batch(cass_batch_new(static_cast<CassBatchType>(batch_type)));
     
@@ -346,7 +346,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
         CassStatement* stm = get_statement(env, data->resCassStatement, head);
         
         if(!stm)
-            return enif_make_badarg(env);
+            return make_badarg(env);
         
         CassError error = cass_batch_add_statement(batch.get(), stm);
         
@@ -358,7 +358,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     CassConsistency serial_consistency_level = CASS_CONSISTENCY_ANY;
 
     if(!parse_consistency_level_options(env, argv[3], &consistency_level, &serial_consistency_level))
-         return enif_make_badarg(env);
+         return make_badarg(env);
 
     CassError error = cass_batch_set_consistency(batch.get(), consistency_level);
     
@@ -402,7 +402,7 @@ ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NI
     enif_cass_session * enif_session = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     CassMetrics metrics;
     cass_session_get_metrics(enif_session->session, &metrics);

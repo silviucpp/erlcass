@@ -17,6 +17,7 @@
 ERL_NIF_TERM make_atom(ErlNifEnv* env, const char* name);
 ERL_NIF_TERM make_error(ErlNifEnv* env, const char* error);
 ERL_NIF_TERM make_binary(ErlNifEnv* env, const char* buff, size_t length);
+ERL_NIF_TERM make_badarg(ErlNifEnv* env);
 
 ERL_NIF_TERM cass_error_to_nif_term(ErlNifEnv* env, CassError error);
 ERL_NIF_TERM cass_future_error_to_nif_term(ErlNifEnv* env, CassFuture* future);

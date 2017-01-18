@@ -53,7 +53,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_string_n(statement, index, BIN_TO_STR(bin.data), bin.size));
         }
@@ -63,7 +63,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_int8(statement, index, static_cast<cass_int8_t>(int_value)));
         }
@@ -73,7 +73,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_int16(statement, index, static_cast<cass_int16_t>(int_value)));
         }
@@ -83,7 +83,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_int32(statement, index, int_value));
         }
@@ -93,7 +93,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             unsigned int uint_value = 0;
             
             if(!enif_get_uint(env, value, &uint_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_uint32(statement, index, uint_value));
         }
@@ -106,7 +106,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             long long_value = 0;
             
             if(!enif_get_int64(env, value, &long_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_int64(statement, index, long_value));
         }
@@ -117,7 +117,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_bytes(statement, index, bin.data, bin.size));
         }
@@ -133,7 +133,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
         {
             double val_double;
             if(!enif_get_double(env, value, &val_double))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
                 return cass_error_to_nif_term(env, cass_statement_bind_float(statement, index, static_cast<float>(val_double)));
@@ -146,11 +146,11 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             CassInet inet;
             if(cass_inet_from_string_n(BIN_TO_STR(bin.data), bin.size, &inet) != CASS_OK)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_inet(statement, index, inet));
         }
@@ -161,11 +161,11 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             CassUuid uuid;
             if(erlcass::cass_uuid_from_string_n(BIN_TO_STR(bin.data), bin.size, &uuid) != CASS_OK)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_uuid(statement, index, uuid));
         }
@@ -176,13 +176,13 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             int arity;
             
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             ErlNifBinary varint;
             int scale;
             
             if(!get_bstring(env, items[0], &varint) || !enif_get_int(env, items[1], &scale))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_statement_bind_decimal(statement, index, varint.data, varint.size, scale));
         }
@@ -243,13 +243,13 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
         while(enif_get_list_cell(env, list, &head, &list))
         {
             if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             if(!get_bstring(env, items[0], &column_name))
-                return enif_make_badarg(env);
+                return make_badarg(env);
                         
             if(result->metadata()->get_indices(cass::StringRef(BIN_TO_STR(column_name.data), column_name.size), &indices) == 0)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             size_t index = indices[0];
             
@@ -269,7 +269,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
         while(enif_get_list_cell(env, list, &head, &list))
         {
             if(index > result->metadata()->column_count())
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             const cass::ColumnDefinition def = result->metadata()->get_column_definition(index);
             
@@ -306,14 +306,14 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     CassConsistency serial_consistency_level = CASS_CONSISTENCY_ANY;
 
     if(!parse_query_term(env, argv[0], &query, &consistency_level, &serial_consistency_level))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     unsigned int params_length = 0;
     
     if(argc == 2)
     {
         if(!enif_get_list_length(env, argv[1], &params_length))
-            return enif_make_badarg(env);
+            return make_badarg(env);
     }
 
     CassStatement* stm = cass_statement_new_n(BIN_TO_STR(query.data), query.size, params_length);
@@ -343,12 +343,12 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
         while(enif_get_list_cell(env, paramslist, &head, &paramslist))
         {
             if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             SchemaColumn type = atom_to_schema_column(env, items[0]);
             
             if(type.type == CASS_VALUE_TYPE_UNKNOWN)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             ERL_NIF_TERM result = bind_param_by_index(env, stm, index, type, items[1]);
             
@@ -416,12 +416,12 @@ ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const 
     enif_cass_statement * enif_stm = NULL;
     
     if(!enif_get_resource(env, argv[0], data->resCassStatement, (void**) &enif_stm) || !enif_is_list(env, argv[2]))
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     int bind_type;
     
     if(!enif_get_int(env, argv[1], &bind_type) || (bind_type != BIND_BY_INDEX && bind_type != BIND_BY_NAME))
-        return enif_make_badarg(env);
+        return make_badarg(env);
 
     return bind_prepared_statement_params(env, enif_stm->statement, bind_type, argv[2]);
 }

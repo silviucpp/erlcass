@@ -25,7 +25,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_string_n(tuple, index, BIN_TO_STR(bin.data), bin.size));
         }
@@ -35,7 +35,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_int8(tuple, index, static_cast<cass_int8_t>(int_value)));
         }
@@ -45,7 +45,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_int16(tuple, index, static_cast<cass_int16_t>(int_value)));
         }
@@ -55,7 +55,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             int int_value = 0;
             
             if(!enif_get_int(env, value, &int_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_int32(tuple, index, int_value));
         }
@@ -65,7 +65,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             unsigned int uint_value = 0;
             
             if(!enif_get_uint(env, value, &uint_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_uint32(tuple, index, uint_value));
         }
@@ -78,7 +78,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             long long_value = 0;
             
             if(!enif_get_int64(env, value, &long_value ))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_int64(tuple, index, long_value));
         }
@@ -89,7 +89,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_bytes(tuple, index, bin.data, bin.size));
         }
@@ -105,7 +105,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
         {
             double val_double;
             if(!enif_get_double(env, value, &val_double))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             if(type.type == CASS_VALUE_TYPE_FLOAT)
                 return cass_error_to_nif_term(env, cass_tuple_set_float(tuple, index, static_cast<float>(val_double)));
@@ -118,11 +118,11 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             CassInet inet;
             if(cass_inet_from_string_n(BIN_TO_STR(bin.data), bin.size, &inet) != CASS_OK)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_inet(tuple, index, inet));
         }
@@ -133,11 +133,11 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             ErlNifBinary bin;
             
             if(!get_bstring(env, value, &bin))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             CassUuid uuid;
             if(erlcass::cass_uuid_from_string_n(BIN_TO_STR(bin.data), bin.size, &uuid) != CASS_OK)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_uuid(tuple, index, uuid));
         }
@@ -148,13 +148,13 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             int arity;
             
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             ErlNifBinary varint;
             int scale;
             
             if(!get_bstring(env, items[0], &varint) || !enif_get_int(env, items[1], &scale))
-                return enif_make_badarg(env);
+                return make_badarg(env);
             
             return cass_error_to_nif_term(env, cass_tuple_set_decimal(tuple, index, varint.data, varint.size, scale));
         }
@@ -200,7 +200,7 @@ ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const Sch
     int arity;
     
     if(!enif_get_tuple(env, term, &arity, &items) || arity == 0 || static_cast<size_t>(arity) != type.subtypes.size())
-        return enif_make_badarg(env);
+        return make_badarg(env);
     
     CassTuple* tuple = cass_tuple_new(arity);
     ERL_NIF_TERM item_term;

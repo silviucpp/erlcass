@@ -21,14 +21,24 @@ ERL_NIF_TERM make_binary(ErlNifEnv* env, const char* buff, size_t length)
     return term;
 }
 
+ERL_NIF_TERM make_error(ErlNifEnv* env, ERL_NIF_TERM term)
+{
+    return enif_make_tuple2(env, ATOMS.atomError, term);
+}
+
 ERL_NIF_TERM make_error(ErlNifEnv* env, const char* error, size_t length)
 {
-    return enif_make_tuple2(env, ATOMS.atomError, make_binary(env, error, length));
+    return make_error(env, make_binary(env, error, length));
 }
 
 ERL_NIF_TERM make_error(ErlNifEnv* env, const char* error)
 {
     return make_error(env, error, strlen(error));
+}
+
+ERL_NIF_TERM make_badarg(ErlNifEnv* env)
+{
+    return enif_make_tuple2(env, ATOMS.atomError, ATOMS.atomBadArg);
 }
 
 bool get_bstring(ErlNifEnv* env, ERL_NIF_TERM term, ErlNifBinary* bin)
@@ -78,7 +88,7 @@ bool parse_consistency_level_options(ErlNifEnv* env, ERL_NIF_TERM options_list, 
         else if(enif_is_identical(items[0], ATOMS.atomSerialConsistencyLevel))
         {
             if(!enif_get_int(env, items[1], &c_level))
-                return enif_make_badarg(env);
+                return make_badarg(env);
 
             *serial_cl = static_cast<CassConsistency>(c_level);
         }

@@ -10,7 +10,6 @@
 start(_StartType, _StartArgs) ->
 
     ok = erlcass_cluster:create(),
-
     erlcass_cluster:set_log_level(erlcass_utils:get_env(log_level, ?CASS_LOG_WARN)),
 
     case erlcass_utils:get_env(cluster_options) of

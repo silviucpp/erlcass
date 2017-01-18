@@ -34,30 +34,27 @@
 -record(erlcass_stm, {session, stm}).
 -record(state, {session}).
 
--type ec_error() :: badarg | {error, Reason :: term()}.
--type ec_stm() :: binary() | {binary(), integer()} | {binary(), list()}.
-
--spec(get_metrics() -> {ok, MetricsList :: list()} | ec_error()).
+-spec get_metrics() -> {ok, list()} | {error, reason()}.
 
 get_metrics() ->
     gen_server:call(?MODULE, get_metrics).
 
--spec(create_statement(Query :: ec_stm(), BindParams :: list()) -> {ok, StmRef :: reference()} | ec_error()).
+-spec create_statement(stm(), list()) -> {ok, stm_ref()} | {error, reason()}.
 
 create_statement(Query, BindParams) ->
     erlcass_nif:cass_statement_new(Query, BindParams).
 
--spec(create_statement(Query :: ec_stm()) -> {ok, StmRef :: reference()} | ec_error()).
+-spec create_statement(stm()) -> {ok, stm_ref()} | {error, reason()}.
 
 create_statement(Query) ->
     erlcass_nif:cass_statement_new(Query).
 
--spec(add_prepare_statement(Identifier :: atom(), Query :: ec_stm()) -> ok | ec_error()).
+-spec add_prepare_statement(atom(), stm()) -> ok | {error, reason()}.
 
 add_prepare_statement(Identifier, Query) ->
     gen_server:call(?MODULE, {add_prepare_statement, Identifier, Query}, ?RESPONSE_TIMEOUT).
 
--spec(bind_prepared_statement(Identifier :: atom()) -> {ok, Stm :: #erlcass_stm{}} | ec_error()).
+-spec bind_prepared_statement(atom()) -> {ok, #erlcass_stm{}} | {error, reason()}.
 
 bind_prepared_statement(Identifier) ->
     case erlcass_stm_sessions:get(Identifier) of
@@ -68,21 +65,21 @@ bind_prepared_statement(Identifier) ->
             {ok, #erlcass_stm{session = Session, stm = StmRef}}
     end.
 
--spec(bind_prepared_params_by_name(Stm :: #erlcass_stm{} | reference() , Params :: list()) -> ok | ec_error()).
+-spec bind_prepared_params_by_name(#erlcass_stm{} | stm_ref() , list()) -> ok | {error, reason()}.
 
 bind_prepared_params_by_name(Stm, Params) when is_record(Stm, erlcass_stm) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_NAME, Params);
 bind_prepared_params_by_name(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_NAME, Params).
 
--spec(bind_prepared_params_by_index(Stm :: #erlcass_stm{} | reference(), Params :: list()) -> ok | ec_error()).
+-spec bind_prepared_params_by_index(#erlcass_stm{} | stm_ref(), list()) -> ok | {error, reason()}.
 
 bind_prepared_params_by_index(Stm, Params) when is_record(Stm, erlcass_stm) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_INDEX, Params);
 bind_prepared_params_by_index(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_INDEX, Params).
 
--spec(async_execute_statement(Stm :: reference() | #erlcass_stm{}) -> {ok, Tag :: reference()} | ec_error()).
+-spec async_execute_statement(stm_ref() | #erlcass_stm{}) -> {ok, reference()} | {error, reason()}.
 
 async_execute_statement(Stm) when is_record(Stm, erlcass_stm) ->
     Tag = make_ref(),
@@ -91,13 +88,13 @@ async_execute_statement(Stm) when is_record(Stm, erlcass_stm) ->
 async_execute_statement(Stm) ->
     gen_server:call(?MODULE, {execute_normal_statements, Stm}).
 
--spec(execute_statement(StmRef :: reference()) -> {ok, Result :: list()} | ec_error()).
+-spec execute_statement(stm_ref()) -> {ok, list()} | {error, reason()}.
 
 execute_statement(StmRef) ->
     {ok, Tag} = async_execute_statement(StmRef),
     receive_response(Tag).
 
--spec(async_execute(Identifier :: atom() | binary()) -> {ok, Tag :: reference()} | ec_error()).
+-spec async_execute(atom() | binary()) -> {ok, reference()} | {error, reason()}.
 
 async_execute(Identifier) ->
     case is_atom(Identifier) of
@@ -109,12 +106,12 @@ async_execute(Identifier) ->
 
     async_execute_statement(Statement).
 
--spec(async_execute(Identifier :: atom() | binary(), Params :: list()) -> {ok, Tag :: reference()} | ec_error()).
+-spec async_execute(atom() | binary(), list()) -> {ok, reference()} | {error, reason()}.
 
 async_execute(Identifier, Params) ->
     async_execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec(async_execute(Identifier :: atom() | binary(), BindType :: integer(), Params :: list()) -> {ok, Tag :: reference()} | ec_error()).
+-spec async_execute(atom() | binary(), integer(), list()) -> {ok, reference()} | {error, reason()}.
 
 async_execute(Identifier, BindType, Params) ->
     case is_atom(Identifier) of
@@ -127,29 +124,29 @@ async_execute(Identifier, BindType, Params) ->
 
     async_execute_statement(Stm).
 
--spec(execute(Identifier :: atom() | binary()) -> {ok, Result :: list()} | ec_error()).
+-spec execute(atom() | binary()) -> {ok, list()} | {error, reason()}.
 
 execute(Identifier) ->
     {ok, Tag} = async_execute(Identifier),
     receive_response(Tag).
 
--spec(execute(Identifier :: atom() | binary(), Params :: list()) -> {ok, Result :: list()} | ec_error()).
+-spec execute(atom() | binary(), list()) -> {ok, list()} | {error, reason()}.
 
 execute(Identifier, Params) ->
     execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec(execute(Identifier :: atom() | binary(), BindType :: integer(), Params :: list()) -> {ok, Result :: list()} | ec_error()).
+-spec execute(atom() | binary(), integer(), list()) -> {ok, list()} | {error, reason()}.
 
 execute(Identifier, BindType, Params) ->
     {ok, Tag} = async_execute(Identifier, BindType, Params),
     receive_response(Tag).
 
--spec(batch_async_execute(BatchType :: integer(), StmList :: list(), Options :: list()) -> {ok, Tag :: reference()} | ec_error()).
+-spec batch_async_execute(integer(), list(), list()) -> {ok, reference()} | {error, reason()}.
 
 batch_async_execute(BatchType, StmList, Options) ->
     gen_server:call(?MODULE, {batch_execute, BatchType, StmList, Options}).
 
--spec(batch_execute(BatchType :: integer(), StmList :: list(), Options :: list()) -> {ok, Result :: list()} | ec_error()).
+-spec batch_execute(integer(), list(), list()) -> {ok, list()} | {error, reason()}.
 
 batch_execute(BatchType, StmList, Options) ->
     {ok, Tag} = batch_async_execute(BatchType, StmList, Options),
@@ -197,12 +194,12 @@ handle_call(get_metrics, _From, State) ->
     {reply, erlcass_nif:cass_session_get_metrics(State#state.session), State}.
 
 handle_cast(Request, State) ->
-    ?ERROR_MSG(<<"session ~p received unexpected cast: ~p">>, [self(), Request]),
+    ?ERROR_MSG("session ~p received unexpected cast: ~p", [self(), Request]),
     {noreply, State}.
 
 handle_info({prepared_statememt_result, Result, {From, Identifier, Query}}, State) ->
 
-    ?INFO_MSG(<<"session: ~p prepared statement id: ~p result: ~p">>, [self(), Identifier, Result]),
+    ?INFO_MSG("session: ~p prepared statement id: ~p result: ~p", [self(), Identifier, Result]),
 
     case Result of
         {ok, StmRef} ->
@@ -215,12 +212,12 @@ handle_info({prepared_statememt_result, Result, {From, Identifier, Query}}, Stat
     {noreply, State};
 
 handle_info(Info, State) ->
-    ?ERROR_MSG(<<"session ~p received unexpected message: ~p">>, [self(), Info]),
+    ?ERROR_MSG("session ~p received unexpected message: ~p", [self(), Info]),
     {noreply, State}.
 
 terminate(Reason, State) ->
     Self = self(),
-    ?INFO_MSG(<<"closing session ~p with reason: ~p">>, [Self, Reason]),
+    ?INFO_MSG("closing session ~p with reason: ~p", [Self, Reason]),
 
     case State#state.session of
         undefined ->
@@ -230,10 +227,10 @@ terminate(Reason, State) ->
 
             receive
                 {session_closed, Tag, Result} ->
-                    ?INFO_MSG(<<"session ~p closed with result: ~p">>, [Self, Result])
+                    ?INFO_MSG("session ~p closed with result: ~p", [Self, Result])
 
             after ?RESPONSE_TIMEOUT ->
-                ?ERROR_MSG(<<"session ~p closed timeout">>, [Self])
+                ?ERROR_MSG("session ~p closed timeout", [Self])
             end
     end.
 
@@ -261,10 +258,10 @@ session_create() ->
 
     receive
         {session_connected, _Pid} ->
-            ?INFO_MSG(<<"session ~p connection completed">>, [self()]),
+            ?INFO_MSG("session ~p connection completed", [self()]),
             {ok, Session}
     after ?CONNECT_TIMEOUT ->
-        ?ERROR_MSG(<<"session ~p connection timeout">>, [self()]),
+        ?ERROR_MSG("session ~p connection timeout", [self()]),
         {error, connect_session_timeout}
     end.
 
@@ -278,7 +275,7 @@ session_prepare_cached_statements(SessionRef) ->
         receive
             {prepared_statememt_result, Result, Tag} ->
 
-                ?INFO_MSG(<<"session ~p prepared cached statement id: ~p result: ~p">>, [Self, Identifier, Result]),
+                ?INFO_MSG("session ~p prepared cached statement id: ~p result: ~p", [Self, Identifier, Result]),
 
                 case Result of
                     {ok, StmRef} ->

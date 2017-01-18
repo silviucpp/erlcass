@@ -1,8 +1,13 @@
-
 -module(erlcass_cluster).
 -author("silviu").
 
--export([create/0, set_options/1, set_log_level/1, set_log_process_receiver/1, release/0]).
+-export([
+    create/0,
+    set_options/1,
+    set_log_level/1,
+    set_log_process_receiver/1,
+    release/0
+]).
 
 create() ->
     ok = erlcass_nif:cass_cluster_create().

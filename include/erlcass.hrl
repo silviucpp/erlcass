@@ -63,3 +63,8 @@
 -define(CASS_LOG_INFO, 4).
 -define(CASS_LOG_DEBUG,5).
 -define(CASS_LOG_TRACE, 6).
+
+-type reason()   :: term().
+-type error()    :: {error, reason()}.
+-type stm()      :: binary() | {binary(), integer()} | {binary(), list()}.
+-type stm_ref()  :: reference().

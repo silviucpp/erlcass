@@ -42,7 +42,7 @@
 
 load_nif() ->
     SoName = get_nif_library_path(),
-    ?INFO_MSG(<<"Loading library: ~p ~n">>, [SoName]),
+    ?INFO_MSG("loading library: ~p ~n", [SoName]),
     ok = erlang:load_nif(SoName, 0).
 
 get_nif_library_path() ->

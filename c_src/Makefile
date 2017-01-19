@@ -55,7 +55,7 @@ ifeq ($(UNAME_SYS), darwin)
 endif
 
 CXXFLAGS+=  -g -std=c++11 -Wextra -Werror -fno-rtti \
-			-Wno-missing-prototypes -Wno-unused-local-typedefs -Wno-unused-parameter -Wno-missing-field-initializers \
+			-Wno-unused-local-typedefs -Wno-unused-parameter -Wno-missing-field-initializers \
             -I $(BASEDIR)/_build/deps/cpp-driver/include \
             -I $(BASEDIR)/_build/deps/cpp-driver/src \
             -I $(BASEDIR)/_build/deps/cpp-driver/src/third_party/sparsehash/src \

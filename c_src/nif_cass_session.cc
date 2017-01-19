@@ -17,9 +17,6 @@
 #include <string.h>
 #include <memory>
 
-#define UINT64_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_uint64(env, Property))
-#define DOUBLE_METRIC(Name, Property) enif_make_tuple2(env, make_atom(env, Name), enif_make_double(env, Property))
-
 struct enif_cass_session
 {
     CassSession* session;
@@ -382,6 +379,16 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     return enif_make_tuple2(env, ATOMS.atomOk, tag);
 }
 
+ERL_NIF_TERM metric_uint64(ErlNifEnv* env, const char* name, cass_uint64_t prop)
+{
+    return enif_make_tuple2(env, make_atom(env, name), enif_make_uint64(env, prop));
+}
+
+ERL_NIF_TERM metric_double(ErlNifEnv* env, const char* name, cass_double_t prop)
+{
+    return enif_make_tuple2(env, make_atom(env, name), enif_make_double(env, prop));
+}
+
 ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
@@ -395,31 +402,31 @@ ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NI
     cass_session_get_metrics(enif_session->session, &metrics);
     
     ERL_NIF_TERM requests = enif_make_tuple(env, 14,
-                                            UINT64_METRIC("min", metrics.requests.min),
-                                            UINT64_METRIC("max", metrics.requests.max),
-                                            UINT64_METRIC("mean", metrics.requests.mean),
-                                            UINT64_METRIC("stddev", metrics.requests.stddev),
-                                            UINT64_METRIC("median", metrics.requests.median),
-                                            UINT64_METRIC("percentile_75th", metrics.requests.percentile_75th),
-                                            UINT64_METRIC("percentile_95th", metrics.requests.percentile_95th),
-                                            UINT64_METRIC("percentile_98th", metrics.requests.percentile_98th),
-                                            UINT64_METRIC("percentile_99th", metrics.requests.percentile_99th),
-                                            UINT64_METRIC("percentile_999th", metrics.requests.percentile_999th),
-                                            DOUBLE_METRIC("mean_rate", metrics.requests.mean_rate),
-                                            DOUBLE_METRIC("one_minute_rate", metrics.requests.one_minute_rate),
-                                            DOUBLE_METRIC("five_minute_rate", metrics.requests.five_minute_rate),
-                                            DOUBLE_METRIC("fifteen_minute_rate", metrics.requests.fifteen_minute_rate));
+                                            metric_uint64(env, "min", metrics.requests.min),
+                                            metric_uint64(env, "max", metrics.requests.max),
+                                            metric_uint64(env, "mean", metrics.requests.mean),
+                                            metric_uint64(env, "stddev", metrics.requests.stddev),
+                                            metric_uint64(env, "median", metrics.requests.median),
+                                            metric_uint64(env, "percentile_75th", metrics.requests.percentile_75th),
+                                            metric_uint64(env, "percentile_95th", metrics.requests.percentile_95th),
+                                            metric_uint64(env, "percentile_98th", metrics.requests.percentile_98th),
+                                            metric_uint64(env, "percentile_99th", metrics.requests.percentile_99th),
+                                            metric_uint64(env, "percentile_999th", metrics.requests.percentile_999th),
+                                            metric_double(env, "mean_rate", metrics.requests.mean_rate),
+                                            metric_double(env, "one_minute_rate", metrics.requests.one_minute_rate),
+                                            metric_double(env, "five_minute_rate", metrics.requests.five_minute_rate),
+                                            metric_double(env, "fifteen_minute_rate", metrics.requests.fifteen_minute_rate));
 
     ERL_NIF_TERM stats = enif_make_tuple(env, 4,
-                                            UINT64_METRIC("total_connections", metrics.stats.total_connections),
-                                            UINT64_METRIC("available_connections", metrics.stats.available_connections),
-                                            UINT64_METRIC("exceeded_pending_requests_water_mark", metrics.stats.exceeded_pending_requests_water_mark),
-                                            UINT64_METRIC("exceeded_write_bytes_water_mark", metrics.stats.exceeded_write_bytes_water_mark));
+                                            metric_uint64(env, "total_connections", metrics.stats.total_connections),
+                                            metric_uint64(env, "available_connections", metrics.stats.available_connections),
+                                            metric_uint64(env, "exceeded_pending_requests_water_mark", metrics.stats.exceeded_pending_requests_water_mark),
+                                            metric_uint64(env, "exceeded_write_bytes_water_mark", metrics.stats.exceeded_write_bytes_water_mark));
 
     ERL_NIF_TERM errors = enif_make_tuple(env, 3,
-                                            UINT64_METRIC("connection_timeouts", metrics.errors.connection_timeouts),
-                                            UINT64_METRIC("pending_request_timeouts", metrics.errors.pending_request_timeouts),
-                                            UINT64_METRIC("request_timeouts", metrics.errors.request_timeouts));
+                                            metric_uint64(env, "connection_timeouts", metrics.errors.connection_timeouts),
+                                            metric_uint64(env, "pending_request_timeouts", metrics.errors.pending_request_timeouts),
+                                            metric_uint64(env, "request_timeouts", metrics.errors.request_timeouts));
     
     ERL_NIF_TERM result = enif_make_tuple3(env,
                                            enif_make_tuple2(env, make_atom(env, "requests"), requests),

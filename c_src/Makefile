@@ -18,7 +18,6 @@ ifeq ($(UNAME_SYS), darwin)
 				-Wl,-U,_enif_open_resource_type \
 				-Wl,-U,_enif_release_resource \
 				-Wl,-U,_enif_priv_data \
-				-Wl,-U,_enif_self \
 				-Wl,-U,_enif_send \
 				-Wl,-U,_enif_inspect_binary \
 				-Wl,-U,_enif_inspect_iolist_as_binary \

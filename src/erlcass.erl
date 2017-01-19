@@ -34,46 +34,51 @@
 
 -define(SERVER, ?MODULE).
 
--record(erlcass_stm, {session, stm}).
 -record(state, {session}).
 
 -spec get_metrics() ->
     {ok, list()} | {error, reason()}.
 
 get_metrics() ->
-    gen_server:call(?MODULE, get_metrics).
+    call(get_metrics).
 
--spec create_statement(stm(), list()) ->
-    {ok, stm_ref()} | {error, reason()}.
+-spec create_statement(query(), list()) ->
+    {ok, statement_ref()} | {error, reason()}.
 
 create_statement(Query, BindParams) ->
     erlcass_nif:cass_statement_new(Query, BindParams).
 
--spec create_statement(stm()) ->
-    {ok, stm_ref()} | {error, reason()}.
+-spec create_statement(query()) ->
+    {ok, statement_ref()} | {error, reason()}.
 
 create_statement(Query) ->
     erlcass_nif:cass_statement_new(Query).
 
--spec add_prepare_statement(atom(), stm()) ->
+-spec add_prepare_statement(atom(), query()) ->
     ok | {error, reason()}.
 
 add_prepare_statement(Identifier, Query) ->
-    gen_server:call(?MODULE, {add_prepare_statement, Identifier, Query}, ?RESPONSE_TIMEOUT).
+    call({add_prepare_statement, Identifier, Query}, ?RESPONSE_TIMEOUT).
 
 -spec bind_prepared_statement(atom()) ->
     {ok, #erlcass_stm{}} | {error, reason()}.
 
 bind_prepared_statement(Identifier) ->
     case erlcass_stm_sessions:get(Identifier) of
+        {Session, PrepStatement} ->
+            case erlcass_nif:cass_prepared_bind(PrepStatement) of
+                {ok, StmRef} ->
+                    {ok, #erlcass_stm{session = Session, stm = StmRef}};
+                Error ->
+                    Error
+            end;
         undefined ->
             {error, undefined};
-        {Session, PrepStatement} ->
-            {ok, StmRef} = erlcass_nif:cass_prepared_bind(PrepStatement),
-            {ok, #erlcass_stm{session = Session, stm = StmRef}}
+        Error ->
+            Error
     end.
 
--spec bind_prepared_params_by_name(#erlcass_stm{} | stm_ref() , list()) ->
+-spec bind_prepared_params_by_name(statement_ref(), list()) ->
     ok | {error, reason()}.
 
 bind_prepared_params_by_name(Stm, Params) when is_record(Stm, erlcass_stm) ->
@@ -81,7 +86,7 @@ bind_prepared_params_by_name(Stm, Params) when is_record(Stm, erlcass_stm) ->
 bind_prepared_params_by_name(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_NAME, Params).
 
--spec bind_prepared_params_by_index(#erlcass_stm{} | stm_ref(), list()) ->
+-spec bind_prepared_params_by_index(statement_ref(), list()) ->
     ok | {error, reason()}.
 
 bind_prepared_params_by_index(Stm, Params) when is_record(Stm, erlcass_stm) ->
@@ -89,53 +94,65 @@ bind_prepared_params_by_index(Stm, Params) when is_record(Stm, erlcass_stm) ->
 bind_prepared_params_by_index(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm, ?BIND_BY_INDEX, Params).
 
--spec async_execute_statement(stm_ref() | #erlcass_stm{}) ->
-    {ok, reference()} | {error, reason()}.
+-spec async_execute_statement(statement_ref()) ->
+    {ok, tag()} | {error, reason()}.
 
 async_execute_statement(Stm) ->
     Tag = make_ref(),
-    {async_execute_statement(Stm, self(), Tag), Tag}.
+    case async_execute_statement(Stm, self(), Tag) of
+        ok ->
+            {ok, Tag};
+        Error ->
+            Error
+    end.
 
--spec async_execute_statement(stm_ref() | #erlcass_stm{}, pid(), any()) ->
+-spec async_execute_statement(statement_ref(), pid(), any()) ->
     ok | {error, reason()}.
 
 async_execute_statement(Stm, ReceiverPid, Tag) when is_record(Stm, erlcass_stm) ->
     erlcass_nif:cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag);
 async_execute_statement(Stm, ReceiverPid, Tag) ->
-    gen_server:call(?MODULE, {execute_normal_statements, Stm, ReceiverPid, Tag}).
+    call({execute_normal_statements, Stm, ReceiverPid, Tag}).
 
--spec execute_statement(stm_ref()) ->
+-spec execute_statement(statement_ref()) ->
     {ok, list()} | {error, reason()}.
 
 execute_statement(StmRef) ->
-    {ok, Tag} = async_execute_statement(StmRef),
-    receive_response(Tag).
+    case async_execute_statement(StmRef) of
+        {ok, Tag} ->
+            receive_response(Tag);
+        Error ->
+            Error
+    end.
 
--spec async_execute(atom() | binary()) ->
-    {ok, reference()} | {error, reason()}.
+-spec async_execute(atom() | query()) ->
+    {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier) ->
-    case is_atom(Identifier) of
-        true ->
-            {ok, Statement} = bind_prepared_statement(Identifier);
-        _ ->
-            {ok, Statement} = create_statement(Identifier)
-    end,
+    case get_statement(Identifier) of
+        {ok, Statement} ->
+            async_execute_statement(Statement);
+        Error ->
+            Error
+    end.
 
-    async_execute_statement(Statement).
-
--spec async_execute(atom() | binary(), list()) ->
-    {ok, reference()} | {error, reason()}.
+-spec async_execute(atom() | query(), list()) ->
+    {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier, Params) ->
     async_execute(Identifier, ?BIND_BY_INDEX, Params).
 
 -spec async_execute(atom() | binary(), bind_type(), list()) ->
-    {ok, reference()} | {error, reason()}.
+    {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier, BindType, Params) ->
     Tag = make_ref(),
-    {async_execute(Identifier, BindType, Params, self(), Tag), Tag}.
+    case async_execute(Identifier, BindType, Params, self(), Tag) of
+        ok ->
+            {ok, Tag};
+        Error ->
+            Error
+    end.
 
 -spec async_execute(atom() | binary(), bind_type(), list(), any()) ->
     ok | {error, reason()}.
@@ -146,23 +163,36 @@ async_execute(Identifier, BindType, Params, Tag) ->
 -spec async_execute(atom() | binary(), bind_type(), list(), pid(), any()) ->
     ok | {error, reason()}.
 
-async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
-    case is_atom(Identifier) of
-        true ->
-            {ok, Stm} = bind_prepared_statement(Identifier),
-            ok = erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, BindType, Params);
-        _ ->
-            {ok, Stm} = create_statement(Identifier, Params)
-    end,
-
-    async_execute_statement(Stm, ReceiverPid, Tag).
+async_execute(Identifier, BindType, Params, ReceiverPid, Tag) when is_atom(Identifier) ->
+    case bind_prepared_statement(Identifier) of
+        {ok, Stm} ->
+            case erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, BindType, Params) of
+                ok ->
+                    async_execute_statement(Stm, ReceiverPid, Tag);
+                Error ->
+                    Error
+            end;
+        Error ->
+            Error
+    end;
+async_execute(Identifier, _BindType, Params, ReceiverPid, Tag) ->
+    case create_statement(Identifier, Params) of
+        {ok, Stm} ->
+            async_execute_statement(Stm, ReceiverPid, Tag);
+        Error ->
+            Error
+    end.
 
 -spec execute(atom() | binary()) ->
     {ok, list()} | {error, reason()}.
 
 execute(Identifier) ->
-    {ok, Tag} = async_execute(Identifier),
-    receive_response(Tag).
+    case async_execute(Identifier) of
+        {ok, Tag} ->
+            receive_response(Tag);
+        Error ->
+            Error
+    end.
 
 -spec execute(atom() | binary(), list()) ->
     {ok, list()} | {error, reason()}.
@@ -174,21 +204,29 @@ execute(Identifier, Params) ->
     {ok, list()} | {error, reason()}.
 
 execute(Identifier, BindType, Params) ->
-    {ok, Tag} = async_execute(Identifier, BindType, Params),
-    receive_response(Tag).
+    case async_execute(Identifier, BindType, Params) of
+        {ok, Tag} ->
+            receive_response(Tag);
+        Error ->
+            Error
+    end.
 
--spec batch_async_execute(integer(), list(), list()) ->
-    {ok, reference()} | {error, reason()}.
+-spec batch_async_execute(batch_type(), list(), list()) ->
+    {ok, tag()} | {error, reason()}.
 
 batch_async_execute(BatchType, StmList, Options) ->
-    gen_server:call(?MODULE, {batch_execute, BatchType, StmList, Options}).
+    call({batch_execute, BatchType, StmList, Options}).
 
--spec batch_execute(integer(), list(), list()) ->
+-spec batch_execute(batch_type(), list(), list()) ->
     {ok, list()} | {error, reason()}.
 
 batch_execute(BatchType, StmList, Options) ->
-    {ok, Tag} = batch_async_execute(BatchType, StmList, Options),
-    receive_response(Tag).
+    case batch_async_execute(BatchType, StmList, Options) of
+        {ok, Tag} ->
+            receive_response(Tag);
+        Error ->
+            Error
+    end.
 
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -204,43 +242,41 @@ init([]) ->
         {ok, SessionRef} ->
             session_prepare_cached_statements(SessionRef),
             {ok, #state{session = SessionRef}};
-        UnexpectedError ->
-            {stop, UnexpectedError, shutdown, #state{}}
+        Error ->
+            {stop, Error, shutdown, #state{}}
     end.
 
 handle_call({execute_normal_statements, StmRef, ReceiverPid, Tag}, _From, State) ->
-    Result = erlcass_nif:cass_session_execute(State#state.session, StmRef, ReceiverPid, Tag),
-    {reply, Result, State};
+    {reply, erlcass_nif:cass_session_execute(State#state.session, StmRef, ReceiverPid, Tag), State};
 
 handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
     {FromPid, _} = From,
-    Result = erlcass_nif:cass_session_execute_batch(State#state.session, BatchType, filter_stm_list(StmList), Options, FromPid),
-    {reply, Result, State};
+    {reply, erlcass_nif:cass_session_execute_batch(State#state.session, BatchType, filter_stm_list(StmList), Options, FromPid), State};
 
 handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
     case erlcass_stm_cache:find(Identifier) of
         false ->
             ok = erlcass_nif:cass_session_prepare(State#state.session, Query, {From, Identifier, Query}),
             {noreply, State};
-        true ->
+        _ ->
             {reply, {error, already_exist}, State}
     end;
 
-handle_call(get_metrics, _From, State) ->
-    {reply, erlcass_nif:cass_session_get_metrics(State#state.session), State}.
+handle_call(get_metrics, _From, #state{session = Session} = State) ->
+    {reply, erlcass_nif:cass_session_get_metrics(Session), State}.
 
 handle_cast(Request, State) ->
     ?ERROR_MSG("session ~p received unexpected cast: ~p", [self(), Request]),
     {noreply, State}.
 
-handle_info({prepared_statememt_result, Result, {From, Identifier, Query}}, State) ->
+handle_info({prepared_statememt_result, Result, {From, Identifier, Query}}, #state{session = Session} = State) ->
 
     ?INFO_MSG("session: ~p prepared statement id: ~p result: ~p", [self(), Identifier, Result]),
 
     case Result of
         {ok, StmRef} ->
             erlcass_stm_cache:set(Identifier, Query),
-            erlcass_stm_sessions:set(Identifier, State#state.session, StmRef),
+            erlcass_stm_sessions:set(Identifier, Session, StmRef),
             gen_server:reply(From, ok);
         _ ->
             gen_server:reply(From, Result)
@@ -251,15 +287,13 @@ handle_info(Info, State) ->
     ?ERROR_MSG("session ~p received unexpected message: ~p", [self(), Info]),
     {noreply, State}.
 
-terminate(Reason, State) ->
+terminate(Reason, #state {session = Session}) ->
     Self = self(),
     ?INFO_MSG("closing session ~p with reason: ~p", [Self, Reason]),
 
-    case State#state.session of
-        undefined ->
-            ok;
-        SessionRef ->
-            {ok, Tag} = erlcass_nif:cass_session_close(SessionRef),
+    case Session =/= undefined of
+        true ->
+            {ok, Tag} = erlcass_nif:cass_session_close(Session),
 
             receive
                 {session_closed, Tag, Result} ->
@@ -267,7 +301,9 @@ terminate(Reason, State) ->
 
             after ?RESPONSE_TIMEOUT ->
                 ?ERROR_MSG("session ~p closed timeout", [Self])
-            end
+            end;
+        _ ->
+            ok
     end.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -279,30 +315,31 @@ receive_response(Tag) ->
             Result
 
     after ?RESPONSE_TIMEOUT ->
-        timeout
+        {error, timeout}
     end.
 
 session_create() ->
     {ok, Session} = erlcass_nif:cass_session_new(),
+    Self = self(),
 
     case erlcass_utils:get_env(keyspace) of
         {ok, Keyspace} ->
-            erlcass_nif:cass_session_connect_keyspace(Session, self(), Keyspace);
+            erlcass_nif:cass_session_connect_keyspace(Session, Self, Keyspace);
         _ ->
-            erlcass_nif:cass_session_connect(Session, self())
+            erlcass_nif:cass_session_connect(Session, Self)
     end,
 
     receive
         {session_connected, _Pid} ->
-            ?INFO_MSG("session ~p connection completed", [self()]),
+            ?INFO_MSG("session ~p connection completed", [Self]),
             {ok, Session}
+
     after ?CONNECT_TIMEOUT ->
-        ?ERROR_MSG("session ~p connection timeout", [self()]),
+        ?ERROR_MSG("session ~p connection timeout", [Self]),
         {error, connect_session_timeout}
     end.
 
 session_prepare_cached_statements(SessionRef) ->
-    Self = self(),
 
     FunPrepareStm = fun({Identifier, Query}) ->
         Tag = make_ref(),
@@ -311,7 +348,7 @@ session_prepare_cached_statements(SessionRef) ->
         receive
             {prepared_statememt_result, Result, Tag} ->
 
-                ?INFO_MSG("session ~p prepared cached statement id: ~p result: ~p", [Self, Identifier, Result]),
+                ?INFO_MSG("session ~p prepared cached statement id: ~p result: ~p", [self(), Identifier, Result]),
 
                 case Result of
                     {ok, StmRef} ->
@@ -329,9 +366,30 @@ session_prepare_cached_statements(SessionRef) ->
 filter_stm_list(StmList) ->
     filter_stm_list(StmList, []).
 
-filter_stm_list([H|T], Acc) when is_record(H, erlcass_stm) ->
-    filter_stm_list(T, [H#erlcass_stm.stm | Acc]);
 filter_stm_list([H|T], Acc) ->
-    filter_stm_list(T, [H | Acc]);
+    case is_record(H, erlcass_stm) of
+        true ->
+            filter_stm_list(T, [H#erlcass_stm.stm | Acc]);
+        _ ->
+            filter_stm_list(T, [H | Acc])
+    end;
 filter_stm_list([], Acc) ->
     Acc.
+
+get_statement(Identifier) when is_atom(Identifier) ->
+    bind_prepared_statement(Identifier);
+get_statement(Identifier) ->
+    create_statement(Identifier).
+
+call(Message) ->
+    call(Message, 5000).
+
+call(Message, Timeout) ->
+    try
+        gen_server:call(?MODULE, Message, Timeout)
+    catch
+        exit:{noproc, _} ->
+            {error, erlcass_not_started};
+        _: Exception ->
+            {error, Exception}
+    end.

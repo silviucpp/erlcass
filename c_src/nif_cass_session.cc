@@ -13,6 +13,7 @@
 #include "metadata.h"
 #include "nif_utils.h"
 #include "constants.h"
+#include "logger.hpp"
 
 #include <string.h>
 #include <memory>
@@ -128,22 +129,37 @@ void on_statement_prepared(CassFuture* future, void* user_data)
 
 void on_statement_executed(CassFuture* future, void* user_data)
 {
-    callback_info* cb = static_cast<callback_info*>(user_data);
-    ERL_NIF_TERM result;
-    
-    if (cass_future_error_code(future) != CASS_OK)
+    if(user_data == NULL)
     {
-        result = cass_future_error_to_nif_term(cb->env, future);
+        //we only log the response in case it's an error
+
+        if (cass_future_error_code(future) != CASS_OK)
+        {
+            const char* message;
+            size_t message_length;
+            cass_future_error_message(future, &message, &message_length);
+            cass::Logger::log(CASS_LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, "%.*s", static_cast<int>(message_length), message);
+        }
     }
     else
     {
-        const CassResult* cassResult = cass_future_get_result(future);
-        result = enif_make_tuple2(cb->env, ATOMS.atomOk, cass_result_to_erlang_term(cb->env, cassResult));
-        cass_result_free(cassResult);
+        callback_info* cb = static_cast<callback_info*>(user_data);
+        ERL_NIF_TERM result;
+
+        if (cass_future_error_code(future) != CASS_OK)
+        {
+            result = cass_future_error_to_nif_term(cb->env, future);
+        }
+        else
+        {
+            const CassResult* cassResult = cass_future_get_result(future);
+            result = enif_make_tuple2(cb->env, ATOMS.atomOk, cass_result_to_erlang_term(cb->env, cassResult));
+            cass_result_free(cassResult);
+        }
+
+        enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomExecuteStatementResult, cb->arguments, result));
+        callback_info_free(cb);
     }
-    
-    enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomExecuteStatementResult, cb->arguments, result));
-    callback_info_free(cb);
 }
 
 //CassSession
@@ -276,17 +292,22 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
     
     if(stm == NULL)
         return make_badarg(env);
-    
-    ErlNifPid pid;
-    
-    if(enif_get_local_pid(env, argv[2], &pid) == 0)
-        return make_badarg(env);
-    
-    callback_info* callback = callback_info_alloc(env, pid, argv[3]);
-    
-    if(callback == NULL)
-        return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
 
+    callback_info* callback = NULL;
+
+    if(!enif_is_identical(ATOMS.atomNull, argv[2]))
+    {
+        ErlNifPid pid;
+        
+        if(enif_get_local_pid(env, argv[2], &pid) == 0)
+            return make_badarg(env);
+        
+        callback = callback_info_alloc(env, pid, argv[3]);
+        
+        if(callback == NULL)
+            return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
+    }
+    
     CassFuture* future = cass_session_execute(enif_session->session, stm);
     CassError error = cass_future_set_callback(future, on_statement_executed, callback);
     cass_future_free(future);

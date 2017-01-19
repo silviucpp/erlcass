@@ -21,6 +21,7 @@ groups() -> [
         prepared_bind_by_name_index,
         async_custom_tag,
         collection_types,
+        fire_and_forget,
         nested_collections,
         tuples,
         batches,
@@ -259,6 +260,11 @@ prepared_bind_by_name_index(_Config) ->
     {ok, [{[{CollectionIndex1, CollectionValue1}]}]} = erlcass:execute(select_test_bind, ?BIND_BY_NAME, [{<<"key">>, Key1}]),
     {ok, [{[{CollectionIndex2, CollectionValue2}]}]} = erlcass:execute(select_test_bind, [Key2]),
     ok.
+
+fire_and_forget(_Config) ->
+    CreationQ = <<"CREATE TABLE unexisting_keyspace.test_map(key int PRIMARY KEY, value map<text,text>)">>,
+    ok = erlcass:async_execute(CreationQ, ?BIND_BY_INDEX, [], null, null),
+    true.
 
 collection_types(_Config) ->
     CreationQ = <<"CREATE TABLE erlang_driver_test.entries3(key varchar, numbers list<int>, names set<varchar>, phones map<int, varchar>, PRIMARY KEY(key));">>,

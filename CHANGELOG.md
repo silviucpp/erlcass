@@ -9,6 +9,8 @@
 - Add more descriptive errors in case of bad options
 - Add versions for `async_execute` where caller can specify the process that's going to receive the response and the tag used to match
 the request with the response.
+- Add support for fire and forget async requests (response is never sent back, it's only logged in case fails). Use `ReceiverPid` = null in 
+`async_execute/5` or `async_execute_statement/3`. 
 
 ##### v2.7
 

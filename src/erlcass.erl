@@ -106,7 +106,7 @@ async_execute_statement(Stm) ->
             Error
     end.
 
--spec async_execute_statement(statement_ref(), pid(), any()) ->
+-spec async_execute_statement(statement_ref(), pid() | null, any()) ->
     ok | {error, reason()}.
 
 async_execute_statement(Stm, ReceiverPid, Tag) when is_record(Stm, erlcass_stm) ->
@@ -160,7 +160,7 @@ async_execute(Identifier, BindType, Params) ->
 async_execute(Identifier, BindType, Params, Tag) ->
     async_execute(Identifier, BindType, Params, self(), Tag).
 
--spec async_execute(atom() | binary(), bind_type(), list(), pid(), any()) ->
+-spec async_execute(atom() | binary(), bind_type(), list(), pid() | null, any()) ->
     ok | {error, reason()}.
 
 async_execute(Identifier, BindType, Params, ReceiverPid, Tag) when is_atom(Identifier) ->

@@ -17,7 +17,6 @@ extern const char kInvalidUuidGeneratorMsg[];
 extern const char kClusterObjectFailedToCreateMsg[];
 extern const char kClusterObjectNotCreatedMsg[];
 extern const char kFailedToAllocResourceMsg[];
-extern const char kFailedToGetParentIdMsg[];
 extern const char kFailedToCreateCallbackInfoMsg[];
 extern const char kFailedToCreateBatchObjectMsg[];
 extern const char kBindFailedUnknownColumnType[];

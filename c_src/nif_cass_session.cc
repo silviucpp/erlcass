@@ -48,16 +48,6 @@ callback_info* callback_info_alloc(ErlNifEnv* env, const ErlNifPid& pid, ERL_NIF
     return callback;
 }
 
-callback_info* callback_info_alloc(ErlNifEnv* env, ERL_NIF_TERM arg)
-{
-    ErlNifPid pid;
-
-    if(enif_self(env, &pid) == NULL)
-        return NULL;
-
-    return callback_info_alloc(env, pid, arg);
-}
-
 void callback_info_free(callback_info* cb)
 {
     if(cb->env)
@@ -85,7 +75,7 @@ void on_session_connect(CassFuture* future, void* user_data)
     else
         result = ATOMS.atomOk;
     
-    enif_send(NULL, &cb->pid, cb->env, enif_make_tuple2(cb->env, ATOMS.atomSessionConnected, enif_make_tuple2(cb->env, result, cb->arguments)));
+    enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomSessionConnected, cb->arguments, result));
     callback_info_free(cb);
 }
 
@@ -178,35 +168,34 @@ ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
+
     enif_cass_session* enif_session = NULL;
-    
+    ErlNifBinary keyspace;
+    ErlNifPid pid;
+
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
-    
-    ErlNifBinary keyspace;
-    memset(&keyspace, 0, sizeof(keyspace));
-    
-    if(argc == 3)
-    {
-        if(!get_bstring(env, argv[2], &keyspace))
-            return make_badarg(env);
-    }
-    
-    callback_info* callback = callback_info_alloc(env, argv[1]);
+
+    if(!enif_get_local_pid(env, argv[1], &pid))
+        return make_badarg(env);
+
+    if(argc == 3 && !get_bstring(env, argv[2], &keyspace))
+        return make_badarg(env);
+
+    callback_info* callback = callback_info_alloc(env, pid, argv[1]);
 
     if(callback == NULL)
-        return make_error(env, erlcass::kFailedToGetParentIdMsg);
-    
+        return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
+
     CassFuture* future;
-    
-    if(!keyspace.size)
-        future = cass_session_connect(enif_session->session, data->cluster);
-    else
+
+    if(argc == 3)
         future = cass_session_connect_keyspace_n(enif_session->session, data->cluster, BIN_TO_STR(keyspace.data), keyspace.size);
-    
+    else
+        future = cass_session_connect(enif_session->session, data->cluster);
+
     CassError error = cass_future_set_callback(future, on_session_connect, callback);
-    
+
     cass_future_free(future);
     return cass_error_to_nif_term(env, error);
 }
@@ -216,16 +205,19 @@ ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
+    ErlNifPid pid;
     
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
     
-    ERL_NIF_TERM ref = enif_make_ref(env);
-    callback_info* callback = callback_info_alloc(env, ref);
+    if(enif_get_local_pid(env, argv[1], &pid) == 0)
+        return make_badarg(env);
+    
+    callback_info* callback = callback_info_alloc(env, pid, argv[1]);
     
     if(callback == NULL)
-        return make_error(env, erlcass::kFailedToGetParentIdMsg);
-    
+        return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
+
     CassFuture* future = cass_session_close(enif_session->session);
     CassError error = cass_future_set_callback(future, on_session_closed, callback);
     cass_future_free(future);
@@ -233,7 +225,7 @@ ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     if(error != CASS_OK)
         return cass_error_to_nif_term(env, error);
     
-    return enif_make_tuple2(env, ATOMS.atomOk, ref);
+    return ATOMS.atomOk;
 }
 
 ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -241,27 +233,26 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     
     enif_cass_session * enif_session = NULL;
+    ErlNifPid pid;
 
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
     
+    if(!enif_get_local_pid(env, argv[1], &pid))
+        return make_badarg(env);
+    
     QueryTerm q(ConsistencyLevelOptions(data->defaultConsistencyLevel, CASS_CONSISTENCY_ANY));
     
-    ERL_NIF_TERM parse_result = parse_query_term(env, argv[1], &q);
+    ERL_NIF_TERM parse_result = parse_query_term(env, argv[2], &q);
     
     if(!enif_is_identical(ATOMS.atomOk, parse_result))
         return parse_result;
-    
-    ErlNifPid pid;
-    
-    if(enif_self(env, &pid) == NULL)
-        return make_error(env, erlcass::kFailedToGetParentIdMsg);
-    
+
     callback_statement_info* callback = static_cast<callback_statement_info*>(enif_alloc(sizeof(callback_info)));
     callback->pid = pid;
     callback->prepared_res = data->resCassPrepared;
     callback->env = enif_alloc_env();
-    callback->arguments = enif_make_copy(callback->env, argv[2]);
+    callback->arguments = enif_make_copy(callback->env, argv[3]);
     callback->consistency = q.consistency;
     callback->session = enif_session->session;
     
@@ -289,7 +280,7 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
     ErlNifPid pid;
     
     if(enif_get_local_pid(env, argv[2], &pid) == 0)
-        return make_error(env, erlcass::kFailedToGetParentIdMsg);
+        return make_badarg(env);
     
     callback_info* callback = callback_info_alloc(env, pid, argv[3]);
     
@@ -360,7 +351,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     ErlNifPid pid;
     
     if(enif_get_local_pid(env, argv[4], &pid) == 0)
-        return make_error(env, erlcass::kFailedToGetParentIdMsg);
+        return make_badarg(env);
     
     ERL_NIF_TERM tag = enif_make_ref(env);
 

@@ -256,7 +256,7 @@ handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
 handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
     case erlcass_stm_cache:find(Identifier) of
         false ->
-            ok = erlcass_nif:cass_session_prepare(State#state.session, Query, {From, Identifier, Query}),
+            ok = erlcass_nif:cass_session_prepare(State#state.session, self(), Query, {From, Identifier, Query}),
             {noreply, State};
         _ ->
             {reply, {error, already_exist}, State}
@@ -269,7 +269,7 @@ handle_cast(Request, State) ->
     ?ERROR_MSG("session ~p received unexpected cast: ~p", [self(), Request]),
     {noreply, State}.
 
-handle_info({prepared_statememt_result, Result, {From, Identifier, Query}}, #state{session = Session} = State) ->
+handle_info({prepared_statement_result, Result, {From, Identifier, Query}}, #state{session = Session} = State) ->
 
     ?INFO_MSG("session: ~p prepared statement id: ~p result: ~p", [self(), Identifier, Result]),
 
@@ -291,19 +291,11 @@ terminate(Reason, #state {session = Session}) ->
     Self = self(),
     ?INFO_MSG("closing session ~p with reason: ~p", [Self, Reason]),
 
-    case Session =/= undefined of
-        true ->
-            {ok, Tag} = erlcass_nif:cass_session_close(Session),
-
-            receive
-                {session_closed, Tag, Result} ->
-                    ?INFO_MSG("session ~p closed with result: ~p", [Self, Result])
-
-            after ?RESPONSE_TIMEOUT ->
-                ?ERROR_MSG("session ~p closed timeout", [Self])
-            end;
-        _ ->
-            ok
+    case do_close(Session, Self, ?CONNECT_TIMEOUT) of
+        ok ->
+            ?INFO_MSG("session ~p closed completed", [Self]);
+        Error ->
+            ?ERROR_MSG("session ~p closed with error: ~p", [Self, Error])
     end.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -318,47 +310,73 @@ receive_response(Tag) ->
         {error, timeout}
     end.
 
-session_create() ->
-    {ok, Session} = erlcass_nif:cass_session_new(),
-    Self = self(),
-
+do_connect(Session, Pid) ->
     case erlcass_utils:get_env(keyspace) of
         {ok, Keyspace} ->
-            erlcass_nif:cass_session_connect_keyspace(Session, Self, Keyspace);
+            erlcass_nif:cass_session_connect(Session, Pid, Keyspace);
         _ ->
-            erlcass_nif:cass_session_connect(Session, Self)
-    end,
+            erlcass_nif:cass_session_connect(Session, Pid)
+    end.
 
-    receive
-        {session_connected, _Pid} ->
-            ?INFO_MSG("session ~p connection completed", [Self]),
-            {ok, Session}
+do_close(undefined, _Pid, _Timeout) ->
+    ok;
+do_close(Session, Pid, Timeout) ->
+    case erlcass_nif:cass_session_close(Session, Pid) of
+        ok ->
+            receive
+                {session_closed, Pid, Result} ->
+                    Result
+            after Timeout ->
+                {error, timeout}
+            end
+    end.
 
-    after ?CONNECT_TIMEOUT ->
-        ?ERROR_MSG("session ~p connection timeout", [Self]),
-        {error, connect_session_timeout}
+session_create() ->
+    case erlcass_nif:cass_session_new() of
+        {ok, Session} ->
+            Self = self(),
+            case do_connect(Session, Self) of
+                ok ->
+                    receive
+                        {session_connected, Self, Result} ->
+                            ?INFO_MSG("session ~p connection complete result: ~p", [Self, Result]),
+                            {ok, Session}
+
+                    after ?CONNECT_TIMEOUT ->
+                        ?ERROR_MSG("session ~p connection timeout", [Self]),
+                        {error, connect_session_timeout}
+                    end;
+                Error ->
+                    Error
+            end;
+        Error ->
+            Error
     end.
 
 session_prepare_cached_statements(SessionRef) ->
 
     FunPrepareStm = fun({Identifier, Query}) ->
         Tag = make_ref(),
-        ok = erlcass_nif:cass_session_prepare(SessionRef, Query, Tag),
+        Self = self(),
+        case erlcass_nif:cass_session_prepare(SessionRef, Self, Query, Tag) of
+            ok ->
+                receive
+                    {prepared_statement_result, Result, Tag} ->
 
-        receive
-            {prepared_statememt_result, Result, Tag} ->
+                        ?INFO_MSG("session ~p prepared cached statement id: ~p result: ~p", [Self, Identifier, Result]),
 
-                ?INFO_MSG("session ~p prepared cached statement id: ~p result: ~p", [self(), Identifier, Result]),
+                        case Result of
+                            {ok, StmRef} ->
+                                erlcass_stm_sessions:set(Identifier, SessionRef, StmRef);
+                            _ ->
+                                throw({error, {failed_to_prepare_cached_stm, Identifier, Result}})
+                        end
 
-                case Result of
-                    {ok, StmRef} ->
-                        erlcass_stm_sessions:set(Identifier, SessionRef, StmRef);
-                    _ ->
-                        throw({error, {failed_to_prepare_cached_stm, Identifier, Result}})
-                end
-
-        after ?RESPONSE_TIMEOUT ->
-            throw({error, {failed_to_prepare_cached_stm, Identifier, timeout}})
+                after ?RESPONSE_TIMEOUT ->
+                    throw({error, {failed_to_prepare_cached_stm, Identifier, timeout}})
+                end;
+            Error ->
+                throw(Error)
         end
     end,
     ok = lists:foreach(FunPrepareStm, erlcass_stm_cache:to_list()).

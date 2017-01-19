@@ -15,9 +15,9 @@
     cass_cluster_set_options/1,
     cass_session_new/0,
     cass_session_connect/2,
-    cass_session_connect_keyspace/3,
-    cass_session_close/1,
-    cass_session_prepare/3,
+    cass_session_connect/3,
+    cass_session_close/2,
+    cass_session_prepare/4,
     cass_session_execute/4,
     cass_session_execute_batch/5,
     cass_session_get_metrics/1,
@@ -82,13 +82,13 @@ cass_session_new() ->
 cass_session_connect(_SessionRef, _FromPid) ->
     ?NOT_LOADED.
 
-cass_session_connect_keyspace(_SessionRef, _FromPid, _Keyspace) ->
+cass_session_connect(_SessionRef, _FromPid, _Keyspace) ->
     ?NOT_LOADED.
 
-cass_session_close(_SessionRef) ->
+cass_session_close(_SessionRef, _Pid) ->
     ?NOT_LOADED.
 
-cass_session_prepare(_SessionRef, _Query, _Info) ->
+cass_session_prepare(_SessionRef, _Pid, _Query, _Info) ->
     ?NOT_LOADED.
 
 cass_session_execute(_SessionRef, _StatementRef, _FromPid, _Tag) ->

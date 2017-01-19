@@ -16,7 +16,6 @@ const char kInvalidUuidGeneratorMsg[] = "invalid uuid generator";
 const char kClusterObjectFailedToCreateMsg[] = "failed to create the cluster object";
 const char kClusterObjectNotCreatedMsg[] = "cluster object doesn't exist";
 const char kFailedToAllocResourceMsg[] = "enif_alloc_resource failed";
-const char kFailedToGetParentIdMsg[] = "failed to get the parent pid";
 const char kFailedToCreateCallbackInfoMsg[] = "failed to create callback info";
 const char kFailedToCreateBatchObjectMsg[] = "failed to create batch object";
 const char kBindFailedUnknownColumnType[] = "bind failed. not implemented column type";
@@ -40,7 +39,7 @@ const char kAtomLogMsgRecord[] = "log_msg";
 
 const char kAtomSessionConnected[] = "session_connected";
 const char kAtomSessionClosed[] = "session_closed";
-const char kAtomPreparedStatementResult[] = "prepared_statememt_result";
+const char kAtomPreparedStatementResult[] = "prepared_statement_result";
 const char kAtomExecuteStatementResult[] = "execute_statement_result";
 const char kAtomLogMessageReceived[] = "log_message_recv";
 

@@ -1,5 +1,4 @@
 -module(erlcass_time).
--author("silviu.caragea").
 
 -export([
     date_from_epoch/1,

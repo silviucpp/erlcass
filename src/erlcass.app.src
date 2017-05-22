@@ -1,6 +1,6 @@
 {application, erlcass, [
     {description, "ErlCass - Erlang Cassandra Driver"},
-    {vsn, "2.8"},
+    {vsn, "2.9"},
     {registered, []},
     {applications, [kernel, stdlib, lager]},
     {mod, {erlcass_app, []}},

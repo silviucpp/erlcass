@@ -1,5 +1,4 @@
 -module(integrity_test_SUITE).
--author("silviu.caragea").
 
 -include_lib("common_test/include/ct.hrl").
 -include("erlcass.hrl").

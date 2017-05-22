@@ -1,5 +1,4 @@
 -module(erlcass_utils).
--author("silviu").
 
 -export([get_env/1, get_env/2, lookup/2, lookup/3]).
 

@@ -1,5 +1,4 @@
 -module(erlcass_cluster).
--author("silviu").
 
 -export([
     create/0,

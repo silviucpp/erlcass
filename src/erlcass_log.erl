@@ -1,5 +1,4 @@
 -module(erlcass_log).
--author("silviu.caragea").
 
 -include("erlcass.hrl").
 -include("erlcass_internals.hrl").

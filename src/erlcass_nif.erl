@@ -1,5 +1,4 @@
 -module(erlcass_nif).
--author("silviu.caragea").
 
 -include("erlcass_internals.hrl").
 

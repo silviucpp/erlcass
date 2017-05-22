@@ -1,5 +1,4 @@
 -module(erlcass_stm_cache).
--author("silviu").
 
 -include("erlcass_internals.hrl").
 

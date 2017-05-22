@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v2.9 (under development)
+
+- Updated cpp-driver to 2.7.0
+- Updated lager to 3.4.2
+
 ##### v2.8
 
 - Updated cpp-driver to 2.5.0

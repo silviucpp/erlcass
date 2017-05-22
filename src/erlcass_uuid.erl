@@ -1,5 +1,4 @@
 -module(erlcass_uuid).
--author("silviu.caragea").
 
 -include("erlcass.hrl").
 

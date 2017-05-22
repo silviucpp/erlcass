@@ -1,5 +1,4 @@
 -module(erlcass_stm_sessions).
--author("silviu.caragea").
 
 -include("erlcass_internals.hrl").
 

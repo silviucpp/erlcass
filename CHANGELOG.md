@@ -4,6 +4,7 @@
 
 - Updated cpp-driver to 2.7.0
 - Updated lager to 3.4.2
+- Fix for segmentation fault when we try to bind more arguments than we specified (#14). 
 
 ##### v2.8
 

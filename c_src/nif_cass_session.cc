@@ -10,7 +10,6 @@
 #include "nif_cass_prepared.h"
 #include "nif_cass_statement.h"
 #include "data_conversion.h"
-#include "metadata.h"
 #include "nif_utils.h"
 #include "constants.h"
 #include "logger.hpp"

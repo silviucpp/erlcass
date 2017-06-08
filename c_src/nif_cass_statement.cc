@@ -8,7 +8,6 @@
 
 #include "nif_cass_statement.h"
 #include "nif_utils.h"
-#include "metadata.h"
 #include "nif_collection.h"
 #include "nif_tuple.h"
 #include "uuid_serialization.h"

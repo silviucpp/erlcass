@@ -13,6 +13,9 @@
 #include "uuid_serialization.h"
 #include "constants.h"
 
+static const int kIndexKey = 0;
+static const int kIndexVal = 1;
+
 ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value)
 {
     switch (type.type)
@@ -205,7 +208,7 @@ ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, Cas
     
     while(enif_get_list_cell(env, list, &head, &list))
     {
-        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], head);
+        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[kIndexKey], head);
         
         if(!enif_is_identical(item_term, ATOMS.atomOk))
             return item_term;
@@ -227,14 +230,14 @@ ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassColl
             return make_badarg(env);
         
         //add key
-        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[KEY_INDEX], items[0]);
+        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[kIndexKey], items[0]);
         
         if(!enif_is_identical(item_term, ATOMS.atomOk))
             return item_term;
         
         //add value
         
-        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[VAL_INDEX], items[1]);
+        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[kIndexVal], items[1]);
         
         if(!enif_is_identical(item_term, ATOMS.atomOk))
             return item_term;

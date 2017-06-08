@@ -267,6 +267,9 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
 
             const cass::ColumnDefinition def = result->metadata()->get_column_definition(index);
 
+            if(def.data_type.get() == NULL)
+                return make_badarg(env);
+
             SchemaColumn sc = get_schema_column(def.data_type.get());
 
             ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, head);

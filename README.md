@@ -191,40 +191,13 @@ For example:
 
 ### Non prepared statements queries
 
-The only downside is that you have to provide metadata about the types of the fields that are bound.
-The data types can be found into `erlcass.hrl` file as follow:
-
-```erlang
--define(CASS_TEXT, text).                         %use for (ascii, text, varchar)
--define(CASS_TINYINT, tinyint).                   %use for (tinyint)
--define(CASS_SMALLINT, smallint).                 %use for (smallint)
--define(CASS_INT, int).                           %use for (int)
--define(CASS_DATE, date).                         %use for (date)
--define(CASS_BIGINT, bigint).                     %use for (timestamp, counter, bigint, time)
--define(CASS_BLOB, blob).                         %use for (varint, blob)
--define(CASS_BOOLEAN, bool).                      %use for (bool)
--define(CASS_FLOAT, float).                       %use for (float)
--define(CASS_DOUBLE, double).                     %use for (double)
--define(CASS_INET, inet).                         %use for (inet)
--define(CASS_UUID, uuid).                         %use for (timeuuid, uuid)
--define(CASS_DECIMAL, decimal).                   %use for (decimal)
--define(CASS_LIST(ValueType), {list, ValueType}). %use for list
--define(CASS_SET(ValueType), {set, ValueType}).   %use for set
--define(CASS_MAP(KeyType, ValueType), {map, KeyType, ValueType}). %use for map
--define(CASS_TUPLE(Types), {tuple, Types}).       %use for tuples
-```
+In order to run queries that you don't want to run them as prepared statements you can use: `query/1`, `query_async/1` or `query_new_statement/1` 
+(in order to create a query statement that can be executed into a batch query) 
 
 The same rules apply for setting the desired consistency level as on prepared statements (see Add prepare statement section).
-Example with binding by index (requires metadata parsing all the time so it might not be the best solution when using non prepared statements):
 
 ```erlang
-erlcass:execute(<<"select * from blogposts where domain = ? LIMIT 1">>,
-                [{?CASS_TEXT, <<"Domain_1">>}]).
-```
-or:
-
-```erlang
-erlcass:execute(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>).
+erlcass:query(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>).
 ```
 
 ### Batched queries
@@ -321,8 +294,7 @@ performed in the same process.
 ##### Getting a statement reference for a non prepared query
 
 ```erlang
-{ok, Statement} = erlcass:create_statement(<<"select * from blogposts where domain = ? LIMIT 1">>,
-                                           [{?CASS_TEXT, <<"Domain_1">>}]).
+{ok, Statement} = erlcass:query_new_statement(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>).
 ```
 
 ##### Bind the values for a prepared statement before executing
@@ -335,33 +307,6 @@ ok = erlcass:bind_prepared_params_by_index(select_blogpost, [<<"Domain_1">>]);
 ```
 
 For mode details about bind by index and name please see: 'Run a prepared statement query' section
-
-##### Execute a statement async
-
-```erlang
-{ok, Tag} = erlcass:async_execute_statement(Statement).
-```
-
-##### Execute a statement in blocking mode
-
-```erlang
-Result = erlcass:execute_statement(Statement).
-```
-
-Using this low level functions are very useful when you want to run in loop a certain query. Helps you to avoid recreating the statements all the time.
-For example here is how the execute method is implemented:
-
-```erlang
-execute(Identifier, Params) ->
-    if
-        is_atom(Identifier) ->
-            {ok, Statement} = bind_prepared_statement(Identifier),
-            ok = bind_prepared_params(Statement, Params);
-        true ->
-            {ok, Statement} = create_statement(Identifier, Params)
-    end,
-    execute_statement(Statement).
-```
 
 [1]:https://github.com/datastax/cpp-driver
 [2]:https://github.com/silviucpp/erlcass/wiki/Getting-started

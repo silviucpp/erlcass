@@ -1,4 +1,3 @@
--author("silviu").
 
 %ets tables
 

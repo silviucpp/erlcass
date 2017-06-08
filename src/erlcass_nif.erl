@@ -22,7 +22,6 @@
     cass_session_get_metrics/1,
     cass_prepared_bind/1,
     cass_statement_new/1,
-    cass_statement_new/2,
     cass_statement_bind_parameters/3,
     cass_uuid_gen_new/0,
     cass_uuid_gen_time/0,
@@ -103,9 +102,6 @@ cass_prepared_bind(_PrepStatementRef) ->
     ?NOT_LOADED.
 
 cass_statement_new(_Query) ->
-    ?NOT_LOADED.
-
-cass_statement_new(_Query, _Params) ->
     ?NOT_LOADED.
 
 cass_statement_bind_parameters(_StatementRef, _BindType, _Args)->

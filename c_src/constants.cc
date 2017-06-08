@@ -43,26 +43,6 @@ const char kAtomPreparedStatementResult[] = "prepared_statement_result";
 const char kAtomExecuteStatementResult[] = "execute_statement_result";
 const char kAtomLogMessageReceived[] = "log_message_recv";
 
-//data types
-
-const char kAtomText[] = "text";
-const char kAtomTinyInt[] = "tinyint";
-const char kAtomSmallInt[] = "smallint";
-const char kAtomInt[] = "int";
-const char kAtomDate[] = "date";
-const char kAtomBigInt[] = "bigint";
-const char kAtomBlob[] = "blob";
-const char kAtomBool[] = "bool";
-const char kAtomFloat[] = "float";
-const char kAtomDouble[] = "double";
-const char kAtomInet[] = "inet";
-const char kAtomUuid[] = "uuid";
-const char kAtomDecimal[] = "decimal";
-const char kAtomList[] = "list";
-const char kAtomSet[] = "set";
-const char kAtomMap[] = "map";
-const char kAtomTuple[] = "tuple";
-
 //cluster settings atoms
 
 const char kAtomClusterDefaultConsistencyLevel[] = "default_consistency_level";

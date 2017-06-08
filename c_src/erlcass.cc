@@ -38,27 +38,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomPreparedStatementResult = make_atom(env, erlcass::kAtomPreparedStatementResult);
     ATOMS.atomExecuteStatementResult = make_atom(env, erlcass::kAtomExecuteStatementResult);
     ATOMS.atomLogMessageReceived = make_atom(env, erlcass::kAtomLogMessageReceived);
-    
-    //data types
-    
-    ATOMS.atomText = make_atom(env, erlcass::kAtomText);
-    ATOMS.atomTinyInt = make_atom(env, erlcass::kAtomTinyInt);
-    ATOMS.atomSmallInt = make_atom(env, erlcass::kAtomSmallInt);
-    ATOMS.atomInt = make_atom(env, erlcass::kAtomInt);
-    ATOMS.atomDate = make_atom(env, erlcass::kAtomDate);
-    ATOMS.atomBigInt = make_atom(env, erlcass::kAtomBigInt);
-    ATOMS.atomBlob = make_atom(env, erlcass::kAtomBlob);
-    ATOMS.atomBool = make_atom(env, erlcass::kAtomBool);
-    ATOMS.atomFloat = make_atom(env, erlcass::kAtomFloat);
-    ATOMS.atomDouble = make_atom(env, erlcass::kAtomDouble);
-    ATOMS.atomInet = make_atom(env, erlcass::kAtomInet);
-    ATOMS.atomUuid = make_atom(env, erlcass::kAtomUuid);
-    ATOMS.atomDecimal = make_atom(env, erlcass::kAtomDecimal);
-    ATOMS.atomList = make_atom(env, erlcass::kAtomList);
-    ATOMS.atomSet = make_atom(env, erlcass::kAtomSet);
-    ATOMS.atomMap = make_atom(env, erlcass::kAtomMap);
-    ATOMS.atomTuple = make_atom(env, erlcass::kAtomTuple);
-    
+        
     //cluster settings atoms
     
     ATOMS.atomClusterDefaultConsistencyLevel = make_atom(env, erlcass::kAtomClusterDefaultConsistencyLevel);
@@ -156,7 +136,6 @@ static ErlNifFunc nif_funcs[] =
     
     {"cass_prepared_bind", 1, nif_cass_prepared_bind},
     {"cass_statement_new", 1, nif_cass_statement_new},
-    {"cass_statement_new", 2, nif_cass_statement_new},
     {"cass_statement_bind_parameters", 3, nif_cass_statement_bind_parameters},
     {"cass_session_execute", 4, nif_cass_session_execute},
     {"cass_session_execute_batch", 5, nif_cass_session_execute_batch},

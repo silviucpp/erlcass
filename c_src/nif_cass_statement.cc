@@ -311,15 +311,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     if(!enif_is_identical(ATOMS.atomOk, parse_result))
         return parse_result;
 
-    unsigned int params_length = 0;
-    
-    if(argc == 2)
-    {
-        if(!enif_get_list_length(env, argv[1], &params_length))
-            return make_badarg(env);
-    }
-
-    CassStatement* stm = cass_statement_new_n(BIN_TO_STR(q.query.data), q.query.size, params_length);
+    CassStatement* stm = cass_statement_new_n(BIN_TO_STR(q.query.data), q.query.size, 0);
     
     CassError cass_result = cass_statement_set_consistency(stm, q.consistency.cl);
     
@@ -333,35 +325,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
         if(cass_result != CASS_OK)
             return cass_error_to_nif_term(env, cass_result);
     }
-    
-    if(params_length)
-    {
-        ERL_NIF_TERM paramslist = argv[1];
-        ERL_NIF_TERM head;
-        const ERL_NIF_TERM *items;
-        int arity;
-        
-        size_t index = 0;
-        
-        while(enif_get_list_cell(env, paramslist, &head, &paramslist))
-        {
-            if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
-                return make_badarg(env);
-            
-            SchemaColumn type = atom_to_schema_column(env, items[0]);
-            
-            if(type.type == CASS_VALUE_TYPE_UNKNOWN)
-                return make_badarg(env);
-            
-            ERL_NIF_TERM result = bind_param_by_index(env, stm, index, type, items[1]);
-            
-            if(!enif_is_identical(result, ATOMS.atomOk))
-                return result;
-            
-            index++;
-        }
-    }
-    
+
     enif_cass_statement *enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(data->resCassStatement, sizeof(enif_cass_statement)));
     
     if(enif_obj == NULL)
@@ -374,7 +338,6 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 
     return enif_make_tuple2(env, ATOMS.atomOk, term);
 }
-
 
 ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, const ConsistencyLevelOptions& consistency)
 {

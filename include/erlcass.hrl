@@ -1,4 +1,3 @@
--author("silviu.caragea").
 
 -define(CASS_NULL, null).
 
@@ -29,26 +28,6 @@
 -define(CASS_SSL_VERIFY_PEER_CERT, 1).
 -define(CASS_SSL_VERIFY_PEER_IDENTITY, 2).
 
-%metadata types for index binding on non prepared statements
-
--define(CASS_TEXT, text).                                           %use for (ascii, text, varchar)
--define(CASS_TINYINT, tinyint).                                     %use for (tinyint)
--define(CASS_SMALLINT, smallint).                                   %use for (smallint)
--define(CASS_INT, int).                                             %use for (int)
--define(CASS_DATE, date).                                           %use for (date)
--define(CASS_BIGINT, bigint).                                       %use for (timestamp, counter, bigint, time)
--define(CASS_BLOB, blob).                                           %use for (varint, blob)
--define(CASS_BOOLEAN, bool).                                        %use for (bool)
--define(CASS_FLOAT, float).                                         %use for (float)
--define(CASS_DOUBLE, double).                                       %use for (double)
--define(CASS_INET, inet).                                           %use for (inet)
--define(CASS_UUID, uuid).                                           %use for (timeuuid, uuid)
--define(CASS_DECIMAL, decimal).                                     %use for (decimal)
--define(CASS_LIST(ValueType), {list, ValueType}).                   %use for list
--define(CASS_SET(ValueType), {set, ValueType}).                     %use for set
--define(CASS_MAP(KeyType, ValueType), {map, KeyType, ValueType}).   %use for map
--define(CASS_TUPLE(Types), {tuple, Types}).                         %use for tuples
-
 %binding type
 
 -define(BIND_BY_INDEX, 1).
@@ -69,7 +48,8 @@
 -type reason()          :: term().
 -type error()           :: {error, reason()}.
 -type query()           :: binary() | {binary(), integer()} | {binary(), list()}.
--type statement_ref()   :: reference() | #erlcass_stm{}.
+-type statement_ref()   :: #erlcass_stm{}.
 -type bind_type()       :: ?BIND_BY_INDEX | ?BIND_BY_NAME.
 -type batch_type()      :: ?CASS_BATCH_TYPE_LOGGED | ?CASS_BATCH_TYPE_UNLOGGED | ?CASS_BATCH_TYPE_COUNTER.
 -type tag()             :: reference().
+-type recv_pid()        :: pid() | null.

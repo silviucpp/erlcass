@@ -4,6 +4,10 @@
 
 - Updated cpp-driver to 2.7.0
 - Updated lager to 3.4.2
+- API breaking changes: 
+    - non prepared statements are executed now using `query/1`, `query_async/1` and `query_new_statement/1` (used when should run inside a batch)
+    - the following methods are removed: `async_execute_statement/1`, `async_execute_statement/3`, `execute_statement/1`
+    - removed support for binding non prepared statements.
 
 ##### v2.8
 

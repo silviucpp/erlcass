@@ -1,11 +1,3 @@
-//
-//  data_conversion.h
-//  erlcass
-//
-//  Created by silviu on 5/13/15.
-//
-//
-
 #ifndef ERLCASS_C_SRC_DATA_CONVERSION_H
 #define ERLCASS_C_SRC_DATA_CONVERSION_H
 

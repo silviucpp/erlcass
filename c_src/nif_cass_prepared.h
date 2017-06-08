@@ -1,11 +1,3 @@
-//
-//  nif_cass_prepared.h
-//  erlcass
-//
-//  Created by silviu on 5/11/15.
-//
-//
-
 #ifndef ERLCASS_C_SRC_NIF_CASS_PREPARED_H
 #define ERLCASS_C_SRC_NIF_CASS_PREPARED_H
 

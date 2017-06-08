@@ -1,11 +1,3 @@
-//
-//  nif_cass_statement.h
-//  erlcass
-//
-//  Created by silviu on 5/12/15.
-//
-//
-
 #ifndef ERLCASS_C_SRC_NIF_CASS_STATEMENT_H
 #define ERLCASS_C_SRC_NIF_CASS_STATEMENT_H
 

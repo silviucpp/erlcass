@@ -1,16 +1,8 @@
-//
-//  uuid_serialization.cpp
-//  erlcass
-//
-//  Created by silviu on 6/11/15.
-//
-//
-
 #include "uuid_serialization.h"
 #include "serialization.hpp"
 
 namespace erlcass {
-    
+
 const char* kByteToHexaTable[256] =
 {
     "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "0a", "0b", "0c", "0d", "0e", "0f",
@@ -52,50 +44,50 @@ const char kHexaToByteTable[256] =
 };
 
 //more performant methods for converting CassUuid into string representation.
-    
+
 void cass_uuid_string(CassUuid uuid, char* output)
 {
     size_t pos = 0;
     char encoded[16];
     cass::encode_uuid(encoded, uuid);
-    
+
     for (size_t i = 0; i < 16; ++i)
     {
         const char* buf = kByteToHexaTable[static_cast<uint8_t>(encoded[i])];
-        
+
         if (i == 4 || i == 6 || i == 8 || i == 10)
             output[pos++] = '-';
-        
+
         output[pos++] = buf[0];
         output[pos++] = buf[1];
     }
-    
+
     output[pos] = '\0';
 }
-    
+
 CassError cass_uuid_from_string_n(const char* str, size_t str_length, CassUuid* output)
 {
     const char* pos = str;
     char buf[16];
-    
+
     if (str == NULL || str_length != 36)
         return CASS_ERROR_LIB_BAD_PARAMS;
-    
+
     for (size_t i = 0; i < 16; ++i)
     {
         if (*pos == '-')
             pos++;
-        
+
         if (kHexaToByteTable[static_cast<uint8_t>(pos[0])] == -1 || kHexaToByteTable[static_cast<uint8_t>(pos[1])] == -1)
             return CASS_ERROR_LIB_BAD_PARAMS;
-        
+
         buf[i] = (kHexaToByteTable[static_cast<uint8_t>(pos[0])] << 4) + kHexaToByteTable[static_cast<uint8_t>(pos[1])];
         pos += 2;
     }
-    
+
     cass::decode_uuid(buf, output);
-    
+
     return CASS_OK;
 }
-    
+
 }

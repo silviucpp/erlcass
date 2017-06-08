@@ -1,11 +1,3 @@
-//
-//  nif_cass_session.cpp
-//  erlcass
-//
-//  Created by silviu on 5/8/15.
-//
-//
-
 #include "nif_cass_session.h"
 #include "nif_cass_prepared.h"
 #include "nif_cass_statement.h"
@@ -59,7 +51,7 @@ void callback_info_free(callback_info* cb)
 void nif_cass_session_free(ErlNifEnv* env, void* obj)
 {
     enif_cass_session *enif_session = static_cast<enif_cass_session*>(obj);
-    
+
     if(enif_session->session != NULL)
         cass_session_free(enif_session->session);
 }
@@ -67,14 +59,14 @@ void nif_cass_session_free(ErlNifEnv* env, void* obj)
 void on_session_connect(CassFuture* future, void* user_data)
 {
     callback_info* cb = static_cast<callback_info*>(user_data);
-    
+
     ERL_NIF_TERM result;
-    
+
     if (cass_future_error_code(future) != CASS_OK)
         result = cass_future_error_to_nif_term(cb->env, future);
     else
         result = ATOMS.atomOk;
-    
+
     enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomSessionConnected, cb->arguments, result));
     callback_info_free(cb);
 }
@@ -82,14 +74,14 @@ void on_session_connect(CassFuture* future, void* user_data)
 void on_session_closed(CassFuture* future, void* user_data)
 {
     callback_info* cb = static_cast<callback_info*>(user_data);
-    
+
     ERL_NIF_TERM result;
-    
+
     if (cass_future_error_code(future) != CASS_OK)
         result = cass_future_error_to_nif_term(cb->env, future);
     else
         result = ATOMS.atomOk;
-    
+
     enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomSessionClosed, cb->arguments, result));
     callback_info_free(cb);
 }
@@ -98,7 +90,7 @@ void on_statement_prepared(CassFuture* future, void* user_data)
 {
     callback_statement_info* cb = static_cast<callback_statement_info*>(user_data);
     ERL_NIF_TERM result;
-    
+
     if (cass_future_error_code(future) != CASS_OK)
     {
         result = cass_future_error_to_nif_term(cb->env, future);
@@ -106,9 +98,9 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     else
     {
         const CassPrepared* prep = cass_future_get_prepared(future);
-        
+
         ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistency);
-        
+
         if(enif_is_tuple(cb->env, term))
         {
             cass_prepared_free(prep);
@@ -119,10 +111,10 @@ void on_statement_prepared(CassFuture* future, void* user_data)
             result = enif_make_tuple2(cb->env, ATOMS.atomOk, term);
         }
     }
-    
+
     enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomPreparedStatementResult, result, cb->arguments));
     enif_free_env(cb->env);
-    
+
     enif_free(cb);
 }
 
@@ -166,9 +158,9 @@ void on_statement_executed(CassFuture* future, void* user_data)
 ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
+
     enif_cass_session *enif_session = static_cast<enif_cass_session*>(enif_alloc_resource(data->resCassSession, sizeof(enif_cass_session)));
-    
+
     if(enif_session == NULL)
         return make_error(env, erlcass::kFailedToAllocResourceMsg);
 
@@ -176,7 +168,7 @@ ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 
     ERL_NIF_TERM term = enif_make_resource(env, enif_session);
     enif_release_resource(enif_session);
-    
+
     return enif_make_tuple2(env, ATOMS.atomOk, term);
 }
 
@@ -218,48 +210,48 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
 ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
+
     enif_cass_session * enif_session = NULL;
     ErlNifPid pid;
-    
+
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
-    
+
     if(enif_get_local_pid(env, argv[1], &pid) == 0)
         return make_badarg(env);
-    
+
     callback_info* callback = callback_info_alloc(env, pid, argv[1]);
-    
+
     if(callback == NULL)
         return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
 
     CassFuture* future = cass_session_close(enif_session->session);
     CassError error = cass_future_set_callback(future, on_session_closed, callback);
     cass_future_free(future);
-    
+
     if(error != CASS_OK)
         return cass_error_to_nif_term(env, error);
-    
+
     return ATOMS.atomOk;
 }
 
 ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
+
     enif_cass_session * enif_session = NULL;
     ErlNifPid pid;
 
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
-    
+
     if(!enif_get_local_pid(env, argv[1], &pid))
         return make_badarg(env);
-    
+
     QueryTerm q(ConsistencyLevelOptions(data->defaultConsistencyLevel, CASS_CONSISTENCY_ANY));
-    
+
     ERL_NIF_TERM parse_result = parse_query_term(env, argv[2], &q);
-    
+
     if(!enif_is_identical(ATOMS.atomOk, parse_result))
         return parse_result;
 
@@ -270,9 +262,9 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     callback->arguments = enif_make_copy(callback->env, argv[3]);
     callback->consistency = q.consistency;
     callback->session = enif_session->session;
-    
+
     CassFuture* future = cass_session_prepare_n(enif_session->session, BIN_TO_STR(q.query.data), q.query.size);
-    
+
     CassError error = cass_future_set_callback(future, on_statement_prepared, callback);
     cass_future_free(future);
     return cass_error_to_nif_term(env, error);
@@ -281,14 +273,14 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
 ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
+
     enif_cass_session * enif_session = NULL;
-    
+
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
 
     CassStatement* stm = get_statement(env, data->resCassStatement, argv[1]);
-    
+
     if(stm == NULL)
         return make_badarg(env);
 
@@ -297,16 +289,16 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(!enif_is_identical(ATOMS.atomNull, argv[2]))
     {
         ErlNifPid pid;
-        
+
         if(enif_get_local_pid(env, argv[2], &pid) == 0)
             return make_badarg(env);
-        
+
         callback = callback_info_alloc(env, pid, argv[3]);
-        
+
         if(callback == NULL)
             return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
     }
-    
+
     CassFuture* future = cass_session_execute(enif_session->session, stm);
     CassError error = cass_future_set_callback(future, on_statement_executed, callback);
     cass_future_free(future);
@@ -404,15 +396,15 @@ ERL_NIF_TERM metric_double(ErlNifEnv* env, const char* name, cass_double_t prop)
 ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
+
     enif_cass_session * enif_session = NULL;
-    
+
     if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
-    
+
     CassMetrics metrics;
     cass_session_get_metrics(enif_session->session, &metrics);
-    
+
     ERL_NIF_TERM requests = enif_make_tuple(env, 14,
                                             metric_uint64(env, "min", metrics.requests.min),
                                             metric_uint64(env, "max", metrics.requests.max),
@@ -439,12 +431,12 @@ ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NI
                                             metric_uint64(env, "connection_timeouts", metrics.errors.connection_timeouts),
                                             metric_uint64(env, "pending_request_timeouts", metrics.errors.pending_request_timeouts),
                                             metric_uint64(env, "request_timeouts", metrics.errors.request_timeouts));
-    
+
     ERL_NIF_TERM result = enif_make_tuple3(env,
                                            enif_make_tuple2(env, make_atom(env, "requests"), requests),
                                            enif_make_tuple2(env, make_atom(env, "stats"), stats),
                                            enif_make_tuple2(env, make_atom(env, "errors"), errors));
-    
+
     return enif_make_tuple2(env, ATOMS.atomOk, result);
 }
 

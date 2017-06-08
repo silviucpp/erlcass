@@ -1,11 +1,3 @@
-//
-//  nif_cass_uuid.h
-//  erlcass
-//
-//  Created by silviu on 6/2/15.
-//
-//
-
 #ifndef ERLCASS_C_SRC_NIF_CASS_UUID_H
 #define ERLCASS_C_SRC_NIF_CASS_UUID_H
 

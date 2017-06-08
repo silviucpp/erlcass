@@ -1,11 +1,3 @@
-//
-//  nif_date_time.h
-//  erlcass
-//
-//  Created by silviu on 10/18/15.
-//
-//
-
 #ifndef ERLCASS_C_SRC_NIF_DATE_TIME_H
 #define ERLCASS_C_SRC_NIF_DATE_TIME_H
 

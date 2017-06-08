@@ -1,11 +1,3 @@
-//
-//  constants.h
-//  erlcass_nif
-//
-//  Created by silviu on 9/27/16.
-//
-//
-
 #ifndef ERLCASS_C_SRC_CONSTANTS_H
 #define ERLCASS_C_SRC_CONSTANTS_H
 

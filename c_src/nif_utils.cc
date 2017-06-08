@@ -6,7 +6,7 @@
 ERL_NIF_TERM make_atom(ErlNifEnv* env, const char* name)
 {
     ERL_NIF_TERM ret;
-    
+
     if(enif_make_existing_atom(env, name, &ret, ERL_NIF_LATIN1))
         return ret;
 
@@ -75,7 +75,7 @@ ERL_NIF_TERM cass_error_to_nif_term(ErlNifEnv* env, CassError error)
 {
     if(error != CASS_OK)
         return make_error(env, cass_error_desc(error));
-    
+
     return ATOMS.atomOk;
 }
 

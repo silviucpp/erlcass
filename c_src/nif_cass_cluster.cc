@@ -190,29 +190,29 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_opt
     ERL_NIF_TERM head;
 
     std::unique_ptr<CassSsl, decltype(&cass_ssl_free)> ssl(cass_ssl_new(), &cass_ssl_free);
-    
+
     while(enif_get_list_cell(env, term_value, &head, &term_value))
     {
         const ERL_NIF_TERM *items;
         int arity;
-        
+
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
             return make_bad_options(env, head);
-        
+
         if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslTrustedCerts))
         {
             ERL_NIF_TERM trust_list = items[1];
             ERL_NIF_TERM cert_head;
-            
+
             ErlNifBinary cert_item;
-            
+
             while(enif_get_list_cell(env, trust_list, &cert_head, &trust_list))
             {
                 if(!get_bstring(env, cert_head, &cert_item))
                     return make_bad_options(env, head);
-             
+
                 CassError error = cass_ssl_add_trusted_cert_n(ssl.get(), BIN_TO_STR(cert_item.data), cert_item.size);
-                
+
                 if(error != CASS_OK)
                     return cass_error_to_nif_term(env, error);
             }
@@ -220,12 +220,12 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_opt
         else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslCert))
         {
             ErlNifBinary cert;
-            
+
             if(!get_bstring(env, items[1], &cert))
                 return make_bad_options(env, head);
-            
+
             CassError error = cass_ssl_set_cert_n(ssl.get(), BIN_TO_STR(cert.data), cert.size);
-            
+
             if(error != CASS_OK)
                 return cass_error_to_nif_term(env, error);
         }
@@ -235,28 +235,28 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_opt
             int pk_arity;
             ErlNifBinary pk;
             ErlNifBinary pk_pwd;
-            
+
             if(!enif_get_tuple(env, items[1], &pk_arity, &pk_items) || pk_arity != 2)
                 return make_bad_options(env, head);
-            
+
             if(!get_bstring(env, pk_items[0], &pk))
                 return make_bad_options(env, head);
-            
+
             if(!get_bstring(env, pk_items[1], &pk_pwd))
                 return make_bad_options(env, head);
-            
+
             CassError error = cass_ssl_set_private_key_n(ssl.get(), BIN_TO_STR(pk.data), pk.size, BIN_TO_STR(pk_pwd.data), pk_pwd.size);
-            
+
             if(error != CASS_OK)
                 return cass_error_to_nif_term(env, error);
         }
         else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslVerifyFlags))
         {
             int verify_flags;
-            
+
             if(!enif_get_int(env, items[1], &verify_flags))
                 return make_bad_options(env, head);
-            
+
             cass_ssl_set_verify_flags(ssl.get(), verify_flags);
         }
         else
@@ -264,9 +264,9 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_opt
             return make_bad_options(env, head);
         }
     }
-    
+
     cass_cluster_set_ssl(data->cluster, ssl.get());
-    
+
     return ATOMS.atomOk;
 }
 
@@ -283,22 +283,22 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
         cass_cluster_set_latency_aware_routing(data->cluster, latency_aware_routing);
         return ATOMS.atomOk;
     }
-    
+
     const ERL_NIF_TERM *items;
     int arity;
-    
+
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
         return make_bad_options(env, term_option);
-    
+
     cass_bool_t latency_aware_routing;
 
     if(!get_boolean(items[0], &latency_aware_routing))
         return make_bad_options(env, term_option);
 
     cass_cluster_set_latency_aware_routing(data->cluster, latency_aware_routing);
-    
+
     //set also the settings
-    
+
     if(!enif_get_tuple(env, items[1], &arity, &items) || arity != 5)
         return make_bad_options(env, term_option);
 
@@ -307,22 +307,22 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
     unsigned long retry_period_ms;
     unsigned long update_rate_ms;
     unsigned long min_measured;
-    
+
     if(!enif_get_double(env, items[0], &exclusion_threshold))
         return make_bad_options(env, term_option);
-    
+
     if(!enif_get_uint64(env, items[1], &scale_ms))
         return make_bad_options(env, term_option);
-    
+
     if(!enif_get_uint64(env, items[2], &retry_period_ms))
         return make_bad_options(env, term_option);
-    
+
     if(!enif_get_uint64(env, items[3], &update_rate_ms))
         return make_bad_options(env, term_option);
-    
+
     if(!enif_get_uint64(env, items[4], &min_measured))
         return make_bad_options(env, term_option);
-    
+
     cass_cluster_set_latency_aware_routing_settings(data->cluster, exclusion_threshold, scale_ms, retry_period_ms, update_rate_ms, min_measured);
     return ATOMS.atomOk;
 }
@@ -330,7 +330,7 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
 ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_key, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     CUSTOM_SETTING(ATOMS.atomClusterDefaultConsistencyLevel, internal_cluster_set_default_consistency_level);
-    
+
     STRING_SETTING(ATOMS.atomClusterSettingContactPoints, cass_cluster_set_contact_points_n);
     INT_SETTING(ATOMS.atomClusterSettingPort, cass_cluster_set_port);
     CUSTOM_SETTING(ATOMS.atomClusterSettingSsl, internal_cass_cluster_set_ssl);
@@ -360,39 +360,39 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     CUSTOM_SETTING(ATOMS.atomClusterSetringLatencyAwareRouting, internal_cluster_set_latency_aware_routing);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpNodelay, internal_cass_cluster_set_tcp_nodelay);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpKeepalive, internal_cass_cluster_set_tcp_keepalive);
-    
+
     return make_bad_options(env, term_option);
 }
 
 ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
+
     if(data->cluster)
     {
     	//this can happened in case the erlcass gen_server is crashes
         cass_cluster_free(data->cluster);
         data->cluster = NULL;
     }
-    
+
     data->cluster = cass_cluster_new();
-    
+
     if(data->cluster == NULL)
         return make_error(env, erlcass::kClusterObjectFailedToCreateMsg);
-    
+
     return ATOMS.atomOk;
 }
 
 ERL_NIF_TERM nif_cass_cluster_release(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
-    
+
     if(!data->cluster)
         return make_error(env, erlcass::kClusterObjectNotCreatedMsg);
-    
+
     cass_cluster_free(data->cluster);
     data->cluster = NULL;
-    
+
     return ATOMS.atomOk;
 }
 
@@ -435,9 +435,9 @@ void cass_log_callback(const CassLogMessage* message, void* data)
         return;
 
     ErlNifPid* pid = reinterpret_cast<ErlNifPid*>(data);
-    
+
     ErlNifEnv* env = enif_alloc_env();
-    
+
     ERL_NIF_TERM log_record = enif_make_tuple6(env,
                                                ATOMS.atomLogMsgRecord,
                                                enif_make_int(env, message->severity),
@@ -445,9 +445,9 @@ void cass_log_callback(const CassLogMessage* message, void* data)
                                                enif_make_int(env, message->line),
                                                make_binary(env, message->function, strlen(message->function)),
                                                make_binary(env, message->message, strlen(message->message)));
-    
+
     enif_send(NULL, pid, env, enif_make_tuple2(env, ATOMS.atomLogMessageReceived, log_record));
-    
+
     enif_free_env(env);
 }
 
@@ -477,6 +477,6 @@ ERL_NIF_TERM nif_cass_log_set_callback(ErlNifEnv* env, int argc, const ERL_NIF_T
 
         cass_log_set_callback(cass_log_callback, &data->log_pid);
     }
-    
+
     return ATOMS.atomOk;
 }

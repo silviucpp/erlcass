@@ -1,11 +1,3 @@
-//
-//  collection.h
-//  erlcass
-//
-//  Created by silviu on 5/28/15.
-//
-//
-
 #ifndef ERLCASS_C_SRC_NIF_COLLECTION_H
 #define ERLCASS_C_SRC_NIF_COLLECTION_H
 

@@ -1,11 +1,3 @@
-//
-//  nif_tuple.hpp
-//  erlcass
-//
-//  Created by silviu on 9/23/15.
-//
-//
-
 #ifndef ERLCASS_C_SRC_NIF_TUPLE_H
 #define ERLCASS_C_SRC_NIF_TUPLE_H
 

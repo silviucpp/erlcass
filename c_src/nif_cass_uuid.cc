@@ -1,11 +1,3 @@
-//
-//  nif_cass_uuid.cpp
-//  erlcass
-//
-//  Created by silviu on 6/2/15.
-//
-//
-
 #include "nif_cass_uuid.h"
 #include "erlcass.h"
 #include "nif_utils.h"

@@ -1,11 +1,3 @@
-//
-//  nif_utils.h
-//  erlcass
-//
-//  Created by silviu on 5/8/15.
-//
-//
-
 #ifndef ERLCASS_C_SRC_NIF_UTILS_H
 #define ERLCASS_C_SRC_NIF_UTILS_H
 

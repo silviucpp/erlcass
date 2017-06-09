@@ -28,6 +28,10 @@ extern const char kAtomConsistencyLevel[];
 extern const char kAtomSerialConsistencyLevel[];
 extern const char kAtomLogMsgRecord[];
 
+//data types
+
+extern const char kAtomDataTypeUdt[];
+
 //events atoms
 
 extern const char kAtomSessionConnected[];

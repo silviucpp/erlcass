@@ -31,6 +31,10 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomSerialConsistencyLevel = make_atom(env, erlcass::kAtomSerialConsistencyLevel);
     ATOMS.atomLogMsgRecord = make_atom(env, erlcass::kAtomLogMsgRecord);
 
+    //data types
+
+    ATOMS.atomDataTypeUdt = make_atom(env, erlcass::kAtomDataTypeUdt);
+
     //events atoms
 
     ATOMS.atomSessionConnected = make_atom(env, erlcass::kAtomSessionConnected);

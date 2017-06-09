@@ -20,6 +20,7 @@ ERL_NIF_TERM small_int_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM int_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value);
+ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 
 ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
 {
@@ -81,6 +82,9 @@ ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
 
         case CASS_VALUE_TYPE_TUPLE:
             return tuple_to_erlang_term(env, value);
+
+        case CASS_VALUE_TYPE_UDT:
+            return udt_to_erlang_term(env, value);
 
         default:
             //unsuported types and null values
@@ -246,6 +250,35 @@ ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     cass_iterator_free(iterator);
 
     return enif_make_tuple_from_array(env, itemsList, static_cast<unsigned>(itemsCount));
+}
+
+ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value)
+{
+    size_t items_count = cass_value_item_count(value);
+
+    if(items_count == 0)
+        return ATOMS.atomNull;
+
+    ERL_NIF_TERM items_list[items_count];
+    size_t rowIndex = 0;
+
+    CassIterator* iterator = cass_iterator_fields_from_user_type(value);
+
+    while (cass_iterator_next(iterator))
+    {
+        const char* field_name_ptr;
+        size_t field_name_length;
+
+        if(cass_iterator_get_user_type_field_name(iterator, &field_name_ptr, &field_name_length) != CASS_OK)
+            return ATOMS.atomNull;
+
+        ERL_NIF_TERM field_value = cass_value_to_nif_term(env, cass_iterator_get_user_type_field_value(iterator));
+        items_list[rowIndex++] = enif_make_tuple2(env, make_binary(env, field_name_ptr, field_name_length), field_value);
+    }
+
+    cass_iterator_free(iterator);
+
+    return enif_make_tuple2(env, ATOMS.atomDataTypeUdt, enif_make_list_from_array(env, items_list, items_count));
 }
 
 //convert CassResult into erlang term

@@ -27,6 +27,10 @@ const char kAtomConsistencyLevel[] = "consistency_level";
 const char kAtomSerialConsistencyLevel[] = "serial_consistency_level";
 const char kAtomLogMsgRecord[] = "log_msg";
 
+//data types
+
+const char kAtomDataTypeUdt[] = "udt";
+
 //events atoms
 
 const char kAtomSessionConnected[] = "session_connected";

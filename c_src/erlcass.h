@@ -19,6 +19,10 @@ struct atoms
     ERL_NIF_TERM atomSerialConsistencyLevel;
     ERL_NIF_TERM atomLogMsgRecord;
 
+    //data type
+
+    ERL_NIF_TERM atomDataTypeUdt;
+
     //events atoms
 
     ERL_NIF_TERM atomSessionConnected;

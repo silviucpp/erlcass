@@ -3,7 +3,7 @@
 
 -include("erlcass.hrl").
 
--export([start/0, profile/3, profile/4, prepare_load_test_table/0]).
+-export([start/0, profile/2, profile/3, prepare_load_test_table/0]).
 
 -define(KEYSPACE, <<"load_test_erlcass">>).
 -define(QUERY, {<<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14 FROM test_table WHERE col1 =?">>, ?CASS_CONSISTENCY_ONE}).
@@ -13,8 +13,6 @@
 start() ->
     case application:ensure_all_started(erlcass) of
         {ok, [_|_]} ->
-            ok = erlcass:add_prepare_statement(execute_query, ?QUERY);
-        {ok, []} ->
             ok;
         UnexpectedError ->
             UnexpectedError
@@ -30,15 +28,17 @@ datatypes_columns(I, [ColumnType|Rest], Bin) ->
 
 prepare_load_test_table() ->
     start(),
-    erlcass:execute(<<"DROP KEYSPACE ", (?KEYSPACE)/binary>>),
-    {ok, []} = erlcass:execute(<<"CREATE KEYSPACE ", (?KEYSPACE)/binary, " WITH replication = {'class': 'NetworkTopologyStrategy', '", (?CLUSTER_NAME)/binary, "': 3  }">>),
+
+    erlcass:query(<<"DROP KEYSPACE ", (?KEYSPACE)/binary>>),
+    {ok, []} = erlcass:query(<<"CREATE KEYSPACE ", (?KEYSPACE)/binary, " WITH replication = {'class': 'NetworkTopologyStrategy', '", (?CLUSTER_NAME)/binary, "': 3  }">>),
 
     Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet]),
     Sql = <<"CREATE TABLE ", (?KEYSPACE)/binary, ".test_table(",  Cols/binary, " PRIMARY KEY(col1));">>,
     io:format(<<"exec: ~p ~n">>,[Sql]),
-    {ok, []} = erlcass:execute(Sql),
+    {ok, []} = erlcass:query(Sql),
 
     InsertQuery = <<"INSERT INTO ", (?KEYSPACE)/binary, ".test_table(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
+    ok = erlcass:add_prepare_statement(add_load_test_record, InsertQuery),
 
     AsciiValBin = <<"hello">>,
     BigIntPositive = 9223372036854775807,
@@ -55,22 +55,22 @@ prepare_load_test_table() ->
     {ok, Timeuuid} = erlcass_uuid:gen_time(),
     Inet = <<"127.0.0.1">>,
 
-    {ok, []} = erlcass:execute(InsertQuery,
-        [
-            {?CASS_TEXT, AsciiValBin},
-            {?CASS_BIGINT, BigIntPositive},
-            {?CASS_BLOB, Blob},
-            {?CASS_BOOLEAN, BooleanTrue},
-            {?CASS_DECIMAL, DecimalPositive},
-            {?CASS_DOUBLE, DoublePositive},
-            {?CASS_FLOAT, FloatPositive},
-            {?CASS_INT, IntPositive},
-            {?CASS_BIGINT, Timestamp},
-            {?CASS_UUID, Uuid},
-            {?CASS_TEXT, Varchar1},
-            {?CASS_BLOB, Varint1},
-            {?CASS_UUID, Timeuuid},
-            {?CASS_INET, Inet}]).
+    {ok, []} = erlcass:execute(add_load_test_record, [
+            AsciiValBin,
+            BigIntPositive,
+            Blob,
+            BooleanTrue,
+            DecimalPositive,
+            DoublePositive,
+            FloatPositive,
+            IntPositive,
+            Timestamp,
+            Uuid,
+            Varchar1,
+            Varint1,
+            Timeuuid,
+            Inet
+    ]).
 
 display_progress(Results) ->
     if
@@ -100,67 +100,49 @@ consumer_loop(TotalResults, SuccessResults, FailedResults, LimitReq) ->
             consumer_loop(TotalResults +1 , SuccessResults, FailedResults + 1, LimitReq -1)
     end.
 
-producer_loop(_St, 0, _UseOneSt) ->
+producer_loop(0) ->
     ok;
+producer_loop(NumRequests) ->
+    erlcass:async_execute(execute_query, ?QUERY_ARGS),
+    producer_loop(NumRequests -1).
 
-producer_loop(St, NumRequests, UseOneSatement) ->
-
-    case UseOneSatement of
-        true ->
-            erlcass:async_execute_statement(St);
-        false ->
-            erlcass:async_execute(execute_query, ?QUERY_ARGS)
-    end,
-
-    producer_loop(St, NumRequests -1, UseOneSatement).
-
-get_statement(UseOneSatement) ->
-    case UseOneSatement of
-        true ->
-            {ok, Statement} = erlcass:bind_prepared_statement(execute_query),
-            ok = erlcass:bind_prepared_params_by_index(Statement, ?QUERY_ARGS),
-            Statement;
-        false ->
-            undefined
-    end.
-
-load_test(St, 1, NrReq, UseOneSatement) ->
-    producer_loop(St, NrReq, UseOneSatement),
+load_test(1, NrReq) ->
+    producer_loop(NrReq),
     consumer_loop(0, 0, 0, NrReq);
 
-load_test(St, NrProcesses, NrReq, UseOneSatement) ->
+load_test(NrProcesses, NrReq) ->
     ReqPerProcess = round(NrReq/NrProcesses),
 
     Fun = fun() ->
-        producer_loop(St, ReqPerProcess, UseOneSatement),
+        producer_loop(ReqPerProcess),
         consumer_loop(0, 0, 0, ReqPerProcess)
     end,
 
     multi_spawn:do_work(Fun, NrProcesses).
 
-run_test(0, _St, _NrProc, _RequestsNr, _UseOneSatement) ->
+run_test(0, _NrProc, _RequestsNr) ->
     ok;
 
-run_test(RepeatNr, St, NrProc, RequestsNr, UseOneSatement) ->
-    load_test(St, NrProc, RequestsNr, UseOneSatement),
-    run_test(RepeatNr -1, St,  NrProc, RequestsNr, UseOneSatement).
+run_test(RepeatNr, NrProc, RequestsNr) ->
+    load_test(NrProc, RequestsNr),
+    run_test(RepeatNr -1, NrProc, RequestsNr).
 
-profile(NrProc, RequestsNr, UseOneSatement) ->
-    profile(NrProc, RequestsNr, 1, UseOneSatement).
+profile(NrProc, RequestsNr) ->
+    profile(NrProc, RequestsNr, 1).
 
-profile(NrProc, RequestsNr, RepeatNumber, UseOneSatement) ->
-    Fun = fun() -> do_profiling(NrProc, RequestsNr, RepeatNumber, UseOneSatement) end,
+profile(NrProc, RequestsNr, RepeatNumber) ->
+    Fun = fun() -> do_profiling(NrProc, RequestsNr, RepeatNumber) end,
     spawn(Fun).
 
-do_profiling(NrProc, RequestsNr, RepeatNumber, UseOneSatement) ->
+do_profiling(NrProc, RequestsNr, RepeatNumber) ->
+    erlcass:add_prepare_statement(execute_query, ?QUERY),
+
     eprof:start(),
     eprof:start_profiling([self()]),
     ok = application:set_env(erlcass, keyspace, ?KEYSPACE),
     start(),
 
-    St = get_statement(UseOneSatement),
-
-    {Time, _} = timer:tc( fun() -> run_test(RepeatNumber, St, NrProc, RequestsNr, UseOneSatement) end),
+    {Time, _} = timer:tc( fun() -> run_test(RepeatNumber, NrProc, RequestsNr) end),
 
     io:format("Cpp Driver Metrics: ~p ~n", [erlcass:get_metrics()]),
     eprof:stop_profiling(),

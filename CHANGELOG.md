@@ -9,7 +9,7 @@
     - non prepared statements are executed now using `query/1`, `query_async/1` and `query_new_statement/1` (used when should run inside a batch)
     - the following methods are removed: `async_execute_statement/1`, `async_execute_statement/3`, `execute_statement/1`
     - removed support for binding non prepared statements.
-- Add support for user-defined type (UDT): decode as `{udt, [{binary(), term()}]}`    
+- Add support for user-defined type (UDT): decode as proplist.
 
 ##### v2.8
 

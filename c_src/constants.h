@@ -12,8 +12,7 @@ extern const char kFailedToAllocResourceMsg[];
 extern const char kFailedToCreateCallbackInfoMsg[];
 extern const char kFailedToCreateBatchObjectMsg[];
 extern const char kBindFailedUnknownColumnType[];
-extern const char kFailedToAddUnknownTypeInCollection[];
-extern const char kFailedToSetUnknownTypeInTuple[];
+extern const char kFailedToSetUnknownType[];
 
 //misc atoms
 
@@ -27,10 +26,6 @@ extern const char kAtomOptions[];
 extern const char kAtomConsistencyLevel[];
 extern const char kAtomSerialConsistencyLevel[];
 extern const char kAtomLogMsgRecord[];
-
-//data types
-
-extern const char kAtomDataTypeUdt[];
 
 //events atoms
 

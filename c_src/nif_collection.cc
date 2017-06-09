@@ -1,7 +1,7 @@
 #include "nif_collection.h"
 #include "nif_utils.h"
 #include "nif_tuple.h"
-#include "erlcass.h"
+#include "nif_udt.h"
 #include "uuid_serialization.h"
 #include "constants.h"
 #include "data_type.hpp"
@@ -188,9 +188,23 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             return cass_error_to_nif_term(env, error);
         }
 
+        case CASS_VALUE_TYPE_UDT:
+        {
+            CassUserType* nested_udt = NULL;
+
+            ERL_NIF_TERM result = nif_term_to_cass_udt(env, value, data_type, &nested_udt);
+
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
+
+            CassError error = cass_collection_append_user_type(collection, nested_udt);
+            cass_user_type_free(nested_udt);
+            return cass_error_to_nif_term(env, error);
+        }
+
         //not implemented types
         default:
-            return make_error(env, erlcass::kFailedToAddUnknownTypeInCollection);
+            return make_error(env, erlcass::kFailedToSetUnknownType);
     }
 }
 

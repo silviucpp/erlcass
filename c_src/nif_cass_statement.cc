@@ -2,6 +2,7 @@
 #include "nif_utils.h"
 #include "nif_collection.h"
 #include "nif_tuple.h"
+#include "nif_udt.h"
 #include "uuid_serialization.h"
 #include "execute_request.hpp"
 #include "constants.h"
@@ -193,6 +194,20 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
 
             CassError error = cass_statement_bind_tuple(statement, index, tuple);
             cass_tuple_free(tuple);
+            return cass_error_to_nif_term(env, error);
+        }
+
+        case CASS_VALUE_TYPE_UDT:
+        {
+            CassUserType* nested_udt = NULL;
+
+            ERL_NIF_TERM result = nif_term_to_cass_udt(env, value, data_type, &nested_udt);
+
+            if(!enif_is_identical(result, ATOMS.atomOk))
+                return result;
+
+            CassError error = cass_statement_bind_user_type(statement, index, nested_udt);
+            cass_user_type_free(nested_udt);
             return cass_error_to_nif_term(env, error);
         }
 

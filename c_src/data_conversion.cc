@@ -278,7 +278,7 @@ ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 
     cass_iterator_free(iterator);
 
-    return enif_make_tuple2(env, ATOMS.atomDataTypeUdt, enif_make_list_from_array(env, items_list, items_count));
+    return enif_make_list_from_array(env, items_list, items_count);
 }
 
 //convert CassResult into erlang term

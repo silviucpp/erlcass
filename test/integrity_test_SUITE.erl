@@ -24,6 +24,7 @@ groups() -> [
         nested_collections,
         tuples,
         batches,
+        test_udt,
         erlcass_crash,
         uuid_testing,
         date_time_testing,
@@ -339,6 +340,39 @@ tuples(_Config) ->
     {ok, [{Key2, Item1, Item2}]} = erlcass:execute(select_tuple_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
     {ok, [{Key3, Item1, Item2}]} = erlcass:execute(select_tuple_types, ?BIND_BY_INDEX, [Key3]),
     ok.
+
+test_udt(_Config) ->
+    UserId = <<"62c36092-82a1-3a00-93d1-46196ee77204">>,
+
+    Fname = <<"Marie-Claude">>,
+    Lname = <<"Josset">>,
+
+    Username = [
+        {<<"firstname">>, Fname},
+        {<<"lastname">>, Lname}
+    ],
+
+    Address = [
+        {<<"street">>,<<"191 Rue St. Charles">>},
+        {<<"city">>,<<"Paris">>},
+        {<<"zip_code">>, 75015},
+        {<<"phones">>, [<<"33 6 78 90 12 34">>]}
+    ],
+
+    {ok, []} = erlcass:query(<<"CREATE TYPE erlang_driver_test.address (street text, city text, zip_code int, phones set<text>)">>),
+    {ok, []} = erlcass:query(<<"CREATE TYPE erlang_driver_test.fullname (firstname text, lastname text)">>),
+    {ok, []} = erlcass:query(<<"CREATE TABLE erlang_driver_test.users (id uuid PRIMARY KEY, name frozen <fullname>, direct_reports set<frozen <fullname>>, addresses map<text, frozen <address>>)">>),
+
+    ok = erlcass:add_prepare_statement(insert_udt, <<"INSERT INTO erlang_driver_test.users (id, name) VALUES (?, ?)">>),
+    ok = erlcass:add_prepare_statement(update_address_udt, <<"UPDATE erlang_driver_test.users SET addresses = addresses + ? WHERE id=?;">>),
+    ok = erlcass:add_prepare_statement(select_name_udt, <<"SELECT name FROM erlang_driver_test.users WHERE id=?">>),
+    ok = erlcass:add_prepare_statement(select_last_name_udt, <<"SELECT name.lastname FROM erlang_driver_test.users WHERE id= ?">>),
+
+    {ok, []} = erlcass:execute(insert_udt, [UserId, Username]),
+    {ok, []} = erlcass:execute(update_address_udt, [[{<<"home">>, Address}], UserId]),
+
+    {ok, [{Username}]} = erlcass:execute(select_name_udt, [UserId]),
+    {ok, [{Lname}]} = erlcass:execute(select_last_name_udt, [UserId]).
 
 batches(_Config) ->
     {ok, []} = erlcass:query(<<"TRUNCATE erlang_driver_test.entries1;">>),

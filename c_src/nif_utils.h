@@ -22,6 +22,7 @@ struct QueryTerm
 };
 
 #define BIN_TO_STR(x) reinterpret_cast<const char*>(x)
+#define scoped_ptr(Name, Type, New, Free) std::unique_ptr<Type, decltype(&Free)>Name (New, &Free)
 
 ERL_NIF_TERM make_atom(ErlNifEnv* env, const char* name);
 ERL_NIF_TERM make_error(ErlNifEnv* env, const char* error);

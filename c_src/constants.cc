@@ -11,8 +11,7 @@ const char kFailedToAllocResourceMsg[] = "enif_alloc_resource failed";
 const char kFailedToCreateCallbackInfoMsg[] = "failed to create callback info";
 const char kFailedToCreateBatchObjectMsg[] = "failed to create batch object";
 const char kBindFailedUnknownColumnType[] = "bind failed. not implemented column type";
-const char kFailedToAddUnknownTypeInCollection[] = "failed to add unknown type to the collection";
-const char kFailedToSetUnknownTypeInTuple[] = "failed to set unknown type in tuple";
+const char kFailedToSetUnknownType[] = "failed to set unknown type";
 
 //misc atoms
 
@@ -26,10 +25,6 @@ const char kAtomOptions[] = "options";
 const char kAtomConsistencyLevel[] = "consistency_level";
 const char kAtomSerialConsistencyLevel[] = "serial_consistency_level";
 const char kAtomLogMsgRecord[] = "log_msg";
-
-//data types
-
-const char kAtomDataTypeUdt[] = "udt";
 
 //events atoms
 

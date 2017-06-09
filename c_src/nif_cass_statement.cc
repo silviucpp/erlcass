@@ -14,27 +14,12 @@ struct enif_cass_statement
     CassStatement* statement;
 };
 
-SchemaColumn get_schema_column(const cass::DataType* data_type)
-{
-    SchemaColumn sc(data_type->value_type());
-
-    if(data_type->is_collection() || data_type->is_tuple())
-    {
-        const cass::CompositeType* collection_type = static_cast<const cass::CompositeType*>(data_type);
-
-        for(cass::DataType::Vec::const_iterator it = collection_type->types().begin(); it != collection_type->types().end(); ++it)
-            sc.subtypes.push_back(get_schema_column((*it).get()));
-    }
-
-    return sc;
-}
-
-ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const SchemaColumn& type, ERL_NIF_TERM value)
+ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const cass::DataType* data_type, ERL_NIF_TERM value)
 {
     if(enif_is_identical(value, ATOMS.atomNull))
         return cass_error_to_nif_term(env, cass_statement_bind_null(statement, index));
 
-    switch (type.type)
+    switch (data_type->value_type())
     {
         case CASS_VALUE_TYPE_VARCHAR:
         case CASS_VALUE_TYPE_ASCII:
@@ -129,7 +114,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
             if(!enif_get_double(env, value, &val_double))
                 return make_badarg(env);
 
-            if(type.type == CASS_VALUE_TYPE_FLOAT)
+            if(data_type->value_type() == CASS_VALUE_TYPE_FLOAT)
                 return cass_error_to_nif_term(env, cass_statement_bind_float(statement, index, static_cast<float>(val_double)));
             else
                 return cass_error_to_nif_term(env, cass_statement_bind_double(statement, index, val_double));
@@ -187,7 +172,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
         {
             CassCollection* collection = NULL;
 
-            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, type, &collection);
+            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, data_type, &collection);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -201,7 +186,7 @@ ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_
         {
             CassTuple* tuple = NULL;
 
-            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, type, &tuple);
+            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, data_type, &tuple);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -247,8 +232,8 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
 
             size_t index = indices[0];
 
-            SchemaColumn sc = get_schema_column(result->metadata()->get_column_definition(index).data_type.get());
-            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, items[1]);
+            const cass::DataType* data_type = result->metadata()->get_column_definition(index).data_type.get();
+            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, data_type, items[1]);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -270,9 +255,9 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             if(def.data_type.get() == NULL)
                 return make_badarg(env);
 
-            SchemaColumn sc = get_schema_column(def.data_type.get());
+            const cass::DataType* data_type = def.data_type.get();
 
-            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, sc, head);
+            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, data_type, head);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;

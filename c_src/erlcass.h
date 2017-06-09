@@ -4,8 +4,6 @@
 #include "erl_nif.h"
 #include "cassandra.h"
 
-#include <vector>
-
 struct atoms
 {
     ERL_NIF_TERM atomOk;
@@ -78,15 +76,6 @@ struct cassandra_data
     ErlNifResourceType* resCassSession;
     ErlNifResourceType* resCassPrepared;
     ErlNifResourceType* resCassStatement;
-};
-
-struct SchemaColumn
-{
-    SchemaColumn() : type(CASS_VALUE_TYPE_UNKNOWN){}
-    explicit SchemaColumn(CassValueType vt) : type(vt){}
-
-    CassValueType type;
-    std::vector<SchemaColumn> subtypes;
 };
 
 extern atoms ATOMS;

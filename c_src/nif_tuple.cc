@@ -5,10 +5,11 @@
 #include "uuid_serialization.h"
 #include "cassandra.h"
 #include "constants.h"
+#include "data_type.hpp"
 
-ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const SchemaColumn& type, ERL_NIF_TERM value)
+ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index, const cass::DataType* data_type, ERL_NIF_TERM value)
 {
-    switch (type.type)
+    switch (data_type->value_type())
     {
         case CASS_VALUE_TYPE_VARCHAR:
         case CASS_VALUE_TYPE_ASCII:
@@ -103,7 +104,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
             if(!enif_get_double(env, value, &val_double))
                 return make_badarg(env);
 
-            if(type.type == CASS_VALUE_TYPE_FLOAT)
+            if(data_type->value_type() == CASS_VALUE_TYPE_FLOAT)
                 return cass_error_to_nif_term(env, cass_tuple_set_float(tuple, index, static_cast<float>(val_double)));
             else
                 return cass_error_to_nif_term(env, cass_tuple_set_double(tuple, index, val_double));
@@ -161,7 +162,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
         {
             CassCollection* collection = NULL;
 
-            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, type, &collection);
+            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, data_type, &collection);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -175,7 +176,7 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
         {
             CassTuple* nested_tuple = NULL;
 
-            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, type, &nested_tuple);
+            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, data_type, &nested_tuple);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -190,26 +191,30 @@ ERL_NIF_TERM cass_tuple_set_from_nif(ErlNifEnv* env, CassTuple* tuple, int index
     }
 }
 
-ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const SchemaColumn & type, CassTuple** tp)
+ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const cass::DataType* data_type, CassTuple** tp)
 {
+    const cass::CompositeType* ct = static_cast<const cass::CompositeType*>(data_type);
+
     const ERL_NIF_TERM *items;
     int arity;
 
-    if(!enif_get_tuple(env, term, &arity, &items) || arity == 0 || static_cast<size_t>(arity) != type.subtypes.size())
+    if(!enif_get_tuple(env, term, &arity, &items) || arity == 0 || static_cast<size_t>(arity) != ct->types().size())
         return make_badarg(env);
 
     CassTuple* tuple = cass_tuple_new(arity);
-    ERL_NIF_TERM item_term;
+    int index = 0;
 
-    for (int i = 0; i < arity; i++)
+    for(cass::DataType::Vec::const_iterator it = ct->types().begin(); it != ct->types().end(); ++it)
     {
-        item_term = cass_tuple_set_from_nif(env, tuple, i, type.subtypes.at(i), items[i]);
+        ERL_NIF_TERM item_term = cass_tuple_set_from_nif(env, tuple, index, (*it).get(), items[index]);
 
         if(!enif_is_identical(item_term, ATOMS.atomOk))
         {
             cass_tuple_free(tuple);
             return item_term;
         }
+
+        index++;
     }
 
     *tp = tuple;

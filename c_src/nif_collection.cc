@@ -4,13 +4,14 @@
 #include "erlcass.h"
 #include "uuid_serialization.h"
 #include "constants.h"
+#include "data_type.hpp"
 
 static const int kIndexKey = 0;
 static const int kIndexVal = 1;
 
-ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const SchemaColumn& type, ERL_NIF_TERM value)
+ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* collection, const cass::DataType* data_type, ERL_NIF_TERM value)
 {
-    switch (type.type)
+    switch (data_type->value_type())
     {
         case CASS_VALUE_TYPE_VARCHAR:
         case CASS_VALUE_TYPE_ASCII:
@@ -105,7 +106,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
             if(!enif_get_double(env, value, &val_double))
                 return make_badarg(env);
 
-            if(type.type == CASS_VALUE_TYPE_FLOAT)
+            if(data_type->value_type() == CASS_VALUE_TYPE_FLOAT)
                 return cass_error_to_nif_term(env, cass_collection_append_float(collection, static_cast<float>(val_double)));
             else
                 return cass_error_to_nif_term(env, cass_collection_append_double(collection, val_double));
@@ -163,7 +164,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
         {
             CassCollection* nested_collection = NULL;
 
-            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, type, &nested_collection);
+            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, data_type, &nested_collection);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -177,7 +178,7 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
         {
             CassTuple* tuple = NULL;
 
-            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, type, &tuple);
+            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, data_type, &tuple);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -193,14 +194,14 @@ ERL_NIF_TERM cass_collection_append_from_nif(ErlNifEnv* env, CassCollection* col
     }
 }
 
-ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn &type)
+ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const cass::DataType* dt)
 {
     ERL_NIF_TERM head;
     ERL_NIF_TERM item_term;
 
     while(enif_get_list_cell(env, list, &head, &list))
     {
-        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[kIndexKey], head);
+        item_term = cass_collection_append_from_nif(env, collection, dt, head);
 
         if(!enif_is_identical(item_term, ATOMS.atomOk))
             return item_term;
@@ -209,7 +210,7 @@ ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, Cas
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection *collection, const SchemaColumn& type)
+ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const cass::DataType* kt, const cass::DataType* vt)
 {
     ERL_NIF_TERM head;
     ERL_NIF_TERM item_term;
@@ -222,14 +223,14 @@ ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassColl
             return make_badarg(env);
 
         //add key
-        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[kIndexKey], items[0]);
+        item_term = cass_collection_append_from_nif(env, collection, kt, items[0]);
 
         if(!enif_is_identical(item_term, ATOMS.atomOk))
             return item_term;
 
         //add value
 
-        item_term = cass_collection_append_from_nif(env, collection, type.subtypes[kIndexVal], items[1]);
+        item_term = cass_collection_append_from_nif(env, collection, vt, items[1]);
 
         if(!enif_is_identical(item_term, ATOMS.atomOk))
             return item_term;
@@ -238,21 +239,23 @@ ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassColl
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const  SchemaColumn& type, CassCollection ** col)
+ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const cass::DataType* data_type, CassCollection ** col)
 {
+    const cass::CompositeType* ct = static_cast<const cass::CompositeType*>(data_type);
+
     unsigned int length;
 
     if(!enif_get_list_length(env, list, &length))
         return make_badarg(env);
 
-    CassCollection* collection = cass_collection_new(static_cast<CassCollectionType>(type.type), length);
+    CassCollection* collection = cass_collection_new(static_cast<CassCollectionType>(data_type->value_type()), length);
 
     ERL_NIF_TERM return_value;
 
-    if(type.type != CASS_VALUE_TYPE_MAP)
-        return_value = populate_list_set_collection(env, list, collection, type);
+    if(data_type->value_type() != CASS_VALUE_TYPE_MAP)
+        return_value = populate_list_set_collection(env, list, collection, ct->types().at(kIndexKey).get());
     else
-        return_value = populate_map_collection(env, list, collection, type);
+        return_value = populate_map_collection(env, list, collection, ct->types().at(kIndexKey).get(), ct->types().at(kIndexVal).get());
 
     if(!enif_is_identical(return_value, ATOMS.atomOk))
         cass_collection_free(collection);

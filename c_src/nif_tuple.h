@@ -3,6 +3,10 @@
 
 #include "erlcass.h"
 
-ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const SchemaColumn & type, CassTuple** tuple);
+namespace cass {
+    class DataType;
+}
+
+ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const cass::DataType* data_type, CassTuple** tuple);
 
 #endif

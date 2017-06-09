@@ -6,22 +6,27 @@
  
 #### How ErlCass affects the Erlang schedulers
 
-It's well known that NIF's can affect the Erlang schedulers performances in case the functions are not returning in less than 1-2 ms and blocks the threads. 
+It's well known that NIF's can affect the Erlang schedulers performances in case the functions are not returning in less
+than 1-2 ms and blocks the threads. 
 
-Because the DataStax cpp driver is async, `ErlCass` won't block the scheduler threads and all calls to the native functions will return immediately.
-The DataStax driver use it's own threads for managing the requests. Also the responses are received on this threads and sent back to Erlang calling process using `enif_send` in a async manner. 
+Because the DataStax cpp driver is async, `ErlCass` won't block the scheduler threads and all calls to the native 
+functions will return immediately. The DataStax driver use it's own thread pool for managing the requests. 
+Also the responses are received on this threads and sent back to Erlang calling processes using `enif_send` in 
+an async manner. 
 
 #### Benchmark comparing with other drivers
 
-The benchmark (`benchmarks/benchmark.erl`) is spawning N processes that will run a total of X request using the async api's and then waits to read X responses.
-In `benchmarks/benchmark.config` you can find the config's for every application. During test in case of unexpected results from driver will log errors in console.
+The benchmark (`benchmarks/benchmark.erl`) is spawning N processes that will run a total of X request using the async
+api's and then waits to read X responses. In `benchmarks/benchmark.config` you can find the config's for every 
+application. During test in case of unexpected results from driver will log errors in console.
 
 Notes:
 
 - `marina` is currently disabled. Seems is not compiling with rebar on OSX because of one of it's deps.
 - Test was run on MacBook Pro with OSX El Capitan
-- The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`. Basically the schema contains all possible 
-data types and the query is based on a primary key (will return the same row all the time which is fine because we test the driver performances and not the server one)
+- The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`. 
+Basically the schema contains all possible data types and the query is based on a primary key (will return the same 
+row all the time which is fine because we test the driver performances and not the server one)
  
 ```erlang
 benchmark:run(Module, NrProcesses, NrReq).
@@ -42,8 +47,8 @@ Changelog is available [here][5].
 
 The application is compatible with both `rebar` or `rebar3`.
 
-In case you receive any error related to compiling of the DataStax driver you can try to run `rebar` with `sudo` in order 
-to install all dependencies. Also you can check [wiki section][2] for more details
+In case you receive any error related to compiling of the DataStax driver you can try to run `rebar` with `sudo` in 
+order to install all dependencies. Also you can check [wiki section][2] for more details
 
 ### Data types
 
@@ -57,9 +62,10 @@ application:start(erlcass).
 
 ### Setting the log level
 
-`Erlcass` is using `lager` for logging the errors. Beside the fact that you can set in lager the desired log level, for better performances it's better to set also in `erlcass`
-the desired level otherwise there will be a lot of resources consumed by lager to format the messages and then drop them. Also the native driver performances can be affected because 
-of the time spent in generating the logs and sending them from C++ into Erlang.  
+`Erlcass` is using `lager` for logging the errors. Beside the fact that you can set in lager the desired log level, 
+for better performances it's better to set also in `erlcass` the desired level otherwise there will be a lot of 
+resources consumed by lager to format the messages and then drop them. Also the native driver performances can be 
+affected because of the time spent in generating the logs and sending them from C++ into Erlang.  
 
 Available Log levels are:
 
@@ -73,9 +79,8 @@ Available Log levels are:
 -define(CASS_LOG_TRACE, 6).
 ```
 
-In order to change the log level for the native driver you need to set the `log_level` environment variable for `erlcass` into your config file.
-
-Example: `{log_level, 3}`.
+In order to change the log level for the native driver you need to set the `log_level` environment variable for 
+`erlcass` into your app config file, example: `{log_level, 3}`.
 
 ### Setting the cluster options
 
@@ -119,44 +124,47 @@ ok = erlcass:add_prepare_statement(select_blogpost,
                                    <<"select * from blogposts where domain = ? LIMIT 1">>),
 ```
 
-In case you want to overwrite the default consistency level for that prepare statement use a tuple for the query argument: `{Query, ConsistencyLevelHere}`
+In case you want to overwrite the default consistency level for that prepare statement use a tuple for the 
+query argument: `{Query, ConsistencyLevelHere}`
 
 Also this is possible using `{Query, Options}` where options is a proplist with the following options supported:
                                                                            
 - `consistency_level` - If it's missing the statement will be executed using the default consistency level value.
-- `serial_consistency_level` - That consistency can only be either `?CASS_CONSISTENCY_SERIAL` or `?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be ignored for anything else that a conditional update/insert.
+- `serial_consistency_level` - This consistency can only be either `?CASS_CONSISTENCY_SERIAL` or 
+`?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be 
+ignored for anything else that a conditional update/insert.
 
 Example:
 
 ```erlang
-ok = erlcass:add_prepare_statement(
-                select_blogpost,
-                { <<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM }).
+ok = erlcass:add_prepare_statement(select_blogpost,
+        {<<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM}).
 ```
 
 or 
 
 ```erlang
-ok = erlcass:add_prepare_statement(
-                insert_blogpost,
-                {<<"UPDATE blogposts SET author = ? WHERE domain = ? IF EXISTS">>, [
-                    {consistency_level, ?CASS_CONSISTENCY_LOCAL_QUORUM},
-                    {serial_consistency_level, ?CASS_CONSISTENCY_LOCAL_SERIAL}
-                ]}).
+ok = erlcass:add_prepare_statement(insert_blogpost, {
+        <<"UPDATE blogposts SET author = ? WHERE domain = ? IF EXISTS">>, [
+        {consistency_level, ?CASS_CONSISTENCY_LOCAL_QUORUM},
+        {serial_consistency_level, ?CASS_CONSISTENCY_LOCAL_SERIAL}]
+}).
 ```
 
 ### Run a prepared statement query
 
-In case the first parameter for `erlcass:execute` is an atom then the driver will try to find the associated prepared statement and to run it.
-You can bind the parameters in 2 ways: by name and by index. You can use `?BIND_BY_INDEX` and `?BIND_BY_NAME` from execute/3 in order to specify the desired method. By default is binding by index
+You can bind the parameters in 2 ways: by name and by index. You can use `?BIND_BY_INDEX` and `?BIND_BY_NAME` from 
+`execute/3` in order to specify the desired method. By default is binding by index
 
 Example:
 
 ```erlang
 %bind by name
 erlcass:execute(select_blogpost, ?BIND_BY_NAME, [{<<"domain">>, <<"Domain_1">>}]).
+
 %bind by index
 erlcass:execute(select_blogpost, [<<"Domain_1">>]).
+
 %bind by index
 erlcass:execute(select_blogpost, ?BIND_BY_INDEX, [<<"Domain_1">>]).
 ```
@@ -166,18 +174,29 @@ In case of maps you can use `key(field)` and `value(field)` in order to bind by 
 ```erlang
 %table: CREATE TABLE test_map(key int PRIMARY KEY, value map<text,text>)
 %statement: UPDATE examples.test_map SET value[?] = ? WHERE key = ?
+
 %bind by index
+
 erlcass:execute(identifier, [<<"collection_key_here">>, <<"collection_value_here">>, <<"key_here">>]).
+
 %bind by name
-erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [{<<"key(value)">>, CollectionIndex1}, {<<"value(value)">>, CollectionValue1}, {<<"key">>, Key1}]),
+
+erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [
+    {<<"key(value)">>, CollectionIndex1}, 
+    {<<"value(value)">>, CollectionValue1}, 
+    {<<"key">>, Key1}
+]),
 ```
 
 ### Async queries and blocking queries
 
 For blocking operations use `erlcass:execute`, for async execution use : `erlcass:async_execute`.
-The blocking operation will block the current erlang process (still async into the native code in order to avoid freezing of the VM threads) until will get the result from the cluster.
 
-In case of an async execution the calling process will receive a message of the following form: `{execute_statement_result, Tag, Result}`
+The blocking operation the calling process will block (still async into the native code in order to avoid 
+freezing of the VM threads) until will get the result from the cluster.
+
+In case of an async execution the calling process will receive a message of the following format: 
+`{execute_statement_result, Tag, Result}` when the data from the server was retrieved.
 
 For example:
 
@@ -191,10 +210,12 @@ For example:
 
 ### Non prepared statements queries
 
-In order to run queries that you don't want to run them as prepared statements you can use: `query/1`, `query_async/1` or `query_new_statement/1` 
-(in order to create a query statement that can be executed into a batch query) 
+In order to run queries that you don't want to run them as prepared statements you can use:
+`query/1`, `query_async/1` or `query_new_statement/1` (in order to create a query statement that can be executed into a 
+batch query along other prepared or not prepared statements) 
 
-The same rules apply for setting the desired consistency level as on prepared statements (see Add prepare statement section).
+The same rules apply for setting the desired consistency level as on prepared statements (see Add prepare statement 
+section).
 
 ```erlang
 erlcass:query(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>).
@@ -217,17 +238,23 @@ The second one is a list of statements (prepared or normal statements) that need
 The third argument is a list of options in `{Key, Value}` format (proplist):
 
 - `consistency_level` - If it's missing the batch will be executed using the default consistency level value.
-- `serial_consistency_level` - That consistency can only be either `?CASS_CONSISTENCY_SERIAL` or `?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be ignored for anything else that a conditional update/insert.
+- `serial_consistency_level` - That consistency can only be either `?CASS_CONSISTENCY_SERIAL` or 
+`?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be 
+ignored for anything else that a conditional update/insert.
 
 Example:
 
 ```erlang
-InsertStatement = <<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES (?, ?, ?)">>,
-ok = erlcass:add_prepare_statement(insert_prep, InsertStatement),
-{ok, Stm1} = erlcass:create_statement(InsertStatement, [{?CASS_TEXT, Id1}, {?CASS_INT, Age1}, {?CASS_TEXT, Email1}]),
+ok = erlcass:add_prepare_statement(insert_prep, <<"INSERT INTO table1(id, age, email) VALUES (?, ?, ?)">>),
+
+{ok, Stm1} = erlcass:query_new_statement(<<"UPDATE table2 set foo = 'bar'">>),
+
 {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
-ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
-{ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [{consistency_level, ?CASS_CONSISTENCY_QUORUM}]).
+ok = erlcass:bind_prepared_params_by_index(Stm2, [Id2, Age2, Email2]),
+
+{ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [
+    {consistency_level, ?CASS_CONSISTENCY_QUORUM}]
+).
 ```
 
 ### Working with uuid or timeuuid fields:
@@ -242,9 +269,12 @@ ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Ag
 
 ### Working with date, time fields:
 
-- `erlcass_time:date_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `date` type. The `date` type represents the number of days since the Epoch (1970-01-01) with the Epoch centered at the value 2^31.
-- `erlcass_time:time_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `time` type. The `time` type represents the number of nanoseconds since midnight (range 0 to 86399999999999).
-- `erlcass_time:date_time_to_epoch(Date, Time)` -> Combines the Cassandra `date` and `time` types to Epoch time in seconds. Returns Epoch time in seconds. Negative times are possible if the date occurs before the Epoch (1970-1-1).
+- `erlcass_time:date_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `date` type. 
+The `date` type represents the number of days since the Epoch (1970-01-01) with the Epoch centered at the value 2^31.
+- `erlcass_time:time_from_epoch(EpochSecs)` -> Converts a unix timestamp (in seconds) to the Cassandra `time` type. 
+The `time` type represents the number of nanoseconds since midnight (range 0 to 86399999999999).
+- `erlcass_time:date_time_to_epoch(Date, Time)` -> Combines the Cassandra `date` and `time` types to Epoch time 
+in seconds. Returns Epoch time in seconds. Negative times are possible if the date occurs before the Epoch (1970-1-1).
 
 ### Getting metrics
 
@@ -282,8 +312,8 @@ In order to get metrics from the native driver you can use `erlcass:get_metrics(
 
 ### Low level methods
 
-Each query requires an internal statement (prepared or not). You can reuse the same statement object for multiple queries
-performed in the same process.
+Each query requires an internal statement (prepared or not). You can reuse the same statement object for multiple 
+queries performed in the same process.
 
 ##### Getting a statement reference for a prepared statement query
 
@@ -302,6 +332,7 @@ performed in the same process.
 ```erlang
 %bind by name
 ok = erlcass:bind_prepared_params_by_name(select_blogpost, [{<<"domain">>, <<"Domain_1">>}]);
+
 %bind by index
 ok = erlcass:bind_prepared_params_by_index(select_blogpost, [<<"Domain_1">>]);
 ```

@@ -257,9 +257,11 @@ prepared_bind_by_name_index(_Config) ->
     ok.
 
 fire_and_forget(_Config) ->
-    CreationQ = <<"CREATE TABLE unexisting_keyspace.test_map(key int PRIMARY KEY, value map<text,text>)">>,
-    ok = erlcass:add_prepare_statement(unexisting_keyspace, CreationQ),
-    ok = erlcass:async_execute(unexisting_keyspace, ?BIND_BY_INDEX, [], null, null),
+    ok = erlcass:async_execute(insert_test_bind, ?BIND_BY_NAME, [
+        {<<"key(value)">>, <<"my_index">>},
+        {<<"value(value)">>, <<"my_value">>},
+        {<<"key">>, 5}
+    ], null, null),
     true.
 
 collection_types(_Config) ->

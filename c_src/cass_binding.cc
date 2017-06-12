@@ -113,7 +113,7 @@ ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const cass:
 ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const cass::DataType* data_type, CassTuple** tp);
 ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const cass::DataType* data_type, CassCollection ** col);
 
-template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size_t index, set_data_functions<T> fun, const cass::DataType* data_type, ERL_NIF_TERM value)
+template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T obj, size_t index, set_data_functions<T> fun, const cass::DataType* data_type, ERL_NIF_TERM value)
 {
     switch (data_type->value_type())
     {
@@ -126,7 +126,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!get_bstring(env, value, &bin))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_string(udt, index, BIN_TO_STR(bin.data), bin.size));
+            return cass_error_to_nif_term(env, fun.set_string(obj, index, BIN_TO_STR(bin.data), bin.size));
         }
 
         case CASS_VALUE_TYPE_TINY_INT:
@@ -136,7 +136,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!enif_get_int(env, value, &int_value ))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_int8(udt, index, static_cast<cass_int8_t>(int_value)));
+            return cass_error_to_nif_term(env, fun.set_int8(obj, index, static_cast<cass_int8_t>(int_value)));
         }
 
         case CASS_VALUE_TYPE_SMALL_INT:
@@ -146,7 +146,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!enif_get_int(env, value, &int_value ))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_int16(udt, index, static_cast<cass_int16_t>(int_value)));
+            return cass_error_to_nif_term(env, fun.set_int16(obj, index, static_cast<cass_int16_t>(int_value)));
         }
 
         case CASS_VALUE_TYPE_INT:
@@ -156,7 +156,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!enif_get_int(env, value, &int_value ))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_int32(udt, index, int_value));
+            return cass_error_to_nif_term(env, fun.set_int32(obj, index, int_value));
         }
 
         case CASS_VALUE_TYPE_DATE:
@@ -166,7 +166,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!enif_get_uint(env, value, &uint_value ))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_uint32(udt, index, uint_value));
+            return cass_error_to_nif_term(env, fun.set_uint32(obj, index, uint_value));
         }
 
         case CASS_VALUE_TYPE_TIME:
@@ -179,7 +179,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!enif_get_int64(env, value, &long_value ))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_int64(udt, index, long_value));
+            return cass_error_to_nif_term(env, fun.set_int64(obj, index, long_value));
         }
 
         case CASS_VALUE_TYPE_VARINT:
@@ -190,7 +190,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!get_bstring(env, value, &bin))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_bytes(udt, index, bin.data, bin.size));
+            return cass_error_to_nif_term(env, fun.set_bytes(obj, index, bin.data, bin.size));
         }
 
         case CASS_VALUE_TYPE_BOOLEAN:
@@ -200,7 +200,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!get_boolean(value, &bool_value))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_bool(udt, index, bool_value));
+            return cass_error_to_nif_term(env, fun.set_bool(obj, index, bool_value));
         }
 
         case CASS_VALUE_TYPE_FLOAT:
@@ -211,9 +211,9 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
                 return make_badarg(env);
 
             if(data_type->value_type() == CASS_VALUE_TYPE_FLOAT)
-                return cass_error_to_nif_term(env, fun.set_float(udt, index, static_cast<float>(val_double)));
+                return cass_error_to_nif_term(env, fun.set_float(obj, index, static_cast<float>(val_double)));
             else
-                return cass_error_to_nif_term(env, fun.set_double(udt, index, val_double));
+                return cass_error_to_nif_term(env, fun.set_double(obj, index, val_double));
         }
 
         case CASS_VALUE_TYPE_INET:
@@ -227,7 +227,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(cass_inet_from_string_n(BIN_TO_STR(bin.data), bin.size, &inet) != CASS_OK)
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_inet(udt, index, inet));
+            return cass_error_to_nif_term(env, fun.set_inet(obj, index, inet));
         }
 
         case CASS_VALUE_TYPE_TIMEUUID:
@@ -242,7 +242,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(erlcass::cass_uuid_from_string_n(BIN_TO_STR(bin.data), bin.size, &uuid) != CASS_OK)
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_uuid(udt, index, uuid));
+            return cass_error_to_nif_term(env, fun.set_uuid(obj, index, uuid));
         }
 
         case CASS_VALUE_TYPE_DECIMAL:
@@ -259,7 +259,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!get_bstring(env, items[0], &varint) || !enif_get_int(env, items[1], &scale))
                 return make_badarg(env);
 
-            return cass_error_to_nif_term(env, fun.set_decimal(udt, index, varint.data, varint.size, scale));
+            return cass_error_to_nif_term(env, fun.set_decimal(obj, index, varint.data, varint.size, scale));
         }
 
         case CASS_VALUE_TYPE_MAP:
@@ -273,7 +273,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
 
-            CassError error = fun.set_collection(udt, index, collection);
+            CassError error = fun.set_collection(obj, index, collection);
             cass_collection_free(collection);
             return cass_error_to_nif_term(env, error);
         }
@@ -287,7 +287,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
 
-            CassError error = fun.set_tuple(udt, index, nested_tuple);
+            CassError error = fun.set_tuple(obj, index, nested_tuple);
             cass_tuple_free(nested_tuple);
             return cass_error_to_nif_term(env, error);
         }
@@ -301,7 +301,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T udt, size
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
 
-            CassError error = fun.set_user_type(udt, index, nested_udt);
+            CassError error = fun.set_user_type(obj, index, nested_udt);
             cass_user_type_free(nested_udt);
             return cass_error_to_nif_term(env, error);
         }

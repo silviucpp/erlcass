@@ -1,6 +1,6 @@
 ### Changelog:
 
-##### v2.9 (under development)
+##### v2.9
 
 - Updated cpp-driver to 2.7.0
 - Updated lager to 3.4.2
@@ -10,6 +10,7 @@
     - the following methods are removed: `async_execute_statement/1`, `async_execute_statement/3`, `execute_statement/1`
     - removed support for binding non prepared statements.
 - Add support for user-defined type (UDT): decode as proplist.
+- Major code refactoring in the way the nif terms are bind in native cass statements
 
 ##### v2.8
 

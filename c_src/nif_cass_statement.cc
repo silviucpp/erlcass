@@ -1,11 +1,8 @@
 #include "nif_cass_statement.h"
-#include "nif_utils.h"
-#include "nif_collection.h"
-#include "nif_tuple.h"
-#include "nif_udt.h"
-#include "uuid_serialization.h"
+#include "cass_binding.h"
 #include "execute_request.hpp"
 #include "constants.h"
+#include "macros.h"
 
 #define BIND_BY_INDEX 1
 #define BIND_BY_NAME  2
@@ -14,209 +11,6 @@ struct enif_cass_statement
 {
     CassStatement* statement;
 };
-
-ERL_NIF_TERM bind_param_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const cass::DataType* data_type, ERL_NIF_TERM value)
-{
-    if(enif_is_identical(value, ATOMS.atomNull))
-        return cass_error_to_nif_term(env, cass_statement_bind_null(statement, index));
-
-    switch (data_type->value_type())
-    {
-        case CASS_VALUE_TYPE_VARCHAR:
-        case CASS_VALUE_TYPE_ASCII:
-        case CASS_VALUE_TYPE_TEXT:
-        {
-            ErlNifBinary bin;
-
-            if(!get_bstring(env, value, &bin))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_string_n(statement, index, BIN_TO_STR(bin.data), bin.size));
-        }
-
-        case CASS_VALUE_TYPE_TINY_INT:
-        {
-            int int_value = 0;
-
-            if(!enif_get_int(env, value, &int_value ))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_int8(statement, index, static_cast<cass_int8_t>(int_value)));
-        }
-
-        case CASS_VALUE_TYPE_SMALL_INT:
-        {
-            int int_value = 0;
-
-            if(!enif_get_int(env, value, &int_value ))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_int16(statement, index, static_cast<cass_int16_t>(int_value)));
-        }
-
-        case CASS_VALUE_TYPE_INT:
-        {
-            int int_value = 0;
-
-            if(!enif_get_int(env, value, &int_value ))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_int32(statement, index, int_value));
-        }
-
-        case CASS_VALUE_TYPE_DATE:
-        {
-            unsigned int uint_value = 0;
-
-            if(!enif_get_uint(env, value, &uint_value ))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_uint32(statement, index, uint_value));
-        }
-
-        case CASS_VALUE_TYPE_TIME:
-        case CASS_VALUE_TYPE_TIMESTAMP:
-        case CASS_VALUE_TYPE_COUNTER:
-        case CASS_VALUE_TYPE_BIGINT:
-        {
-            long long_value = 0;
-
-            if(!enif_get_int64(env, value, &long_value ))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_int64(statement, index, long_value));
-        }
-
-        case CASS_VALUE_TYPE_VARINT:
-        case CASS_VALUE_TYPE_BLOB:
-        {
-            ErlNifBinary bin;
-
-            if(!get_bstring(env, value, &bin))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_bytes(statement, index, bin.data, bin.size));
-        }
-
-        case CASS_VALUE_TYPE_BOOLEAN:
-        {
-            cass_bool_t bool_value;
-
-            if(!get_boolean(value, &bool_value))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_bool(statement, index, bool_value));
-        }
-
-        case CASS_VALUE_TYPE_FLOAT:
-        case CASS_VALUE_TYPE_DOUBLE:
-        {
-            double val_double;
-            if(!enif_get_double(env, value, &val_double))
-                return make_badarg(env);
-
-            if(data_type->value_type() == CASS_VALUE_TYPE_FLOAT)
-                return cass_error_to_nif_term(env, cass_statement_bind_float(statement, index, static_cast<float>(val_double)));
-            else
-                return cass_error_to_nif_term(env, cass_statement_bind_double(statement, index, val_double));
-        }
-
-        case CASS_VALUE_TYPE_INET:
-        {
-            ErlNifBinary bin;
-
-            if(!get_bstring(env, value, &bin))
-                return make_badarg(env);
-
-            CassInet inet;
-            if(cass_inet_from_string_n(BIN_TO_STR(bin.data), bin.size, &inet) != CASS_OK)
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_inet(statement, index, inet));
-        }
-
-        case CASS_VALUE_TYPE_TIMEUUID:
-        case CASS_VALUE_TYPE_UUID:
-        {
-            ErlNifBinary bin;
-
-            if(!get_bstring(env, value, &bin))
-                return make_badarg(env);
-
-            CassUuid uuid;
-            if(erlcass::cass_uuid_from_string_n(BIN_TO_STR(bin.data), bin.size, &uuid) != CASS_OK)
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_uuid(statement, index, uuid));
-        }
-
-        case CASS_VALUE_TYPE_DECIMAL:
-        {
-            const ERL_NIF_TERM *items;
-            int arity;
-
-            if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
-                return make_badarg(env);
-
-            ErlNifBinary varint;
-            int scale;
-
-            if(!get_bstring(env, items[0], &varint) || !enif_get_int(env, items[1], &scale))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, cass_statement_bind_decimal(statement, index, varint.data, varint.size, scale));
-        }
-
-        case CASS_VALUE_TYPE_MAP:
-        case CASS_VALUE_TYPE_LIST:
-        case CASS_VALUE_TYPE_SET:
-        {
-            CassCollection* collection = NULL;
-
-            ERL_NIF_TERM result = nif_list_to_cass_collection(env, value, data_type, &collection);
-
-            if(!enif_is_identical(result, ATOMS.atomOk))
-                return result;
-
-            CassError error = cass_statement_bind_collection(statement, index, collection);
-            cass_collection_free(collection);
-            return cass_error_to_nif_term(env, error);
-        }
-
-        case CASS_VALUE_TYPE_TUPLE:
-        {
-            CassTuple* tuple = NULL;
-
-            ERL_NIF_TERM result = nif_term_to_cass_tuple(env, value, data_type, &tuple);
-
-            if(!enif_is_identical(result, ATOMS.atomOk))
-                return result;
-
-            CassError error = cass_statement_bind_tuple(statement, index, tuple);
-            cass_tuple_free(tuple);
-            return cass_error_to_nif_term(env, error);
-        }
-
-        case CASS_VALUE_TYPE_UDT:
-        {
-            CassUserType* nested_udt = NULL;
-
-            ERL_NIF_TERM result = nif_term_to_cass_udt(env, value, data_type, &nested_udt);
-
-            if(!enif_is_identical(result, ATOMS.atomOk))
-                return result;
-
-            CassError error = cass_statement_bind_user_type(statement, index, nested_udt);
-            cass_user_type_free(nested_udt);
-            return cass_error_to_nif_term(env, error);
-        }
-
-        //not implemented data types
-        default:
-            return make_error(env, erlcass::kBindFailedUnknownColumnType);
-    }
-
-}
 
 ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* statement, int type, ERL_NIF_TERM list)
 {
@@ -248,7 +42,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             size_t index = indices[0];
 
             const cass::DataType* data_type = result->metadata()->get_column_definition(index).data_type.get();
-            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, data_type, items[1]);
+            ERL_NIF_TERM result = cass_bind_by_index(env, statement, index, data_type, items[1]);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;
@@ -272,7 +66,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
 
             const cass::DataType* data_type = def.data_type.get();
 
-            ERL_NIF_TERM result = bind_param_by_index(env, statement, index, data_type, head);
+            ERL_NIF_TERM result = cass_bind_by_index(env, statement, index, data_type, head);
 
             if(!enif_is_identical(result, ATOMS.atomOk))
                 return result;

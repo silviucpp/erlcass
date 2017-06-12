@@ -1,15 +1,8 @@
-//
-//  nif_cass_cluster.cpp
-//  erlcass
-//
-//  Created by silviu on 5/8/15.
-//
-//
-
 #include "nif_cass_cluster.h"
 #include "erlcass.h"
 #include "nif_utils.h"
 #include "constants.h"
+#include "macros.h"
 
 #include <string.h>
 #include <memory>

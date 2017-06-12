@@ -4,6 +4,7 @@
 #include "data_conversion.h"
 #include "nif_utils.h"
 #include "constants.h"
+#include "macros.h"
 #include "logger.hpp"
 
 #include <string.h>

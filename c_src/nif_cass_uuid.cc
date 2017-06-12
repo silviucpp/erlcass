@@ -3,6 +3,7 @@
 #include "nif_utils.h"
 #include "uuid_serialization.h"
 #include "constants.h"
+#include "macros.h"
 
 ERL_NIF_TERM cass_uuid_to_nif(ErlNifEnv* env, const CassUuid& obj)
 {

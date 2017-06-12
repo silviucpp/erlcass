@@ -326,7 +326,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     if(enif_get_local_pid(env, argv[4], &pid) == 0)
         return make_badarg(env);
 
-    std::unique_ptr<CassBatch, decltype(&cass_batch_free)> batch(cass_batch_new(static_cast<CassBatchType>(batch_type)), &cass_batch_free);
+    scoped_ptr(batch, CassBatch, cass_batch_new(static_cast<CassBatchType>(batch_type)), cass_batch_free);
 
     if(!batch.get())
         return make_error(env, erlcass::kFailedToCreateBatchObjectMsg);

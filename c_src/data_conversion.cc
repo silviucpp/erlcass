@@ -2,7 +2,9 @@
 #include "erlcass.h"
 #include "nif_utils.h"
 #include "uuid_serialization.h"
+#include "macros.h"
 
+#include <memory>
 #include <string.h>
 
 ERL_NIF_TERM string_to_erlang_term(ErlNifEnv* env, const CassValue* value);
@@ -208,25 +210,21 @@ ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 
     if(cass_value_type(value) == CASS_VALUE_TYPE_MAP)
     {
-        CassIterator* iterator = cass_iterator_from_map(value);
+        scoped_ptr(iterator, CassIterator, cass_iterator_from_map(value), cass_iterator_free);
 
-        while (cass_iterator_next(iterator))
+        while (cass_iterator_next(iterator.get()))
         {
-            const CassValue* c_key = cass_iterator_get_map_key(iterator);
-            const CassValue* c_value = cass_iterator_get_map_value(iterator);
+            const CassValue* c_key = cass_iterator_get_map_key(iterator.get());
+            const CassValue* c_value = cass_iterator_get_map_value(iterator.get());
             itemsList[rowIndex++] = enif_make_tuple2(env, cass_value_to_nif_term(env, c_key), cass_value_to_nif_term(env, c_value));
         }
-
-        cass_iterator_free(iterator);
     }
     else
     {
-        CassIterator* iterator = cass_iterator_from_collection(value);
+        scoped_ptr(iterator, CassIterator, cass_iterator_from_collection(value), cass_iterator_free);
 
-        while (cass_iterator_next(iterator))
-            itemsList[rowIndex++] = cass_value_to_nif_term(env, cass_iterator_get_value(iterator));
-
-        cass_iterator_free(iterator);
+        while (cass_iterator_next(iterator.get()))
+            itemsList[rowIndex++] = cass_value_to_nif_term(env, cass_iterator_get_value(iterator.get()));
     }
 
     return enif_make_list_from_array(env, itemsList, static_cast<unsigned>(itemsCount));
@@ -242,12 +240,10 @@ ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     ERL_NIF_TERM itemsList[itemsCount];
     size_t rowIndex = 0;
 
-    CassIterator* iterator = cass_iterator_from_tuple(value);
+    scoped_ptr(iterator, CassIterator, cass_iterator_from_tuple(value), cass_iterator_free);
 
-    while (cass_iterator_next(iterator))
-        itemsList[rowIndex++] = cass_value_to_nif_term(env, cass_iterator_get_value(iterator));
-
-    cass_iterator_free(iterator);
+    while (cass_iterator_next(iterator.get()))
+        itemsList[rowIndex++] = cass_value_to_nif_term(env, cass_iterator_get_value(iterator.get()));
 
     return enif_make_tuple_from_array(env, itemsList, static_cast<unsigned>(itemsCount));
 }
@@ -262,21 +258,19 @@ ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     ERL_NIF_TERM items_list[items_count];
     size_t rowIndex = 0;
 
-    CassIterator* iterator = cass_iterator_fields_from_user_type(value);
+    scoped_ptr(iterator, CassIterator, cass_iterator_fields_from_user_type(value), cass_iterator_free);
 
-    while (cass_iterator_next(iterator))
+    while (cass_iterator_next(iterator.get()))
     {
         const char* field_name_ptr;
         size_t field_name_length;
 
-        if(cass_iterator_get_user_type_field_name(iterator, &field_name_ptr, &field_name_length) != CASS_OK)
+        if(cass_iterator_get_user_type_field_name(iterator.get(), &field_name_ptr, &field_name_length) != CASS_OK)
             return ATOMS.atomNull;
 
-        ERL_NIF_TERM field_value = cass_value_to_nif_term(env, cass_iterator_get_user_type_field_value(iterator));
+        ERL_NIF_TERM field_value = cass_value_to_nif_term(env, cass_iterator_get_user_type_field_value(iterator.get()));
         items_list[rowIndex++] = enif_make_tuple2(env, make_binary(env, field_name_ptr, field_name_length), field_value);
     }
-
-    cass_iterator_free(iterator);
 
     return enif_make_list_from_array(env, items_list, items_count);
 }
@@ -295,21 +289,19 @@ ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result
     ERL_NIF_TERM nifArrayColumns[columnsCount];
     ERL_NIF_TERM nifArrayRows[rowsCount];
 
-    CassIterator* iterator = cass_iterator_from_result(result);
+    scoped_ptr(iterator, CassIterator, cass_iterator_from_result(result), cass_iterator_free);
 
     size_t rowIndex = 0;
 
-    while (cass_iterator_next(iterator))
+    while (cass_iterator_next(iterator.get()))
     {
-        const CassRow* row = cass_iterator_get_row(iterator);
+        const CassRow* row = cass_iterator_get_row(iterator.get());
 
         for(size_t i = 0; i < columnsCount; i++)
             nifArrayColumns[i] = cass_value_to_nif_term(env, cass_row_get_column(row, i));
 
         nifArrayRows[rowIndex++] = enif_make_tuple_from_array(env, nifArrayColumns, static_cast<unsigned>(columnsCount));
     }
-
-    cass_iterator_free(iterator);
 
     return enif_make_list_from_array(env, nifArrayRows, static_cast<unsigned>(rowsCount));
 }

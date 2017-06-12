@@ -182,7 +182,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_opt
 
     ERL_NIF_TERM head;
 
-    std::unique_ptr<CassSsl, decltype(&cass_ssl_free)> ssl(cass_ssl_new(), &cass_ssl_free);
+    scoped_ptr(ssl, CassSsl, cass_ssl_new(), cass_ssl_free);
 
     while(enif_get_list_cell(env, term_value, &head, &term_value))
     {

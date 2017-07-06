@@ -400,7 +400,7 @@ ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result
 
     if(rowsCount == 0) {
         ERL_NIF_TERM rows = enif_make_list(env, 0);
-        return enif_make_tuple2(env, rows, columnData);
+        return enif_make_tuple3(env, ATOMS.atomOk, columnData, rows);
     }
 
     ERL_NIF_TERM nifArrayColumns[columnsCount];
@@ -421,5 +421,5 @@ ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result
 
 
     ERL_NIF_TERM rows = enif_make_list_from_array(env, nifArrayRows, static_cast<unsigned>(rowsCount));
-    return enif_make_tuple2(env, rows, columnData);
+    return enif_make_tuple3(env, ATOMS.atomOk, columnData, rows);
 }

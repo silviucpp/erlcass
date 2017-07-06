@@ -39,6 +39,27 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomExecuteStatementResult = make_atom(env, erlcass::kAtomExecuteStatementResult);
     ATOMS.atomLogMessageReceived = make_atom(env, erlcass::kAtomLogMessageReceived);
 
+    //data types
+
+    ATOMS.atomText = make_atom(env, erlcass::kAtomText);
+    ATOMS.atomTinyInt = make_atom(env, erlcass::kAtomTinyInt);
+    ATOMS.atomSmallInt = make_atom(env, erlcass::kAtomSmallInt);
+    ATOMS.atomInt = make_atom(env, erlcass::kAtomInt);
+    ATOMS.atomDate = make_atom(env, erlcass::kAtomDate);
+    ATOMS.atomBigInt = make_atom(env, erlcass::kAtomBigInt);
+    ATOMS.atomBlob = make_atom(env, erlcass::kAtomBlob);
+    ATOMS.atomBool = make_atom(env, erlcass::kAtomBool);
+    ATOMS.atomFloat = make_atom(env, erlcass::kAtomFloat);
+    ATOMS.atomDouble = make_atom(env, erlcass::kAtomDouble);
+    ATOMS.atomInet = make_atom(env, erlcass::kAtomInet);
+    ATOMS.atomUuid = make_atom(env, erlcass::kAtomUuid);
+    ATOMS.atomDecimal = make_atom(env, erlcass::kAtomDecimal);
+    ATOMS.atomList = make_atom(env, erlcass::kAtomList);
+    ATOMS.atomSet = make_atom(env, erlcass::kAtomSet);
+    ATOMS.atomMap = make_atom(env, erlcass::kAtomMap);
+    ATOMS.atomTuple = make_atom(env, erlcass::kAtomTuple);
+    ATOMS.atomTimestamp = make_atom(env, erlcass::kAtomTimestamp);
+
     //cluster settings atoms
 
     ATOMS.atomClusterDefaultConsistencyLevel = make_atom(env, erlcass::kAtomClusterDefaultConsistencyLevel);

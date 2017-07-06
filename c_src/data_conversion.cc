@@ -106,22 +106,28 @@ ERL_NIF_TERM cass_data_type_to_nif_term(ErlNifEnv* env, const CassDataType *data
 
     switch(typeValue){
         case CASS_VALUE_TYPE_TEXT:
-        case CASS_VALUE_TYPE_ASCII:
-        case CASS_VALUE_TYPE_VARCHAR:
             return ATOMS.atomText;
 
+        case CASS_VALUE_TYPE_ASCII:
+            return ATOMS.atomAscii;
+
+        case CASS_VALUE_TYPE_VARCHAR:
+            return ATOMS.atomText;
 
         case CASS_VALUE_TYPE_TIMESTAMP:
             return ATOMS.atomTimestamp;
 
         case CASS_VALUE_TYPE_TIME:
-            return ATOMS.atomBigInt;
+            return ATOMS.atomTime;
 
         case CASS_VALUE_TYPE_TINY_INT:
             return ATOMS.atomTinyInt;
 
         case CASS_VALUE_TYPE_SMALL_INT:
             return ATOMS.atomSmallInt;
+
+        case CASS_VALUE_TYPE_VARINT:
+            return ATOMS.atomVarint;
 
         case CASS_VALUE_TYPE_INT:
             return ATOMS.atomInt;
@@ -148,6 +154,8 @@ ERL_NIF_TERM cass_data_type_to_nif_term(ErlNifEnv* env, const CassDataType *data
             return ATOMS.atomInet;
 
         case CASS_VALUE_TYPE_TIMEUUID:
+            return ATOMS.atomTimeUuid;
+
         case CASS_VALUE_TYPE_UUID:
             return ATOMS.atomUuid;
 

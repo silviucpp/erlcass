@@ -36,25 +36,31 @@ extern const char kAtomExecuteStatementResult[];
 extern const char kAtomLogMessageReceived[];
 
 //data types
-
-extern const char kAtomText[];
-extern const char kAtomTinyInt[];
-extern const char kAtomSmallInt[];
-extern const char kAtomInt[];
-extern const char kAtomDate[];
+extern const char kAtomAscii[];
 extern const char kAtomBigInt[];
 extern const char kAtomBlob[];
 extern const char kAtomBool[];
-extern const char kAtomFloat[];
-extern const char kAtomDouble[];
-extern const char kAtomInet[];
-extern const char kAtomUuid[];
+extern const char kAtomCounter[];
+extern const char kAtomDate[];
 extern const char kAtomDecimal[];
+extern const char kAtomDouble[];
+extern const char kAtomFloat[];
+extern const char kAtomFrozen[];
+extern const char kAtomInet[];
+extern const char kAtomInt[];
 extern const char kAtomList[];
-extern const char kAtomSet[];
 extern const char kAtomMap[];
-extern const char kAtomTuple[];
+extern const char kAtomSet[];
+extern const char kAtomSmallInt[];
+extern const char kAtomText[];
+extern const char kAtomTime[];
 extern const char kAtomTimestamp[];
+extern const char kAtomTimeUuid[];
+extern const char kAtomTinyInt[];
+extern const char kAtomTuple[];
+extern const char kAtomUuid[];
+extern const char kAtomVarchar[];
+extern const char kAtomVarint[];
 
 //cluster settings atoms
 

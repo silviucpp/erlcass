@@ -27,24 +27,31 @@ struct atoms
 
     //data types
 
-    ERL_NIF_TERM atomList;
-    ERL_NIF_TERM atomSet;
-    ERL_NIF_TERM atomMap;
-    ERL_NIF_TERM atomTuple;
-    ERL_NIF_TERM atomText;
-    ERL_NIF_TERM atomTinyInt;
-    ERL_NIF_TERM atomSmallInt;
-    ERL_NIF_TERM atomInt;
-    ERL_NIF_TERM atomDate;
+    ERL_NIF_TERM atomAscii;
     ERL_NIF_TERM atomBigInt;
     ERL_NIF_TERM atomBlob;
     ERL_NIF_TERM atomBool;
-    ERL_NIF_TERM atomFloat;
-    ERL_NIF_TERM atomDouble;
-    ERL_NIF_TERM atomInet;
-    ERL_NIF_TERM atomUuid;
+    ERL_NIF_TERM atomCounter;
+    ERL_NIF_TERM atomDate;
     ERL_NIF_TERM atomDecimal;
+    ERL_NIF_TERM atomDouble;
+    ERL_NIF_TERM atomFloat;
+    ERL_NIF_TERM atomFrozen;
+    ERL_NIF_TERM atomInet;
+    ERL_NIF_TERM atomInt;
+    ERL_NIF_TERM atomList;
+    ERL_NIF_TERM atomMap;
+    ERL_NIF_TERM atomSet;
+    ERL_NIF_TERM atomSmallInt;
+    ERL_NIF_TERM atomText;
+    ERL_NIF_TERM atomTime;
     ERL_NIF_TERM atomTimestamp;
+    ERL_NIF_TERM atomTimeUuid;
+    ERL_NIF_TERM atomTinyInt;
+    ERL_NIF_TERM atomTuple;
+    ERL_NIF_TERM atomUuid;
+    ERL_NIF_TERM atomVarchar;
+    ERL_NIF_TERM atomVarint;
 
     //cluster setings atoms
 

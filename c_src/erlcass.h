@@ -50,6 +50,7 @@ struct atoms
     ERL_NIF_TERM atomTinyInt;
     ERL_NIF_TERM atomTuple;
     ERL_NIF_TERM atomUuid;
+    ERL_NIF_TERM atomUdt;
     ERL_NIF_TERM atomVarchar;
     ERL_NIF_TERM atomVarint;
 

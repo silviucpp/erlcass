@@ -59,6 +59,7 @@ extern const char kAtomTimeUuid[];
 extern const char kAtomTinyInt[];
 extern const char kAtomTuple[];
 extern const char kAtomUuid[];
+extern const char kAtomUdt[];
 extern const char kAtomVarchar[];
 extern const char kAtomVarint[];
 

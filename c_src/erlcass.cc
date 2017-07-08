@@ -64,6 +64,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomTinyInt = make_atom(env, erlcass::kAtomTinyInt);
     ATOMS.atomTuple = make_atom(env, erlcass::kAtomTuple);
     ATOMS.atomUuid = make_atom(env, erlcass::kAtomUuid);
+    ATOMS.atomUdt = make_atom(env, erlcass::kAtomUdt);
     ATOMS.atomVarchar = make_atom(env, erlcass::kAtomVarchar);
     ATOMS.atomVarint = make_atom(env, erlcass::kAtomVarint);
 

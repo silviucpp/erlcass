@@ -58,6 +58,7 @@ const char kAtomTimeUuid[] = "timeuuid";
 const char kAtomTinyInt[] = "tinyint";
 const char kAtomTuple[] = "tuple";
 const char kAtomUuid[] = "uuid";
+const char kAtomUdt[] = "udt";
 const char kAtomVarchar[] = "varchar";
 const char kAtomVarint[] = "varint";
 

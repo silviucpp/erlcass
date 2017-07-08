@@ -100,7 +100,7 @@ ERL_NIF_TERM cass_data_type_to_nif_term(ErlNifEnv* env, const CassDataType *data
     const CassDataType* valueDataType;
     const CassDataType* keyDataType;
     size_t subTypesLength;
-    std::vector<ERL_NIF_TERM> tupleColumnData;
+    std::vector<ERL_NIF_TERM> columnDataVec;
 
     CassValueType typeValue = cass_data_type_type(dataType);
 
@@ -187,11 +187,33 @@ ERL_NIF_TERM cass_data_type_to_nif_term(ErlNifEnv* env, const CassDataType *data
             subTypesLength = cass_data_type_sub_type_count(dataType);
             for(size_t i = 0; i < subTypesLength; i++){
                 valueDataType = cass_data_type_sub_data_type(dataType, i);
-                tupleColumnData.push_back(cass_data_type_to_nif_term(env, valueDataType));
+                columnDataVec.push_back(cass_data_type_to_nif_term(env, valueDataType));
             }
             return enif_make_tuple2(env,
                                     ATOMS.atomTuple,
-                                    enif_make_list_from_array(env, tupleColumnData.data(), tupleColumnData.size()));
+                                    enif_make_list_from_array(env, columnDataVec.data(), columnDataVec.size()));
+        case CASS_VALUE_TYPE_UDT:
+            {
+            const char* buff_ptr;
+            size_t buff_size;
+            cass_data_type_type_name(dataType, &buff_ptr, &buff_size);
+
+            subTypesLength = cass_data_type_sub_type_count(dataType);
+            for(size_t i = 0; i < subTypesLength; i++){
+                const char* subTypeName;
+                size_t subTypeNameSize;
+                cass_data_type_sub_type_name(dataType, i, &subTypeName, &subTypeNameSize);
+
+                valueDataType = cass_data_type_sub_data_type(dataType, i);
+                columnDataVec.push_back(enif_make_tuple2(env,
+                                                    make_binary(env, subTypeName, subTypeNameSize),
+                                                    cass_data_type_to_nif_term(env, valueDataType)));
+            }
+
+            return enif_make_tuple3(env, ATOMS.atomUdt,
+                                         make_binary(env, buff_ptr, buff_size),
+                                         enif_make_list_from_array(env, columnDataVec.data(), columnDataVec.size()) );
+            }
 
         default:
             return ATOMS.atomNull;

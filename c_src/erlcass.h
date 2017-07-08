@@ -54,6 +54,13 @@ struct atoms
     ERL_NIF_TERM atomVarchar;
     ERL_NIF_TERM atomVarint;
 
+    //column types
+    ERL_NIF_TERM atomColumnTypeRegular;
+    ERL_NIF_TERM atomColumnTypePartitionKey;
+    ERL_NIF_TERM atomColumnTypeClusteringKey;
+    ERL_NIF_TERM atomColumnTypeStatic;
+    ERL_NIF_TERM atomColumnTypeCompactValue;
+
     //cluster setings atoms
 
     ERL_NIF_TERM atomClusterDefaultConsistencyLevel;

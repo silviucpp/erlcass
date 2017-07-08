@@ -12,7 +12,8 @@ const char kFailedToCreateCallbackInfoMsg[] = "failed to create callback info";
 const char kFailedToCreateBatchObjectMsg[] = "failed to create batch object";
 const char kBindFailedUnknownColumnType[] = "bind failed. not implemented column type";
 const char kFailedToSetUnknownType[] = "failed to set unknown type";
-
+const char kUnknownKeyspace[]="keyspace doesn't exist";
+const char kUnknownTable[]="table doesn't exist";
 //misc atoms
 
 const char kAtomOk[] = "ok";
@@ -61,6 +62,14 @@ const char kAtomUuid[] = "uuid";
 const char kAtomUdt[] = "udt";
 const char kAtomVarchar[] = "varchar";
 const char kAtomVarint[] = "varint";
+
+//column types
+
+const char kAtomColumnTypeRegular[] = "regular";
+const char kAtomColumnTypePartitionKey[] = "partition_key";
+const char kAtomColumnTypeClusteringKey[] = "clustering_key";
+const char kAtomColumnTypeStatic[] = "static";
+const char kAtomColumnTypeCompactValue[] = "compact_value";
 
 //cluster settings atoms
 

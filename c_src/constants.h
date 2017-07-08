@@ -13,6 +13,8 @@ extern const char kFailedToCreateCallbackInfoMsg[];
 extern const char kFailedToCreateBatchObjectMsg[];
 extern const char kBindFailedUnknownColumnType[];
 extern const char kFailedToSetUnknownType[];
+extern const char kUnknownKeyspace[];
+extern const char kUnknownTable[];
 
 //misc atoms
 
@@ -62,6 +64,15 @@ extern const char kAtomUuid[];
 extern const char kAtomUdt[];
 extern const char kAtomVarchar[];
 extern const char kAtomVarint[];
+
+
+//column types
+
+extern const char kAtomColumnTypeRegular[];
+extern const char kAtomColumnTypePartitionKey[];
+extern const char kAtomColumnTypeClusteringKey[];
+extern const char kAtomColumnTypeStatic[];
+extern const char kAtomColumnTypeCompactValue[];
 
 //cluster settings atoms
 

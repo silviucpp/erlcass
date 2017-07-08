@@ -453,3 +453,125 @@ ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result
     ERL_NIF_TERM rows = enif_make_list_from_array(env, nifArrayRows, static_cast<unsigned>(rowsCount));
     return enif_make_tuple3(env, ATOMS.atomOk, columnData, rows);
 }
+
+
+ERL_NIF_TERM get_column_meta(ErlNifEnv* env, const CassColumnMeta* meta) {
+  ERL_NIF_TERM columData[3];
+
+  const char* name;
+  size_t name_length;
+  cass_column_meta_name(meta, &name, &name_length);
+  columData[0] = enif_make_tuple2(env, make_atom(env, "column_name"), make_atom(env, name));
+
+  const CassDataType * columnDataType = cass_column_meta_data_type(meta);
+  ERL_NIF_TERM erlColumnDataType = cass_data_type_to_nif_term(env, columnDataType);
+  columData[1] = enif_make_tuple2(env, make_atom(env, "data_type"), erlColumnDataType);
+
+  CassColumnType columnType = cass_column_meta_type(meta);
+  ERL_NIF_TERM erlColumnType;
+  switch(columnType){
+      case CASS_COLUMN_TYPE_REGULAR:
+        erlColumnType = ATOMS.atomColumnTypeRegular;
+        break;
+      case CASS_COLUMN_TYPE_PARTITION_KEY:
+        erlColumnType = ATOMS.atomColumnTypePartitionKey;
+        break;
+      case CASS_COLUMN_TYPE_CLUSTERING_KEY:
+        erlColumnType = ATOMS.atomColumnTypeClusteringKey;
+        break;
+      case CASS_COLUMN_TYPE_STATIC:
+        erlColumnType = ATOMS.atomColumnTypeStatic;
+        break;
+      case CASS_COLUMN_TYPE_COMPACT_VALUE:
+        erlColumnType = ATOMS.atomColumnTypeCompactValue;
+        break;
+  }
+  columData[2] = enif_make_tuple2(env, make_atom(env, "type"), erlColumnType);
+
+  return enif_make_list_from_array(env, columData, 3);
+}
+
+ERL_NIF_TERM get_meta_field(ErlNifEnv* env, const CassIterator* iterator) {
+  const char* name;
+  size_t name_length;
+  const CassValue* value;
+
+  cass_iterator_get_meta_field_name(iterator, &name, &name_length);
+  value = cass_iterator_get_meta_field_value(iterator);
+
+  ERL_NIF_TERM valueTerm = cass_value_to_nif_term(env, value);
+
+  return enif_make_tuple2(env, make_atom(env, name), valueTerm);
+}
+
+ERL_NIF_TERM cass_table_meta_fields_to_erlang_term(ErlNifEnv* env, const CassTableMeta* meta) {
+  const char* name;
+  size_t name_length;
+  std::vector<ERL_NIF_TERM> fieldData;
+
+  cass_table_meta_name(meta, &name, &name_length);
+  ERL_NIF_TERM tableName = make_binary(env, name, name_length);
+
+  scoped_ptr(fieldIterator, CassIterator, cass_iterator_fields_from_table_meta(meta), cass_iterator_free);
+  while (cass_iterator_next(fieldIterator.get())) {
+    fieldData.push_back(get_meta_field(env, fieldIterator.get()));
+  }
+  ERL_NIF_TERM tableFieldData = enif_make_list_from_array(env, fieldData.data(), fieldData.size());
+
+  std::vector<ERL_NIF_TERM> columnData;
+  scoped_ptr(iterator, CassIterator, cass_iterator_columns_from_table_meta(meta), cass_iterator_free);
+  while (cass_iterator_next(iterator.get())) {
+    columnData.push_back(get_column_meta(env, cass_iterator_get_column_meta(iterator.get())));
+  }
+
+  ERL_NIF_TERM columnFieldData = enif_make_list_from_array(env, columnData.data(), columnData.size());
+  return enif_make_tuple3(env, tableName, tableFieldData, columnFieldData);
+}
+
+ERL_NIF_TERM cass_keyspace_meta_fields_to_erlang_term(ErlNifEnv* env, const CassKeyspaceMeta* keyspaceMeta) {
+  const char* name;
+  size_t name_length;
+
+  cass_keyspace_meta_name(keyspaceMeta, &name, &name_length);
+  ERL_NIF_TERM keyspaceName = make_binary(env, name, name_length);
+
+  std::vector<ERL_NIF_TERM> fieldData;
+
+  scoped_ptr(fieldIterator, CassIterator, cass_iterator_fields_from_keyspace_meta(keyspaceMeta), cass_iterator_free);
+  while (cass_iterator_next(fieldIterator.get())) {
+    fieldData.push_back(get_meta_field(env, fieldIterator.get()));
+  }
+  ERL_NIF_TERM keyspaceFieldData = enif_make_list_from_array(env, fieldData.data(), fieldData.size());
+
+  scoped_ptr(tablesIterator, CassIterator, cass_iterator_tables_from_keyspace_meta(keyspaceMeta), cass_iterator_free);
+  std::vector<ERL_NIF_TERM> tablesDataVec;
+  while (cass_iterator_next(tablesIterator.get())) {
+    tablesDataVec.push_back(cass_table_meta_fields_to_erlang_term(env, cass_iterator_get_table_meta(tablesIterator.get())));
+  }
+  ERL_NIF_TERM tablesData = enif_make_list_from_array(env, tablesDataVec.data(), tablesDataVec.size());
+
+  scoped_ptr(userTypesIterator, CassIterator, cass_iterator_user_types_from_keyspace_meta(keyspaceMeta), cass_iterator_free);
+  std::vector<ERL_NIF_TERM> userTypesDataVec;
+  while (cass_iterator_next(userTypesIterator.get())) {
+    userTypesDataVec.push_back(cass_data_type_to_nif_term(env, cass_iterator_get_user_type(userTypesIterator.get())));
+  }
+  ERL_NIF_TERM userTypesData = enif_make_list_from_array(env, userTypesDataVec.data(), userTypesDataVec.size());
+
+  return enif_make_tuple4(env, keyspaceName, keyspaceFieldData, tablesData, userTypesData);
+}
+
+ERL_NIF_TERM cass_schema_meta_fields_to_erlang_term(ErlNifEnv* env, const CassSchemaMeta* schemaMeta) {
+  CassVersion version = cass_schema_meta_version(schemaMeta);
+  ERL_NIF_TERM versionData = enif_make_tuple3(env, enif_make_int(env, version.major_version),
+                        enif_make_int(env, version.minor_version),
+                        enif_make_int(env, version.minor_version));
+
+  std::vector<ERL_NIF_TERM> keyspacesDataVec;
+  scoped_ptr(keyspaceIterator, CassIterator, cass_iterator_keyspaces_from_schema_meta(schemaMeta), cass_iterator_free);
+  while (cass_iterator_next(keyspaceIterator.get())) {
+    keyspacesDataVec.push_back(cass_keyspace_meta_fields_to_erlang_term(env, cass_iterator_get_keyspace_meta(keyspaceIterator.get())));
+  }
+  ERL_NIF_TERM keyspacesData = enif_make_list_from_array(env, keyspacesDataVec.data(), keyspacesDataVec.size());
+
+  return enif_make_tuple2(env, versionData, keyspacesData);
+}

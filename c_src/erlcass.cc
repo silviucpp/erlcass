@@ -68,6 +68,13 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomVarchar = make_atom(env, erlcass::kAtomVarchar);
     ATOMS.atomVarint = make_atom(env, erlcass::kAtomVarint);
 
+    //column types
+    ATOMS.atomColumnTypeRegular = make_atom(env, erlcass::kAtomColumnTypeRegular);
+    ATOMS.atomColumnTypePartitionKey = make_atom(env, erlcass::kAtomColumnTypePartitionKey);
+    ATOMS.atomColumnTypeClusteringKey = make_atom(env, erlcass::kAtomColumnTypeClusteringKey);
+    ATOMS.atomColumnTypeStatic = make_atom(env, erlcass::kAtomColumnTypeStatic);
+    ATOMS.atomColumnTypeCompactValue = make_atom(env, erlcass::kAtomColumnTypeCompactValue);
+
     //cluster settings atoms
 
     ATOMS.atomClusterDefaultConsistencyLevel = make_atom(env, erlcass::kAtomClusterDefaultConsistencyLevel);
@@ -169,6 +176,10 @@ static ErlNifFunc nif_funcs[] =
     {"cass_session_execute", 4, nif_cass_session_execute},
     {"cass_session_execute_batch", 5, nif_cass_session_execute_batch},
     {"cass_session_get_metrics", 1, nif_cass_session_get_metrics},
+
+    {"cass_session_get_schema_metadata", 1, nif_cass_session_get_schema_metadata},
+    {"cass_session_get_schema_metadata", 2, nif_cass_session_get_schema_metadata},
+    {"cass_session_get_schema_metadata", 3, nif_cass_session_get_schema_metadata},
 
     //CassUuidGen
 

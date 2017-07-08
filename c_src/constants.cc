@@ -21,7 +21,7 @@ const char kAtomTrue[] = "true";
 const char kAtomFalse[] = "false";
 const char kAtomNull[] = "null";
 const char kAtomBadArg[] = "badarg";
-const char kAtomOptions[] = "options";    
+const char kAtomOptions[] = "options";
 const char kAtomConsistencyLevel[] = "consistency_level";
 const char kAtomSerialConsistencyLevel[] = "serial_consistency_level";
 const char kAtomLogMsgRecord[] = "log_msg";
@@ -33,6 +33,34 @@ const char kAtomSessionClosed[] = "session_closed";
 const char kAtomPreparedStatementResult[] = "prepared_statement_result";
 const char kAtomExecuteStatementResult[] = "execute_statement_result";
 const char kAtomLogMessageReceived[] = "log_message_recv";
+
+//data types
+const char kAtomAscii[] = "ascii";
+const char kAtomBigInt[] = "bigint";
+const char kAtomBlob[] = "blob";
+const char kAtomBool[] = "boolean";
+const char kAtomCounter[] = "counter";
+const char kAtomDate[] = "date";
+const char kAtomDecimal[] = "decimal";
+const char kAtomDouble[] = "double";
+const char kAtomFloat[] = "float";
+const char kAtomFrozen[] = "frozen";
+const char kAtomInet[] = "inet";
+const char kAtomInt[] = "int";
+const char kAtomList[] = "list";
+const char kAtomMap[] = "map";
+const char kAtomSet[] = "set";
+const char kAtomSmallInt[] = "smallint";
+const char kAtomText[] = "text";
+const char kAtomTime[] = "time";
+const char kAtomTimestamp[] = "timestamp";
+const char kAtomTimeUuid[] = "timeuuid";
+const char kAtomTinyInt[] = "tinyint";
+const char kAtomTuple[] = "tuple";
+const char kAtomUuid[] = "uuid";
+const char kAtomUdt[] = "udt";
+const char kAtomVarchar[] = "varchar";
+const char kAtomVarint[] = "varint";
 
 //cluster settings atoms
 

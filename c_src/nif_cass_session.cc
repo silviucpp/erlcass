@@ -145,7 +145,7 @@ void on_statement_executed(CassFuture* future, void* user_data)
         else
         {
             const CassResult* cassResult = cass_future_get_result(future);
-            result = enif_make_tuple2(cb->env, ATOMS.atomOk, cass_result_to_erlang_term(cb->env, cassResult));
+            result = cass_result_to_erlang_term(cb->env, cassResult);
             cass_result_free(cassResult);
         }
 

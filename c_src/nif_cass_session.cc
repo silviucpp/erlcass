@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "macros.h"
 #include "logger.hpp"
+#include "cassandra.h"
 
 #include <string.h>
 #include <memory>
@@ -145,7 +146,7 @@ void on_statement_executed(CassFuture* future, void* user_data)
         else
         {
             const CassResult* cassResult = cass_future_get_result(future);
-            result = enif_make_tuple2(cb->env, ATOMS.atomOk, cass_result_to_erlang_term(cb->env, cassResult));
+            result = cass_result_to_erlang_term(cb->env, cassResult);
             cass_result_free(cassResult);
         }
 
@@ -441,3 +442,47 @@ ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NI
     return enif_make_tuple2(env, ATOMS.atomOk, result);
 }
 
+ERL_NIF_TERM nif_cass_session_get_schema_metadata(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
+    ERL_NIF_TERM metadata;
+    enif_cass_session * enifSession = NULL;
+    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enifSession))
+        return enif_make_badarg(env);
+
+    const CassSchemaMeta* schemaMeta = cass_session_get_schema_meta(enifSession->session);
+    if(argc == 1) {
+        metadata = cass_schema_meta_fields_to_erlang_term(env, schemaMeta);
+    }
+    else {
+        ErlNifBinary keyspace;
+        memset(&keyspace, 0, sizeof(keyspace));
+
+        if(!get_bstring(env, argv[1], &keyspace))
+            return enif_make_badarg(env);
+
+        const CassKeyspaceMeta* keyspaceMeta = cass_schema_meta_keyspace_by_name_n(schemaMeta, BIN_TO_STR(keyspace.data), keyspace.size);
+        if (keyspaceMeta == NULL)
+            return make_error(env, erlcass::kUnknownKeyspace);
+
+        if(argc == 2) {
+            metadata = cass_keyspace_meta_fields_to_erlang_term(env, keyspaceMeta);
+        }
+        if(argc == 3) {
+            ErlNifBinary table;
+            memset(&table, 0, sizeof(table));
+
+            if(!get_bstring(env, argv[2], &table))
+                return enif_make_badarg(env);
+
+            const CassTableMeta* tableMeta = cass_keyspace_meta_table_by_name_n(keyspaceMeta, BIN_TO_STR(table.data), table.size);
+
+            if (tableMeta == NULL)
+                return make_error(env, erlcass::kUnknownTable);
+
+            metadata = cass_table_meta_fields_to_erlang_term(env, tableMeta);
+        }
+    }
+    cass_schema_meta_free(schemaMeta);
+
+    return enif_make_tuple2(env, ATOMS.atomOk, metadata);
+}

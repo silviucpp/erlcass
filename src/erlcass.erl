@@ -11,6 +11,10 @@
     start_link/0,
     get_metrics/0,
 
+    get_schema_metadata/0,
+    get_schema_metadata/1,
+    get_schema_metadata/2,
+
     %queries
 
     query/1,
@@ -49,6 +53,17 @@
 
 get_metrics() ->
     call(get_metrics).
+
+
+get_schema_metadata() ->
+    call(get_schema_metadata).
+
+get_schema_metadata(Keyspace) ->
+    call({get_schema_metadata, Keyspace}).
+
+get_schema_metadata(Keyspace, Table) ->
+    call({get_schema_metadata, Keyspace, Table}).
+
 
 %non prepared query statements
 
@@ -242,6 +257,15 @@ handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
         _ ->
             {reply, {error, already_exist}, State}
     end;
+
+handle_call(get_schema_metadata, _From, State) ->
+    {reply, erlcass_nif:cass_session_get_schema_metadata(State#state.session), State};
+
+handle_call({get_schema_metadata, Keyspace}, _From, State) ->
+    {reply, erlcass_nif:cass_session_get_schema_metadata(State#state.session, Keyspace), State};
+
+handle_call({get_schema_metadata, Keyspace, Table}, _From, State) ->
+    {reply, erlcass_nif:cass_session_get_schema_metadata(State#state.session, Keyspace, Table), State};
 
 handle_call(get_metrics, _From, #state{session = Session} = State) ->
     {reply, erlcass_nif:cass_session_get_metrics(Session), State}.

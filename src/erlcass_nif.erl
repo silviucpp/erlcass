@@ -42,21 +42,17 @@
 %% nif functions
 
 load_nif() ->
-    SoName = get_nif_library_path(),
+    SoName = get_priv_path(?MODULE),
     ?INFO_MSG("loading library: ~p ~n", [SoName]),
     ok = erlang:load_nif(SoName, 0).
 
-get_nif_library_path() ->
-    filename:join(get_priv_dir(), ?MODULE).
-
-get_priv_dir() ->
+get_priv_path(File) ->
     case code:priv_dir(erlcass) of
         {error, bad_name} ->
-            EbinDir = filename:dirname(code:which(?MODULE)),
-            AppPath = filename:dirname(EbinDir),
-            filename:join(AppPath, "priv");
-        Path ->
-            Path
+            Ebin = filename:dirname(code:which(?MODULE)),
+            filename:join([filename:dirname(Ebin), "priv", File]);
+        Dir ->
+            filename:join(Dir, File)
     end.
 
 not_loaded(Line) ->

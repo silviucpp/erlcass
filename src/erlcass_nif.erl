@@ -20,6 +20,9 @@
     cass_session_execute/4,
     cass_session_execute_batch/5,
     cass_session_get_metrics/1,
+    cass_session_get_schema_metadata/1,
+    cass_session_get_schema_metadata/2,
+    cass_session_get_schema_metadata/3,
     cass_prepared_bind/1,
     cass_statement_new/1,
     cass_statement_bind_parameters/3,
@@ -96,6 +99,15 @@ cass_session_execute_batch(_SessionRef, _BatchType, _StmList, _Options, _Pid) ->
     ?NOT_LOADED.
 
 cass_session_get_metrics(_SessionRef) ->
+    ?NOT_LOADED.
+
+cass_session_get_schema_metadata(_SessionRef) ->
+    ?NOT_LOADED.
+
+cass_session_get_schema_metadata(_SessionRef, _KeySpace) ->
+    ?NOT_LOADED.
+
+cass_session_get_schema_metadata(_SessionRef, _KeySpace, _Table) ->
     ?NOT_LOADED.
 
 cass_prepared_bind(_PrepStatementRef) ->

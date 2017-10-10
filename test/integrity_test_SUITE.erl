@@ -1,6 +1,7 @@
 -module(integrity_test_SUITE).
 
 -include_lib("common_test/include/ct.hrl").
+-include_lib("stdlib/include/assert.hrl").
 -include("erlcass.hrl").
 
 -compile(export_all).
@@ -47,26 +48,27 @@ end_per_suite(_Config) ->
 
 create_keyspace(_Config) ->
     erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>),
-    {ok, []} = erlcass:query(<<"CREATE KEYSPACE erlang_driver_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}">>).
+    ok = erlcass:query(<<"CREATE KEYSPACE erlang_driver_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}">>).
 
 create_table(_Config) ->
-    {ok, []} = erlcass:query(<<"CREATE TABLE erlang_driver_test.entries1 (id varchar, age int, email varchar, PRIMARY KEY(id))">>).
+    ok = erlcass:query(<<"CREATE TABLE erlang_driver_test.entries1 (id varchar, age int, email varchar, PRIMARY KEY(id))">>).
 
 simple_insertion_roundtrip(_Config) ->
     Id = <<"hello">>,
     Age = 18,
     Email = <<"test@test.com">>,
 
-    {ok, []} = erlcass:query(<<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES ('",
+    ok = erlcass:query(<<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES ('",
         Id/binary,"',",
         (integer_to_binary(18))/binary, ", '",
         Email/binary, "')">>),
 
-    {ok, [{Id, Age, Email}]} = erlcass:query(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>).
+    Cols = [{<<"id">>, text}, {<<"age">>, int}, {<<"email">>, text}],
+    {ok, Cols, [[Id, Age, Email]]} = erlcass:query(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>).
 
 emptiness(_Config) ->
-    {ok, []} = erlcass:query(<<"update erlang_driver_test.entries1 set email = null where id = 'hello';">>),
-    {ok, [{null}]} = erlcass:query(<<"select email from erlang_driver_test.entries1 where id = 'hello';">>).
+    ok = erlcass:query(<<"update erlang_driver_test.entries1 set email = null where id = 'hello';">>),
+    {ok, [{<<"email">>, text}], [[null]]} = erlcass:query(<<"select email from erlang_driver_test.entries1 where id = 'hello';">>).
 
 async_insertion_roundtrip(_Config) ->
     Id = <<"hello_async">>,
@@ -80,7 +82,7 @@ async_insertion_roundtrip(_Config) ->
 
     receive
         {execute_statement_result, Tag, Result} ->
-            Result = {ok, []}
+            ?assertEqual(Result, ok)
 
         after 10000 ->
             ct:fail("Timeout on executing query ~n", [])
@@ -90,13 +92,13 @@ async_insertion_roundtrip(_Config) ->
 
     receive
         {execute_statement_result, Tag2, Result2} ->
-            {ok, List} = Result2,
-            {Id, Age, Email} = lists:last(List)
+            Cols = [{<<"id">>, text},{<<"age">>, int}, {<<"email">>, text}],
+            {ok, Cols, List} = Result2,
+            ?assertEqual([Id, Age, Email], lists:last(List))
 
         after 10000 ->
             ct:fail("Timeout on executing query ~n", [])
     end,
-
     ok.
 
 datatypes_columns(Cols) ->
@@ -111,8 +113,11 @@ datatypes_columns(I, [ColumnType|Rest], Bin) ->
 
 all_datatypes(_Config) ->
     Cols = datatypes_columns([ascii, bigint, blob, boolean, decimal, double, float, int, timestamp, uuid, varchar, varint, timeuuid, inet, tinyint, smallint, date, time]),
-    CreationQ = <<"CREATE TABLE erlang_driver_test.entries2(",  Cols/binary, " PRIMARY KEY(col1));">>,
-    {ok, []} = erlcass:query(CreationQ),
+    SelectCols = [{<<"col1">>, ascii}, {<<"col2">>, bigint},    {<<"col3">>,  blob}, {<<"col4">>,  boolean}, {<<"col5">>,  decimal}, {<<"col6">>, double}, {<<"col7">>, float},
+                  {<<"col8">>, int},  {<<"col9">>, timestamp}, {<<"col10">>, uuid}, {<<"col11">>, text}, {<<"col12">>, varint},    {<<"col13">>, timeuuid},  {<<"col14">>, inet},
+                  {<<"col15">>,tinyint}, {<<"col16">>, smallint}, {<<"col17">>,date}, {<<"col18">>, time}],
+
+    ok = erlcass:query(<<"CREATE TABLE erlang_driver_test.entries2(",  Cols/binary, " PRIMARY KEY(col1));">>),
 
     AsciiValBin = <<"hello">>,
     BigIntPositive = 9223372036854775807,
@@ -139,7 +144,7 @@ all_datatypes(_Config) ->
     ok = erlcass:add_prepare_statement(insert_all_datatypes, InsertQuery),
     ok = erlcass:add_prepare_statement(select_all_datatypes, SelectQuery),
 
-    {ok, []} = erlcass:execute(insert_all_datatypes, [
+    ok = erlcass:execute(insert_all_datatypes, [
         AsciiValBin,
         BigIntPositive,
         Blob,
@@ -160,9 +165,9 @@ all_datatypes(_Config) ->
         Time
     ]),
 
-    {ok, [Result]} = erlcass:execute(select_all_datatypes, [AsciiValBin]),
+    {ok, SelectCols, [Result]} = erlcass:execute(select_all_datatypes, [AsciiValBin]),
 
-    {AsciiValBin, BigIntPositive, Blob, BooleanTrue, DecimalPositive, DoublePositive, _, IntPositive, Timestamp, Uuid, Varchar1, Varint1, Timeuuid, Inet, TinyIntPositive, SmallIntPositive, Date, Time} = Result,
+    [AsciiValBin, BigIntPositive, Blob, BooleanTrue, DecimalPositive, DoublePositive, _, IntPositive, Timestamp, Uuid, Varchar1, Varint1, Timeuuid, Inet, TinyIntPositive, SmallIntPositive, Date, Time] = Result,
 
     AsciiString = "foo",
     BigIntNegative = -9223372036854775806,
@@ -176,7 +181,7 @@ all_datatypes(_Config) ->
     Varchar2 = <<"åäö"/utf8>>,
     Varint2 = erlang:integer_to_binary(123124211928301970128391280192830198049113123),
 
-    {ok, []} = erlcass:execute(insert_all_datatypes, ?BIND_BY_NAME, [
+    ok = erlcass:execute(insert_all_datatypes, ?BIND_BY_NAME, [
         {<<"col1">>, AsciiString},
         {<<"col2">>, BigIntNegative},
         {<<"col3">>, Blob},
@@ -197,26 +202,26 @@ all_datatypes(_Config) ->
         {<<"col18">>, Time}
     ]),
 
-    {ok, [Result2]} = erlcass:execute(select_all_datatypes, ?BIND_BY_NAME, [{<<"col1">>, AsciiString}]),
+    {ok, _, [Result2]} = erlcass:execute(select_all_datatypes, ?BIND_BY_NAME, [{<<"col1">>, AsciiString}]),
 
     BinAsciiString = list_to_binary(AsciiString),
-    {BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet, TinyIntNegative, SmallIntNegative, Date, Time} = Result2,
+    [BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet, TinyIntNegative, SmallIntNegative, Date, Time] = Result2,
     ok.
 
 async_custom_tag(_Config) ->
-    CreationQ = <<"CREATE TABLE erlang_driver_test.async_custom_tag(key int PRIMARY KEY, value map<text,text>)">>,
-    {ok, []} = erlcass:query(CreationQ),
+    CreationQ = <<"CREATE TABLE erlang_driver_test.async_custom_tag(key int PRIMARY KEY, value map<text, text>)">>,
+    ok = erlcass:query(CreationQ),
 
     QuerySelect  = <<"SELECT value FROM erlang_driver_test.async_custom_tag where key = ?">>,
     Tag1 = {mytag, 1},
 
     ok = erlcass:add_prepare_statement(select_async_custom_tag, QuerySelect),
-
     ok = erlcass:async_execute(select_async_custom_tag, ?BIND_BY_INDEX, [1], self(), Tag1),
 
     receive
         {execute_statement_result, Tag1, Rs} ->
-            {ok, []} = Rs,
+            Cols = [{<<"value">>, {map, text, text}}],
+            {ok, Cols, []} = Rs,
             ok
     after 10000 ->
         ct:fail("Timeout on executing query ~n", [])
@@ -225,7 +230,7 @@ async_custom_tag(_Config) ->
 
 prepared_bind_by_name_index(_Config) ->
     CreationQ = <<"CREATE TABLE erlang_driver_test.test_map(key int PRIMARY KEY, value map<text,text>)">>,
-    {ok, []} = erlcass:query(CreationQ),
+    ok = erlcass:query(CreationQ),
 
     CollectionIndex1 = <<"my_index">>,
     CollectionValue1 = <<"my_value">>,
@@ -245,15 +250,15 @@ prepared_bind_by_name_index(_Config) ->
     ok = erlcass:add_prepare_statement(insert_test_bind_serial_q, QueryInsertSerialConsistency),
     ok = erlcass:add_prepare_statement(select_test_bind, QuerySelect),
 
-    {ok, []} = erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [
+    ok = erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [
         {<<"key(value)">>, CollectionIndex1},
         {<<"value(value)">>, CollectionValue1},
         {<<"key">>, Key1}
     ]),
 
-    {ok, []} = erlcass:execute(insert_test_bind, [CollectionIndex2, CollectionValue2, Key2]),
-    {ok, [{[{CollectionIndex1, CollectionValue1}]}]} = erlcass:execute(select_test_bind, ?BIND_BY_NAME, [{<<"key">>, Key1}]),
-    {ok, [{[{CollectionIndex2, CollectionValue2}]}]} = erlcass:execute(select_test_bind, [Key2]),
+    ok = erlcass:execute(insert_test_bind, [CollectionIndex2, CollectionValue2, Key2]),
+    {ok, _, [[[{CollectionIndex1, CollectionValue1}]]]} = erlcass:execute(select_test_bind, ?BIND_BY_NAME, [{<<"key">>, Key1}]),
+    {ok, _, [[[{CollectionIndex2, CollectionValue2}]]]} = erlcass:execute(select_test_bind, [Key2]),
     ok.
 
 fire_and_forget(_Config) ->
@@ -266,8 +271,7 @@ fire_and_forget(_Config) ->
 
 collection_types(_Config) ->
     CreationQ = <<"CREATE TABLE erlang_driver_test.entries3(key varchar, numbers list<int>, names set<varchar>, phones map<int, varchar>, PRIMARY KEY(key));">>,
-    ct:log("Executing : ~s~n", [CreationQ]),
-    {ok, []} = erlcass:query(CreationQ),
+    ok = erlcass:query(CreationQ),
 
     Key2 = <<"somekeyhere_2">>,
     Key3 = <<"somekeyhere_3">>,
@@ -276,48 +280,47 @@ collection_types(_Config) ->
     Map = [{100, <<"418-123-4545">>}, {200, <<"555-555-5555">>}],
     InsertQ = <<"INSERT INTO erlang_driver_test.entries3(key, numbers, names, phones) values (?, ?, ?, ?);">>,
     SelectQ = <<"SELECT key, numbers, names, phones FROM erlang_driver_test.entries3 WHERE key = ?;">>,
-
+    SelectCols = [{<<"key">>, text}, {<<"numbers">>, {list, int}}, {<<"names">>, {set, text}}, {<<"phones">>, {map, int, text}}],
     ok = erlcass:add_prepare_statement(insert_collection_types, InsertQ),
     ok = erlcass:add_prepare_statement(select_collection_types, SelectQ),
 
-    {ok, []} = erlcass:execute(insert_collection_types, ?BIND_BY_NAME, [
+    ok = erlcass:execute(insert_collection_types, ?BIND_BY_NAME, [
         {<<"key">>, Key2},
         {<<"numbers">>, List},
         {<<"names">>, Set},
         {<<"phones">>, Map}
     ]),
 
-    {ok, []} = erlcass:execute(insert_collection_types, [Key3, List, Set, Map]),
+    ok = erlcass:execute(insert_collection_types, [Key3, List, Set, Map]),
 
-    {ok, [{Key2, List, Set, Map}]} = erlcass:execute(select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
-    {ok, [{Key3, List, Set, Map}]} = erlcass:execute(select_collection_types, ?BIND_BY_INDEX, [Key3]),
+    {ok, SelectCols, [[Key2, List, Set, Map]]} = erlcass:execute(select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
+    {ok, SelectCols, [[Key3, List, Set, Map]]} = erlcass:execute(select_collection_types, ?BIND_BY_INDEX, [Key3]),
     ok.
 
 nested_collections(_Config) ->
     CreationQ = <<"CREATE TABLE erlang_driver_test.nested_collections(key varchar, numbers list<frozen<map<int, varchar>>>, PRIMARY KEY(key))">>,
-    ct:log("Executing : ~s~n", [CreationQ]),
-    {ok, []} = erlcass:query(CreationQ),
+    ok = erlcass:query(CreationQ),
 
     Key2 = <<"somekeyhere_2">>,
     Key3 = <<"somekeyhere_3">>,
     List = [[{100, <<"418-123-4545">>}, {200, <<"555-555-5555">>}], [{101, <<"1418-123">>}, {201, <<"5555-111">>}]],
     InsertQ = <<"INSERT INTO erlang_driver_test.nested_collections(key, numbers) values (?, ?)">>,
     SelectQ = <<"SELECT key, numbers FROM erlang_driver_test.nested_collections WHERE key = ?">>,
+    SelectCols = [{<<"key">>, text}, {<<"numbers">>, {list, {map, int, text}}}],
 
     ok = erlcass:add_prepare_statement(nest_insert_collection_types, InsertQ),
     ok = erlcass:add_prepare_statement(nest_select_collection_types, SelectQ),
 
-    {ok, []} = erlcass:execute(nest_insert_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}, {<<"numbers">>, List}]),
-    {ok, []} = erlcass:execute(nest_insert_collection_types, [Key3, List]),
+    ok = erlcass:execute(nest_insert_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}, {<<"numbers">>, List}]),
+    ok = erlcass:execute(nest_insert_collection_types, [Key3, List]),
 
-    {ok, [{Key2, List}]} = erlcass:execute(nest_select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
-    {ok, [{Key3, List}]} = erlcass:execute(nest_select_collection_types, ?BIND_BY_INDEX, [Key3]),
+    {ok, SelectCols, [[Key2, List]]} = erlcass:execute(nest_select_collection_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
+    {ok, SelectCols, [[Key3, List]]} = erlcass:execute(nest_select_collection_types, ?BIND_BY_INDEX, [Key3]),
     ok.
 
 tuples(_Config) ->
     CreationQ = <<"CREATE TABLE erlang_driver_test.tuples (key varchar, item1 frozen<tuple<text, list<int>>>, item2 frozen< tuple< tuple<text, bigint> > >, PRIMARY KEY(key));">>,
-    ct:log("Executing : ~s~n", [CreationQ]),
-    {ok, []} = erlcass:query(CreationQ),
+    ok = erlcass:query(CreationQ),
 
     Key2 = <<"somekeyhere_2">>,
     Key3 = <<"somekeyhere_3">>,
@@ -327,20 +330,21 @@ tuples(_Config) ->
 
     InsertQ = <<"INSERT INTO erlang_driver_test.tuples(key, item1, item2) values (?, ?, ?)">>,
     SelectQ = <<"SELECT key, item1, item2 FROM erlang_driver_test.tuples WHERE key = ?">>,
+    SelectCols = [{<<"key">>, text}, {<<"item1">>, {tuple, [text, {list, int}]}}, {<<"item2">>, {tuple, [{tuple, [text, bigint]}]}}],
 
     ok = erlcass:add_prepare_statement(insert_tuple_types, InsertQ),
     ok = erlcass:add_prepare_statement(select_tuple_types, SelectQ),
 
-    {ok, []} = erlcass:execute(insert_tuple_types, ?BIND_BY_NAME, [
+    ok = erlcass:execute(insert_tuple_types, ?BIND_BY_NAME, [
         {<<"key">>, Key2},
         {<<"item1">>, Item1},
         {<<"item2">>, Item2}
     ]),
 
-    {ok, []} = erlcass:execute(insert_tuple_types, [Key3, Item1, Item2]),
+    ok = erlcass:execute(insert_tuple_types, [Key3, Item1, Item2]),
 
-    {ok, [{Key2, Item1, Item2}]} = erlcass:execute(select_tuple_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
-    {ok, [{Key3, Item1, Item2}]} = erlcass:execute(select_tuple_types, ?BIND_BY_INDEX, [Key3]),
+    {ok, SelectCols, [[Key2, Item1, Item2]]} = erlcass:execute(select_tuple_types, ?BIND_BY_NAME, [{<<"key">>, Key2}]),
+    {ok, SelectCols, [[Key3, Item1, Item2]]} = erlcass:execute(select_tuple_types, ?BIND_BY_INDEX, [Key3]),
     ok.
 
 test_udt(_Config) ->
@@ -361,23 +365,23 @@ test_udt(_Config) ->
         {<<"phones">>, [<<"33 6 78 90 12 34">>]}
     ],
 
-    {ok, []} = erlcass:query(<<"CREATE TYPE erlang_driver_test.address (street text, city text, zip_code int, phones set<text>)">>),
-    {ok, []} = erlcass:query(<<"CREATE TYPE erlang_driver_test.fullname (firstname text, lastname text)">>),
-    {ok, []} = erlcass:query(<<"CREATE TABLE erlang_driver_test.users (id uuid PRIMARY KEY, name frozen <fullname>, direct_reports set<frozen <fullname>>, addresses map<text, frozen <address>>)">>),
+    ok = erlcass:query(<<"CREATE TYPE erlang_driver_test.address (street text, city text, zip_code int, phones set<text>)">>),
+    ok = erlcass:query(<<"CREATE TYPE erlang_driver_test.fullname (firstname text, lastname text)">>),
+    ok = erlcass:query(<<"CREATE TABLE erlang_driver_test.users (id uuid PRIMARY KEY, name frozen <fullname>, direct_reports set<frozen <fullname>>, addresses map<text, frozen <address>>)">>),
 
     ok = erlcass:add_prepare_statement(insert_udt, <<"INSERT INTO erlang_driver_test.users (id, name) VALUES (?, ?)">>),
     ok = erlcass:add_prepare_statement(update_address_udt, <<"UPDATE erlang_driver_test.users SET addresses = addresses + ? WHERE id=?;">>),
     ok = erlcass:add_prepare_statement(select_name_udt, <<"SELECT name FROM erlang_driver_test.users WHERE id=?">>),
     ok = erlcass:add_prepare_statement(select_last_name_udt, <<"SELECT name.lastname FROM erlang_driver_test.users WHERE id= ?">>),
 
-    {ok, []} = erlcass:execute(insert_udt, [UserId, Username]),
-    {ok, []} = erlcass:execute(update_address_udt, [[{<<"home">>, Address}], UserId]),
+    ok = erlcass:execute(insert_udt, [UserId, Username]),
+    ok = erlcass:execute(update_address_udt, [[{<<"home">>, Address}], UserId]),
 
-    {ok, [{Username}]} = erlcass:execute(select_name_udt, [UserId]),
-    {ok, [{Lname}]} = erlcass:execute(select_last_name_udt, [UserId]).
+    {ok, _, [[Username]]} = erlcass:execute(select_name_udt, [UserId]),
+    {ok, _, [[Lname]]} = erlcass:execute(select_last_name_udt, [UserId]).
 
 batches(_Config) ->
-    {ok, []} = erlcass:query(<<"TRUNCATE erlang_driver_test.entries1;">>),
+    ok = erlcass:query(<<"TRUNCATE erlang_driver_test.entries1;">>),
 
     InsertStatement = <<"INSERT INTO erlang_driver_test.entries1(id, age, email) VALUES (?, ?, ?)">>,
     Id2 = <<"id_2">>,
@@ -390,12 +394,13 @@ batches(_Config) ->
     {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
     ok = erlcass:bind_prepared_params_by_name(Stm2, [{<<"id">>, Id2}, {<<"age">>, Age2}, {<<"email">>, Email2}]),
 
-    {ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [
+    ok = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [
         {consistency_level, ?CASS_CONSISTENCY_QUORUM},
         {serial_consistency_level, ?CASS_CONSISTENCY_LOCAL_SERIAL}
     ]),
 
-    {ok, Result} = erlcass:query(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>),
+    Cols = [{<<"id">>, text}, {<<"age">>, int}, {<<"email">>, text}],
+    {ok, Cols, Result} = erlcass:query(<<"SELECT id, age, email FROM erlang_driver_test.entries1">>),
     ListLength = 2,
     ListLength = length(Result),
     ok.
@@ -404,7 +409,7 @@ erlcass_crash(_Config) ->
     exit(whereis(erlcass), kill),
     Key3 = <<"somekeyhere_3">>,
     timer:sleep(2000),
-    {ok, _} = erlcass:execute(select_tuple_types, ?BIND_BY_INDEX, [Key3]),
+    {ok, _, _} = erlcass:execute(select_tuple_types, ?BIND_BY_INDEX, [Key3]),
     ok.
 
 uuid_testing(_Config) ->
@@ -432,6 +437,6 @@ get_metrics(_Config) ->
     ok.
 
 drop_keyspace(_Config) ->
-    {ok, []} = erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>).
+    ok = erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>).
 
 

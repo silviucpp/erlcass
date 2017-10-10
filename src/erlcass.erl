@@ -11,13 +11,13 @@
     start_link/0,
     get_metrics/0,
 
-    %queries
+    % queries
 
     query/1,
     query_async/1,
     query_new_statement/1,
 
-    %prepared statements
+    % prepared statements
 
     add_prepare_statement/2,
     async_execute/1,
@@ -29,12 +29,18 @@
     execute/2,
     execute/3,
 
-    %batch
+    % batch
 
     batch_execute/3,
     batch_async_execute/3,
 
-    %low level methods to deal with statements
+	% schema metadata
+
+    get_schema_metadata/0,
+    get_schema_metadata/1,
+    get_schema_metadata/2,
+
+    % low level methods to deal with statements
 
     bind_prepared_statement/1,
     bind_prepared_params_by_name/2,
@@ -49,6 +55,21 @@
 
 get_metrics() ->
     call(get_metrics).
+
+-spec get_schema_metadata() -> {ok, list()} | {error, reason()}.
+
+get_schema_metadata() ->
+    call(get_schema_metadata).
+
+-spec get_schema_metadata(binary()) -> {ok, list()} | {error, reason()}.
+
+get_schema_metadata(Keyspace) ->
+    call({get_schema_metadata, Keyspace}).
+
+-spec get_schema_metadata(binary(), binary()) -> {ok, list()} | {error, reason()}.
+
+get_schema_metadata(Keyspace, Table) ->
+    call({get_schema_metadata, Keyspace, Table}).
 
 %non prepared query statements
 
@@ -242,6 +263,15 @@ handle_call({add_prepare_statement, Identifier, Query}, From, State) ->
         _ ->
             {reply, {error, already_exist}, State}
     end;
+
+handle_call(get_schema_metadata, _From, State) ->
+    {reply, erlcass_nif:cass_session_get_schema_metadata(State#state.session), State};
+
+handle_call({get_schema_metadata, Keyspace}, _From, State) ->
+    {reply, erlcass_nif:cass_session_get_schema_metadata(State#state.session, Keyspace), State};
+
+handle_call({get_schema_metadata, Keyspace, Table}, _From, State) ->
+    {reply, erlcass_nif:cass_session_get_schema_metadata(State#state.session, Keyspace, Table), State};
 
 handle_call(get_metrics, _From, #state{session = Session} = State) ->
     {reply, erlcass_nif:cass_session_get_metrics(Session), State}.

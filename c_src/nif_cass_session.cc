@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "macros.h"
 #include "logger.hpp"
+#include "cassandra.h"
 
 #include <string.h>
 #include <memory>
@@ -145,7 +146,7 @@ void on_statement_executed(CassFuture* future, void* user_data)
         else
         {
             const CassResult* cassResult = cass_future_get_result(future);
-            result = enif_make_tuple2(cb->env, ATOMS.atomOk, cass_result_to_erlang_term(cb->env, cassResult));
+            result = cass_result_to_erlang_term(cb->env, cassResult);
             cass_result_free(cassResult);
         }
 
@@ -441,3 +442,41 @@ ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NI
     return enif_make_tuple2(env, ATOMS.atomOk, result);
 }
 
+ERL_NIF_TERM nif_cass_session_get_schema_metadata(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
+    enif_cass_session* enif_session = NULL;
+
+    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+        return enif_make_badarg(env);
+
+    scoped_ptr(schema_meta, const CassSchemaMeta, cass_session_get_schema_meta(enif_session->session), cass_schema_meta_free);
+
+    if(argc == 1)
+        return enif_make_tuple2(env, ATOMS.atomOk, cass_schema_meta_fields_to_erlang_term(env, schema_meta.get()));
+
+    ErlNifBinary keyspace;
+
+    if(!get_bstring(env, argv[1], &keyspace))
+        return make_badarg(env);
+
+    const CassKeyspaceMeta* keyspace_meta = cass_schema_meta_keyspace_by_name_n(schema_meta.get(), BIN_TO_STR(keyspace.data), keyspace.size);
+
+    if (keyspace_meta == NULL)
+        return make_error(env, erlcass::kUnknownKeyspace);
+
+    if(argc == 2)
+        return enif_make_tuple2(env, ATOMS.atomOk, cass_keyspace_meta_fields_to_erlang_term(env, keyspace_meta));
+
+    ErlNifBinary table;
+
+    if(!get_bstring(env, argv[2], &table))
+        return make_badarg(env);
+
+    const CassTableMeta* table_meta = cass_keyspace_meta_table_by_name_n(keyspace_meta, BIN_TO_STR(table.data), table.size);
+
+    if (table_meta == NULL)
+        return make_error(env, erlcass::kUnknownTable);
+
+    return enif_make_tuple2(env, ATOMS.atomOk, cass_table_meta_fields_to_erlang_term(env, table_meta));
+}

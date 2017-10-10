@@ -78,6 +78,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
 
 	//metadata
 
+    ATOMS.atomMetadataSchemaVersion = make_atom(env, erlcass::kAtomMetadataSchemaVersion);
     ATOMS.atomColumnMetaColumnName = make_atom(env, erlcass::kAtomColumnMetaColumnName);
     ATOMS.atomColumnMetaDataType = make_atom(env, erlcass::kAtomColumnMetaDataType);
     ATOMS.atomColumnMetaType = make_atom(env, erlcass::kAtomColumnMetaType);

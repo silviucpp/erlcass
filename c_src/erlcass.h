@@ -64,6 +64,7 @@ struct atoms
 
     //metadata
 
+    ERL_NIF_TERM atomMetadataSchemaVersion;
     ERL_NIF_TERM atomColumnMetaColumnName;
     ERL_NIF_TERM atomColumnMetaDataType;
     ERL_NIF_TERM atomColumnMetaType;

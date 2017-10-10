@@ -76,6 +76,7 @@ extern const char kAtomColumnTypeCompactValue[];
 
 //metadata
 
+extern const char kAtomMetadataSchemaVersion[];
 extern const char kAtomColumnMetaColumnName[];
 extern const char kAtomColumnMetaDataType[];
 extern const char kAtomColumnMetaType[];

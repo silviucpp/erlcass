@@ -75,6 +75,7 @@ const char kAtomColumnTypeCompactValue[] = "compact_value";
 
 //metadata
 
+const char kAtomMetadataSchemaVersion[] = "version";
 const char kAtomColumnMetaColumnName[] = "column_name";
 const char kAtomColumnMetaDataType[] = "data_type";
 const char kAtomColumnMetaType[] = "type";

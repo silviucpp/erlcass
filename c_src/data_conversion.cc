@@ -402,7 +402,6 @@ ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     return enif_make_list_from_array(env, items_list, items_count);
 }
 
-//convert CassResult into erlang term
 ERL_NIF_TERM column_data_to_erlang_term(ErlNifEnv* env, const CassResult* result, size_t columns_count)
 {
     ERL_NIF_TERM column_names_array[columns_count];
@@ -580,7 +579,7 @@ ERL_NIF_TERM cass_schema_meta_fields_to_erlang_term(ErlNifEnv* env, const CassSc
     ERL_NIF_TERM version_data = enif_make_tuple3(env,
                                                  enif_make_int(env, version.major_version),
                                                  enif_make_int(env, version.minor_version),
-                                                 enif_make_int(env, version.minor_version));
+                                                 enif_make_int(env, version.patch_version));
 
     std::vector<ERL_NIF_TERM> keyspaces_data_vec;
     scoped_ptr(keyspace_it, CassIterator, cass_iterator_keyspaces_from_schema_meta(schema_meta), cass_iterator_free);
@@ -589,5 +588,5 @@ ERL_NIF_TERM cass_schema_meta_fields_to_erlang_term(ErlNifEnv* env, const CassSc
         keyspaces_data_vec.push_back(cass_keyspace_meta_fields_to_erlang_term(env, cass_iterator_get_keyspace_meta(keyspace_it.get())));
 
     ERL_NIF_TERM keyspaces_data = enif_make_list_from_array(env, keyspaces_data_vec.data(), keyspaces_data_vec.size());
-    return enif_make_tuple2(env, version_data, keyspaces_data);
+    return enif_make_tuple2(env, enif_make_tuple2(env, ATOMS.atomMetadataSchemaVersion, version_data), keyspaces_data);
 }

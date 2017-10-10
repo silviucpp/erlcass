@@ -1,8 +1,12 @@
 -module(erlcass_stm_sessions).
 
--include("erlcass_internals.hrl").
+-export([
+    create/0,
+    set/3,
+    get/1
+]).
 
--export([create/0, set/3, get/1]).
+-define(ETS_PREPARED_STM_SESSIONS, erlcass_ets_prepared_stm_sessions).
 
 create() ->
     ?ETS_PREPARED_STM_SESSIONS = ets:new(?ETS_PREPARED_STM_SESSIONS, [set, named_table, protected, {read_concurrency, true}]),

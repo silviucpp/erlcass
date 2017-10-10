@@ -1,10 +1,8 @@
+% data types
 
-%ets tables
+-type reason()          :: term().
 
--define(ETS_PREPARED_STM_CACHE, erlcass_ets_prepared_stm_cache).
--define(ETS_PREPARED_STM_SESSIONS, erlcass_ets_prepared_stm_sessions).
-
-%logs
+% logs
 
 -define(PRINT_MSG(Format, Args),
     io:format(Format, Args)).
@@ -24,7 +22,7 @@
 -define(CRITICAL_MSG(Format, Args),
     lager:critical(Format, Args)).
 
-%timeouts
+% timeouts
 
 -define(RESPONSE_TIMEOUT, 20000).
 -define(CONNECT_TIMEOUT, 5000).

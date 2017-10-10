@@ -3,9 +3,11 @@
 -behaviour(application).
 
 -include("erlcass.hrl").
--include("erlcass_internals.hrl").
 
--export([start/2, stop/1]).
+-export([
+    start/2,
+    stop/1
+]).
 
 start(_StartType, _StartArgs) ->
 

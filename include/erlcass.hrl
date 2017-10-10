@@ -43,15 +43,4 @@
 -define(CASS_LOG_DEBUG,5).
 -define(CASS_LOG_TRACE, 6).
 
--record(erlcass_stm, {session, stm}).
-
--type reason()          :: term().
--type error()           :: {error, reason()}.
--type query()           :: binary() | {binary(), integer()} | {binary(), list()}.
--type statement_ref()   :: #erlcass_stm{}.
--type bind_type()       :: ?BIND_BY_INDEX | ?BIND_BY_NAME.
--type batch_type()      :: ?CASS_BATCH_TYPE_LOGGED | ?CASS_BATCH_TYPE_UNLOGGED | ?CASS_BATCH_TYPE_COUNTER.
--type tag()             :: reference().
--type recv_pid()        :: pid() | null.
--type query_result()    :: ok | {ok, list(), list()} | {error, reason()}.
 

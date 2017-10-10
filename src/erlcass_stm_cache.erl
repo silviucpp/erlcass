@@ -1,8 +1,13 @@
 -module(erlcass_stm_cache).
 
--include("erlcass_internals.hrl").
+-export([
+    create/0,
+    set/2,
+    find/1,
+    to_list/0
+]).
 
--export([create/0, set/2, find/1, to_list/0]).
+-define(ETS_PREPARED_STM_CACHE, erlcass_ets_prepared_stm_cache).
 
 create() ->
     ?ETS_PREPARED_STM_CACHE = ets:new(?ETS_PREPARED_STM_CACHE, [set, named_table, public, {read_concurrency, true}]),

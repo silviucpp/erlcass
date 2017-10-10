@@ -57,9 +57,16 @@
     code_change/3
 ]).
 
--define(SERVER, ?MODULE).
-
+-record(erlcass_stm, {session, stm}).
 -record(state, {session}).
+
+-type query()           :: binary() | {binary(), integer()} | {binary(), list()}.
+-type statement_ref()   :: #erlcass_stm{}.
+-type bind_type()       :: ?BIND_BY_INDEX | ?BIND_BY_NAME.
+-type batch_type()      :: ?CASS_BATCH_TYPE_LOGGED | ?CASS_BATCH_TYPE_UNLOGGED | ?CASS_BATCH_TYPE_COUNTER.
+-type tag()             :: reference().
+-type recv_pid()        :: pid() | null.
+-type query_result()    :: ok | {ok, list(), list()} | {error, reason()}.
 
 -spec get_metrics() ->
     {ok, list()} | {error, reason()}.
@@ -88,7 +95,7 @@ get_schema_metadata(Keyspace, Table) ->
 %non prepared query statements
 
 -spec query_new_statement(query()) ->
-    {ok, reference()} | {error, reason()}.
+    {ok, tag()} | {error, reason()}.
 
 query_new_statement(Query) ->
     erlcass_nif:cass_statement_new(Query).
@@ -200,7 +207,7 @@ async_execute(Identifier, BindType, Params) ->
 async_execute(Identifier, BindType, Params, Tag) ->
     async_execute(Identifier, BindType, Params, self(), Tag).
 
--spec async_execute(atom(), bind_type(), list(), pid() | null, any()) ->
+-spec async_execute(atom(), bind_type(), list(), recv_pid(), any()) ->
     ok | {error, reason()}.
 
 async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
@@ -262,7 +269,7 @@ batch_execute(BatchType, StmList, Options) ->
     end.
 
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 %internal functions
 

@@ -1,6 +1,11 @@
 -module(erlcass_utils).
 
--export([get_env/1, get_env/2, lookup/2, lookup/3]).
+-export([
+    get_env/1,
+    get_env/2,
+    lookup/2,
+    lookup/3
+]).
 
 get_env(Key) ->
     application:get_env(erlcass, Key).

@@ -1,5 +1,4 @@
 -module(benchmark).
--author("silviu.caragea").
 
 -include("erlcass.hrl").
 -include_lib("cqerl/include/cqerl.hrl").

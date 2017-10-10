@@ -15,4 +15,7 @@ clean:
 
 ct:
 	mkdir -p log
-	ct_run -suite integrity_test_SUITE -pa ebin -pa deps/*/ebin -include include -logdir log -erl_args -config benchmarks/benchmark.config
+	ct_run -suite integrity_test_SUITE -pa ebin -pa deps/*/ebin erl -pa _build/default/lib/*/ebin -include include -logdir log -erl_args -config benchmarks/benchmark.config
+
+benchmark:
+	erl -pa _build/default/lib/*/ebin -noshell -config benchmarks/benchmark.config -eval "benchmark:run($(MODULE), 100, 100000)" -eval "init:stop()."

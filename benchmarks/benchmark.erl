@@ -1,22 +1,22 @@
 -module(benchmark).
 -author("silviu.caragea").
 
-%marina is currently disabled. Seems is not compiling with rebar on OSX because of one of it's deps.
-%also with rebar3 I couldn't compile cqerl because of re2 . so I decide to comment the code for marina (which is not tested)
-%until this issues will get fix
-
 -include("erlcass.hrl").
 -include_lib("cqerl/include/cqerl.hrl").
-%-include_lib("marina/include/marina.hrl").
+-include_lib("marina/include/marina.hrl").
+-include_lib("shackle/include/shackle.hrl").
 
 -define(QUERY, <<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14 FROM test_table WHERE col1 = ?">>).
 -define(ARG_VAL, <<"hello">>).
 
 -define(DRIVER_ERLCASS, erlcass).
 -define(DRIVER_CQERL, cqerl).
-%-define(DRIVER_MARINA, marina).
+-define(DRIVER_MARINA, marina).
 
--export([run/3, start/1]).
+-export([
+    run/3,
+    start/1
+]).
 
 start(Module) ->
     case application:ensure_all_started(Module) of
@@ -36,8 +36,8 @@ get_client(?DRIVER_ERLCASS) ->
 get_client(?DRIVER_CQERL) ->
     {ok, Client} = cqerl:get_client(),
     Client;
-%%get_client(?DRIVER_MARINA) ->
-%%    undefined;
+get_client(?DRIVER_MARINA) ->
+    undefined;
 get_client(_) ->
     throw(invalid_module).
 
@@ -45,8 +45,8 @@ close_client(?DRIVER_ERLCASS, _Client) ->
     ok;
 close_client(?DRIVER_CQERL, Client) ->
     cqerl:close_client(Client);
-%%close_client(?DRIVER_MARINA, _) ->
-%%    ok;
+close_client(?DRIVER_MARINA, _) ->
+    ok;
 close_client(_, _) ->
     throw(invalid_module).
 
@@ -60,8 +60,9 @@ execute_async(?DRIVER_CQERL, Client) ->
         consistency = one
     })),
     ok;
-%%execute_async(?DRIVER_MARINA, _Client) ->
-%%    marina:async_reusable_query(?QUERY, [?ARG_VAL], ?CONSISTENCY_ONE, [], self(), 500);
+execute_async(?DRIVER_MARINA, _Client) ->
+    {ok, _} = marina:async_reusable_query(?QUERY, [?ARG_VAL], ?CONSISTENCY_ONE, [], self(), 500),
+    ok;
 execute_async(_Module, _Client) ->
     throw(invalid_module).
 
@@ -69,7 +70,7 @@ receive_response(?DRIVER_ERLCASS) ->
     receive
         {execute_statement_result, _Tag, Rs} ->
             case Rs of
-                {ok, _Result} ->
+                {ok, _Cols, _Rows} ->
                     ok;
                 UnexpectedResult ->
                     UnexpectedResult
@@ -87,16 +88,19 @@ receive_response(?DRIVER_CQERL) ->
         {error, _Tag, Reason} ->
             Reason
     end;
-%%receive_response(?DRIVER_MARINA) ->
-%%    receive
-%%        {marina, _Tag, Response} ->
-%%            case marina:response(Response) of
-%%                {ok, _} ->
-%%                    ok;
-%%                UnexpectedResponse ->
-%%                    UnexpectedResponse
-%%            end
-%%    end;
+receive_response(?DRIVER_MARINA) ->
+    receive
+        {#cast{}, Response} ->
+            case marina:response(Response) of
+                {ok, _} ->
+                    ok;
+                UnexpectedResponse ->
+                    UnexpectedResponse
+            end;
+        Msg->
+            io:format("received: ~p~n", [Msg]),
+            ok
+    end;
 receive_response(_Module) ->
     throw(invalid_module).
 
@@ -133,13 +137,21 @@ run(Module, NrProcesses, NrReq) ->
     io:format("Test started ...~n"),
 
     ReqPerProcess = round(NrReq/NrProcesses),
+    Self = self(),
 
     Fun = fun() ->
         Client = get_client(Module),
         producer_loop(Module, Client, ReqPerProcess),
         consumer_loop(Module, 0, 0, 0, ReqPerProcess),
-        close_client(Module, Client)
+        close_client(Module, Client),
+        Self ! {self(), done}
     end,
 
-    {Time, _} = timer:tc(fun()-> multi_spawn:do_work(Fun, NrProcesses) end),
+    List = lists:seq(1, NrProcesses),
+    {Time, _} = timer:tc(fun()-> bench(Fun, List) end),
     io:format("Time to complete: ~p ms ~n", [Time/1000]).
+
+bench(Fun, ProcsList) ->
+    Pids = [spawn_link(Fun) || _ <- ProcsList],
+    [receive {Pid, done} -> ok end || Pid <- Pids],
+    ok.

@@ -15,4 +15,4 @@ clean:
 
 ct:
 	mkdir -p log
-	ct_run -suite integrity_test_SUITE -pa ebin -pa deps/*/ebin -include include -logdir log -config test/test.config
+	ct_run -suite integrity_test_SUITE -pa ebin -pa deps/*/ebin -include include -logdir log -erl_args -config benchmarks/benchmark.config

@@ -252,9 +252,9 @@ ok = erlcass:add_prepare_statement(insert_prep, <<"INSERT INTO table1(id, age, e
 {ok, Stm2} = erlcass:bind_prepared_statement(insert_prep),
 ok = erlcass:bind_prepared_params_by_index(Stm2, [Id2, Age2, Email2]),
 
-{ok, []} = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [
-    {consistency_level, ?CASS_CONSISTENCY_QUORUM}]
-).
+ok = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [
+    {consistency_level, ?CASS_CONSISTENCY_QUORUM}
+]).
 ```
 
 ### Working with uuid or timeuuid fields:

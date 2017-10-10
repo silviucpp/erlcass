@@ -35,11 +35,9 @@ groups() -> [
 ].
 
 suite() ->
-    [{timetrap, {seconds, 40}}, {require, cluster_options, erlcass_cluster_options}].
+    [{timetrap, {seconds, 40}}].
 
 init_per_suite(Config) ->
-    ClusterOpt = ct:get_config(cluster_options),
-    ok = application:set_env(erlcass, cluster_options, ClusterOpt),
     {ok,  _} = application:ensure_all_started(erlcass),
     Config.
 

@@ -2,6 +2,7 @@
 
 ##### v3.0
 
+- Update cpp-driver to 2.7.1
 - Add support for Schema metadata api
 - Return column names and types along with results (breaks compatibility with previous versions)
 

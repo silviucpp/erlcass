@@ -53,3 +53,5 @@
 -type batch_type()      :: ?CASS_BATCH_TYPE_LOGGED | ?CASS_BATCH_TYPE_UNLOGGED | ?CASS_BATCH_TYPE_COUNTER.
 -type tag()             :: reference().
 -type recv_pid()        :: pid() | null.
+-type query_result()    :: ok | {ok, list(), list()} | {error, reason()}.
+

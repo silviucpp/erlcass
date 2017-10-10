@@ -5,10 +5,11 @@
 
 -behaviour(gen_server).
 
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-
 -export([
     start_link/0,
+
+    % metrics
+
     get_metrics/0,
 
     % queries
@@ -44,41 +45,56 @@
 
     bind_prepared_statement/1,
     bind_prepared_params_by_name/2,
-    bind_prepared_params_by_index/2
+    bind_prepared_params_by_index/2,
+
+    % gen_server callbacks
+
+    init/1,
+    handle_call/3,
+    handle_cast/2,
+    handle_info/2,
+    terminate/2,
+    code_change/3
 ]).
 
 -define(SERVER, ?MODULE).
 
 -record(state, {session}).
 
--spec get_metrics() -> {ok, list()} | {error, reason()}.
+-spec get_metrics() ->
+    {ok, list()} | {error, reason()}.
 
 get_metrics() ->
     call(get_metrics).
 
--spec get_schema_metadata() -> {ok, list()} | {error, reason()}.
+-spec get_schema_metadata() ->
+    {ok, list()} | {error, reason()}.
 
 get_schema_metadata() ->
     call(get_schema_metadata).
 
--spec get_schema_metadata(binary()) -> {ok, list()} | {error, reason()}.
+-spec get_schema_metadata(binary()) ->
+    {ok, list()} | {error, reason()}.
 
 get_schema_metadata(Keyspace) ->
     call({get_schema_metadata, Keyspace}).
 
--spec get_schema_metadata(binary(), binary()) -> {ok, list()} | {error, reason()}.
+-spec get_schema_metadata(binary(), binary()) ->
+    {ok, list()} | {error, reason()}.
 
 get_schema_metadata(Keyspace, Table) ->
     call({get_schema_metadata, Keyspace, Table}).
 
 %non prepared query statements
 
--spec query_new_statement(query()) -> {ok, reference()} | {error, reason()}.
+-spec query_new_statement(query()) ->
+    {ok, reference()} | {error, reason()}.
 
 query_new_statement(Query) ->
     erlcass_nif:cass_statement_new(Query).
 
--spec query_async(query()) -> {ok, tag()} | {error, reason()}.
+-spec query_async(query()) ->
+    {ok, tag()} | {error, reason()}.
 
 query_async(Q) ->
     case query_new_statement(Q) of
@@ -94,7 +110,8 @@ query_async(Q) ->
             Error
     end.
 
--spec query(query()) -> {ok, list()} | {error, reason()}.
+-spec query(query()) ->
+    query_result().
 
 query(Q) ->
     case query_async(Q) of
@@ -106,12 +123,14 @@ query(Q) ->
 
 %prepared statements
 
--spec add_prepare_statement(atom(), query()) -> ok | {error, reason()}.
+-spec add_prepare_statement(atom(), query()) ->
+    ok | {error, reason()}.
 
 add_prepare_statement(Identifier, Query) ->
     call({add_prepare_statement, Identifier, Query}, ?RESPONSE_TIMEOUT).
 
--spec bind_prepared_statement(atom()) -> {ok, statement_ref()} | {error, reason()}.
+-spec bind_prepared_statement(atom()) ->
+    {ok, statement_ref()} | {error, reason()}.
 
 bind_prepared_statement(Identifier) ->
     case erlcass_stm_sessions:get(Identifier) of
@@ -128,17 +147,20 @@ bind_prepared_statement(Identifier) ->
             Error
     end.
 
--spec bind_prepared_params_by_name(statement_ref(), list()) -> ok | {error, reason()}.
+-spec bind_prepared_params_by_name(statement_ref(), list()) ->
+    ok | {error, reason()}.
 
 bind_prepared_params_by_name(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_NAME, Params).
 
--spec bind_prepared_params_by_index(statement_ref(), list()) -> ok | {error, reason()}.
+-spec bind_prepared_params_by_index(statement_ref(), list()) ->
+    ok | {error, reason()}.
 
 bind_prepared_params_by_index(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_INDEX, Params).
 
--spec async_execute(atom()) -> {ok, tag()} | {error, reason()}.
+-spec async_execute(atom()) ->
+    {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier) ->
     case bind_prepared_statement(Identifier) of
@@ -154,12 +176,14 @@ async_execute(Identifier) ->
             Error
     end.
 
--spec async_execute(atom() | query(), list()) -> {ok, tag()} | {error, reason()}.
+-spec async_execute(atom() | query(), list()) ->
+    {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier, Params) ->
     async_execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec async_execute(atom() | binary(), bind_type(), list()) -> {ok, tag()} | {error, reason()}.
+-spec async_execute(atom() | binary(), bind_type(), list()) ->
+    {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier, BindType, Params) ->
     Tag = make_ref(),
@@ -170,12 +194,14 @@ async_execute(Identifier, BindType, Params) ->
             Error
     end.
 
--spec async_execute(atom() | binary(), bind_type(), list(), any()) -> ok | {error, reason()}.
+-spec async_execute(atom() | binary(), bind_type(), list(), any()) ->
+    ok | {error, reason()}.
 
 async_execute(Identifier, BindType, Params, Tag) ->
     async_execute(Identifier, BindType, Params, self(), Tag).
 
--spec async_execute(atom(), bind_type(), list(), pid() | null, any()) -> ok | {error, reason()}.
+-spec async_execute(atom(), bind_type(), list(), pid() | null, any()) ->
+    ok | {error, reason()}.
 
 async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
     case bind_prepared_statement(Identifier) of
@@ -190,7 +216,8 @@ async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
             Error
     end.
 
--spec execute(atom()) -> {ok, list()} | {error, reason()}.
+-spec execute(atom()) ->
+    query_result().
 
 execute(Identifier) ->
     case async_execute(Identifier) of
@@ -200,12 +227,14 @@ execute(Identifier) ->
             Error
     end.
 
--spec execute(atom(), list()) -> {ok, list()} | {error, reason()}.
+-spec execute(atom(), list()) ->
+    query_result().
 
 execute(Identifier, Params) ->
     execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec execute(atom(), bind_type(), list()) -> {ok, list()} | {error, reason()}.
+-spec execute(atom(), bind_type(), list()) ->
+    query_result().
 
 execute(Identifier, BindType, Params) ->
     case async_execute(Identifier, BindType, Params) of
@@ -215,12 +244,14 @@ execute(Identifier, BindType, Params) ->
             Error
     end.
 
--spec batch_async_execute(batch_type(), list(), list()) -> {ok, tag()} | {error, reason()}.
+-spec batch_async_execute(batch_type(), list(), list()) ->
+    {ok, tag()} | {error, reason()}.
 
 batch_async_execute(BatchType, StmList, Options) ->
     call({batch_execute, BatchType, StmList, Options}).
 
--spec batch_execute(batch_type(), list(), list()) -> {ok, list()} | {error, reason()}.
+-spec batch_execute(batch_type(), list(), list()) ->
+    query_result().
 
 batch_execute(BatchType, StmList, Options) ->
     case batch_async_execute(BatchType, StmList, Options) of

@@ -9,7 +9,7 @@ This update breaks the compatibility with the other versions. All query results 
 - `{ok, Columns, Rows}` instead `{ok, Rows}`, where also each row is returned as a list not as a tuple as was before.
 
 ### Implementation note
- 
+
 #### How ErlCass affects the Erlang schedulers
 
 It's well known that NIF's can affect the Erlang schedulers performances in case the functions are not returning in less
@@ -39,24 +39,24 @@ The following test was run on a MacBook Pro with Mac OS Sierra 10.12.6 and the c
 physical machines in the same LAN. The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`. 
 Basically the schema contains all possible data types and the query is based on a primary key (will return the same 
 row all the time which is fine because we test the driver performances and not the server one)
- 
+
 ```erlang
 make benchmark MODULE=erlcass PROCS=100 REQ=100000
 ```
 
 Where:
- 
+
 - `MODULE`: the driver used to benchmark. Can be one of : `erlcass`, `cqerl` or `marina`
 - `PROCS`: the number or erlang processes used to send the requests (concurrency level). Default 100.
 - `REQ`: the number of requests to be sent. Default 100000.
 
 The results for 100 concurrent processes that sends 100k queries. Measured the average time for 3 runs:
  
-| cassandra driver   | Time (ms) | Req/sec  |
-|:------------------:| ---------:|---------:|
-| erlcass v3.0       | 1466      | 68212    | 
-| cqerl v1.0.8       | 11016     | 9077     |
-| marina 0.2.17      | 1779      | 56221    |
+| cassandra driver     | Time (ms) | Req/sec  |
+|:--------------------:| ---------:|---------:|
+| [erlcass][8] v3.0    | 1466      | 68212    | 
+| [cqerl][6] v1.0.8    | 11016     | 9077     |
+| [marina][7] 0.2.17   | 1779      | 56221    |
 
 Notes:
 
@@ -154,7 +154,7 @@ In case you want to overwrite the default consistency level for that prepare sta
 query argument: `{Query, ConsistencyLevelHere}`
 
 Also this is possible using `{Query, Options}` where options is a proplist with the following options supported:
-                                                                           
+
 - `consistency_level` - If it's missing the statement will be executed using the default consistency level value.
 - `serial_consistency_level` - This consistency can only be either `?CASS_CONSISTENCY_SERIAL` or 
 `?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be 
@@ -167,7 +167,7 @@ ok = erlcass:add_prepare_statement(select_blogpost,
         {<<"select * from blogposts where domain = ? LIMIT 1">>, ?CASS_CONSISTENCY_LOCAL_QUORUM}).
 ```
 
-or 
+or
 
 ```erlang
 ok = erlcass:add_prepare_statement(insert_blogpost, {
@@ -370,3 +370,6 @@ For mode details about bind by index and name please see: 'Run a prepared statem
 [3]:https://github.com/silviucpp/erlcass/wiki/Data-types
 [4]:https://github.com/silviucpp/erlcass/wiki/Available-cluster-options
 [5]:https://github.com/silviucpp/erlcass/blob/master/CHANGELOG.md
+[6]:https://github.com/matehat/cqerl
+[7]:https://github.com/lpgauth/marina
+[8]:https://github.com/silviucpp/erlcass

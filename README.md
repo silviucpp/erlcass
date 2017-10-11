@@ -16,28 +16,40 @@ an async manner.
 
 #### Benchmark comparing with other drivers
 
-The benchmark (`benchmarks/benchmark.erl`) is spawning N processes that will run a total of X request using the async
-api's and then waits to read X responses. In `benchmarks/benchmark.config` you can find the config's for every 
-application. During test in case of unexpected results from driver will log errors in console.
+The benchmark (`benchmarks/benchmark.erl`) is spawning N processes that will send a total of X request using the async
+api's and then waits to read X responses. In `benchmarks/benchmark.config` you can find the config's for every driver
+used in tests. During test in case of unexpected results from driver will log errors in console.
 
-Notes:
-
-- `marina` is currently disabled. Seems is not compiling with rebar on OSX because of one of it's deps.
-- Test was run on MacBook Pro with OSX El Capitan
-- The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`. 
-Basically the schema contains all possible data types and the query is based on a primary key (will return the same 
+- Test was run on MacBook Pro with Mac OS Sierra 10.12.6
+- Cassandra cluster running on other 3 physical machines in the same LAN 
+- The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`. Basically the schema contains all possible data types and the query is based on a primary key (will return the same 
 row all the time which is fine because we test the driver performances and not the server one)
  
 ```erlang
-benchmark:run(Module, NrProcesses, NrReq).
+make benchmark MODULE=erlcass PROCS=100 REQ=100000
 ```
 
-Used 100 concurrent processes that sends 100k queries. Measured the average time for 3 runs:
+Where:
+ 
+- `MODULE`: the driver used to benchmark. Can be one of : `erlcass`, `cqerl` or `marina`
+- `PROCS`: the number or erlang processes used to send the requests (concurrency level). Default 100.
+- `REQ`: the number of requests to be sent. Default 100000.
+
+The results for 100 concurrent processes that sends 100k queries. Measured the average time for 3 runs:
  
 | cassandra driver   | Time to complete (ms) | Req/sec  |
 |:------------------:|:---------------------:|:--------:|
-| erlcass v2.5       | 2131                  | 46926    | 
-| cqerl v1.0.1       | 4544                  | 22007    |
+| erlcass v3.0       | 1466                  | 68212    | 
+| cqerl v1.0.8       | 11016                 | 9077     |
+| marina 0.2.17      | 1779                  | 56221    |
+
+Notes:
+
+- `marina` performs very nice unfortunately you need to tune properly the `backlog_size` and `pool_size` based on the 
+concurrency level you are using. From my test performance degrades a lot if pool size is increased (for example for 100 connections time to complete was 3044 ms instead 1779 ms for 30 connections)
+Also in case te pool is too small you start getting all kind of errors (like no socket available) or in case the backlog is not big enough you get errors as well.
+- `erlcass` seems to have the smallest variation between tests. Results are always in the same range +/- 100 ms. On the other drivers might happened time to time to have bigger variations.
+
 
 #### Changelog
 

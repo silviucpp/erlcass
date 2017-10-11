@@ -26,9 +26,18 @@ The benchmark (`benchmarks/benchmark.erl`) is spawning N processes that will sen
 api's and then waits to read X responses. In `benchmarks/benchmark.config` you can find the config's for every driver
 used in tests. During test in case of unexpected results from driver will log errors in console.
 
-- Test was run on MacBook Pro with Mac OS Sierra 10.12.6
-- Cassandra cluster running on other 3 physical machines in the same LAN 
-- The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`. Basically the schema contains all possible data types and the query is based on a primary key (will return the same 
+To run the benchmark yourself you should do:
+
+- in `rebar.config` remove comment for `cqerl` and `marina` deps
+- copy `benchmarks/benchmark.erl` and `load_test.erl` in `src`
+- recompile using `rebar3`
+- change the cluster ip in `benchmark.config` for all drivers
+- create the testing keyspace and tables using `load_test:prepare_load_test_table().`
+- use `make benchmark` as described above
+
+The following test was run on a MacBook Pro with Mac OS Sierra 10.12.6 and the cassandra cluster was running on other 3 
+physical machines in the same LAN. The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`. 
+Basically the schema contains all possible data types and the query is based on a primary key (will return the same 
 row all the time which is fine because we test the driver performances and not the server one)
  
 ```erlang
@@ -43,11 +52,11 @@ Where:
 
 The results for 100 concurrent processes that sends 100k queries. Measured the average time for 3 runs:
  
-| cassandra driver   | Time to complete (ms) | Req/sec  |
-|:------------------:|:---------------------:|:--------:|
-| erlcass v3.0       | 1466                  | 68212    | 
-| cqerl v1.0.8       | 11016                 | 9077     |
-| marina 0.2.17      | 1779                  | 56221    |
+| cassandra driver   | Time (ms) | Req/sec  |
+|:------------------:| ---------:|---------:|
+| erlcass v3.0       | 1466      | 68212    | 
+| cqerl v1.0.8       | 11016     | 9077     |
+| marina 0.2.17      | 1779      | 56221    |
 
 Notes:
 

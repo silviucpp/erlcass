@@ -2,6 +2,12 @@
 
 *An Erlang Cassandra driver, based on [DataStax cpp driver][1] focused on performance.*
 
+### Update from 2.x to 3.0
+
+This update breaks the compatibility with the other versions. All query results will return in case of success:
+- `ok` instead `{ok, []}` for all DDL and DML queries (because they never returns any column or row)
+- `{ok, Columns, Rows}` instead `{ok, Rows}`, where also each row is returned as a list not as a tuple as was before.
+
 ### Implementation note
  
 #### How ErlCass affects the Erlang schedulers
@@ -49,7 +55,6 @@ Notes:
 concurrency level you are using. From my test performance degrades a lot if pool size is increased (for example for 100 connections time to complete was 3044 ms instead 1779 ms for 30 connections)
 Also in case te pool is too small you start getting all kind of errors (like no socket available) or in case the backlog is not big enough you get errors as well.
 - `erlcass` seems to have the smallest variation between tests. Results are always in the same range +/- 100 ms. On the other drivers might happened time to time to have bigger variations.
-
 
 #### Changelog
 

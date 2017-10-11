@@ -115,5 +115,9 @@ const char kAtomClusterSettingSslTrustedCerts[] = "trusted_certs";
 const char kAtomClusterSettingSslVerifyFlags[] = "verify_flags";
 const char kAtomClusterSettingSslCert[] = "cert";
 const char kAtomClusterSettingSslPrivateKey[] = "private_key";
+const char kAtomClusterSettingRetryPolicy[] = "retry_policy";
+const char kAtomClusterSettingRetryPolicyDefault[] = "default";
+const char kAtomClusterSettingRetryPolicyDowngradingConsistency[] = "downgrading_consistency";
+const char kAtomClusterSettingRetryPolicyFallthrough[] = "fallthrough";
 
 }

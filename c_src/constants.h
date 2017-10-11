@@ -116,6 +116,10 @@ extern const char kAtomClusterSettingSslTrustedCerts[];
 extern const char kAtomClusterSettingSslVerifyFlags[];
 extern const char kAtomClusterSettingSslCert[];
 extern const char kAtomClusterSettingSslPrivateKey[];
+extern const char kAtomClusterSettingRetryPolicy[];
+extern const char kAtomClusterSettingRetryPolicyDefault[];
+extern const char kAtomClusterSettingRetryPolicyDowngradingConsistency[];
+extern const char kAtomClusterSettingRetryPolicyFallthrough[];
 
 }
 

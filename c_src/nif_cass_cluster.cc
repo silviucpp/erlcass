@@ -175,6 +175,50 @@ ERL_NIF_TERM internal_cluster_set_default_consistency_level(ErlNifEnv* env, ERL_
     return ATOMS.atomOk;
 }
 
+ERL_NIF_TERM internal_cluster_set_retry_policy(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
+{
+    cass_bool_t log_enable = cass_false;
+    ERL_NIF_TERM rp = term_value;
+
+    if(enif_is_tuple(env, term_value))
+    {
+        const ERL_NIF_TERM *items;
+        int arity;
+
+        if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
+            return make_bad_options(env, term_option);
+
+        if(!get_boolean(items[1], &log_enable))
+            return make_bad_options(env, term_option);
+
+        rp = items[0];
+    }
+
+    scoped_ptr(retry_policy, CassRetryPolicy, NULL, cass_retry_policy_free);
+    scoped_ptr(retry_policy_log, CassRetryPolicy, NULL, cass_retry_policy_free);
+
+    if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyDefault))
+        retry_policy.reset(cass_retry_policy_default_new());
+    else if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyDowngradingConsistency))
+        retry_policy.reset(cass_retry_policy_downgrading_consistency_new());
+    else if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyFallthrough))
+        retry_policy.reset(cass_retry_policy_fallthrough_new());
+    else
+        return make_bad_options(env, term_option);
+
+    if(log_enable)
+    {
+        retry_policy_log.reset(cass_retry_policy_logging_new(retry_policy.get()));
+        cass_cluster_set_retry_policy(data->cluster, retry_policy_log.get());
+    }
+    else
+    {
+        cass_cluster_set_retry_policy(data->cluster, retry_policy.get());
+    }
+
+    return ATOMS.atomOk;
+}
+
 ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     if(!enif_is_list(env, term_value))
@@ -353,6 +397,7 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     CUSTOM_SETTING(ATOMS.atomClusterSetringLatencyAwareRouting, internal_cluster_set_latency_aware_routing);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpNodelay, internal_cass_cluster_set_tcp_nodelay);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpKeepalive, internal_cass_cluster_set_tcp_keepalive);
+    CUSTOM_SETTING(ATOMS.atomClusterSettingRetryPolicy, internal_cluster_set_retry_policy);
 
     return make_bad_options(env, term_option);
 }

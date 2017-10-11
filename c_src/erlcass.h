@@ -104,6 +104,10 @@ struct atoms
     ERL_NIF_TERM atomClusterSettingSslVerifyFlags;
     ERL_NIF_TERM atomClusterSettingSslCert;
     ERL_NIF_TERM atomClusterSettingSslPrivateKey;
+    ERL_NIF_TERM atomClusterSettingRetryPolicy;
+    ERL_NIF_TERM atomClusterSettingRetryPolicyDefault;
+    ERL_NIF_TERM atomClusterSettingRetryPolicyDowngradingConsistency;
+    ERL_NIF_TERM atomClusterSettingRetryPolicyFallthrough;
 };
 
 struct cassandra_data

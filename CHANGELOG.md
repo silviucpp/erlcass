@@ -5,6 +5,7 @@
 - Update cpp-driver to 2.7.1
 - Add support for Schema metadata api
 - Return column names and types along with results (breaks compatibility with previous versions)
+- Add support for retry policy settings
 
 Compatibility changes: This versions breaks the API. All query results will return in case of success:
     - `ok` instead `{ok, []}` for all DDL and DML queries (because they never returns any column or row)

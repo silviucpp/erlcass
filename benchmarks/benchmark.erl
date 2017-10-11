@@ -60,7 +60,7 @@ execute_async(?DRIVER_CQERL, Client) ->
     })),
     ok;
 execute_async(?DRIVER_MARINA, _Client) ->
-    {ok, _} = marina:async_reusable_query(?QUERY, [?ARG_VAL], ?CONSISTENCY_ONE, [], self(), 500),
+    {ok, _} = marina:async_reusable_query(?QUERY, [?ARG_VAL], ?CONSISTENCY_ONE, [], self(), 5000),
     ok;
 execute_async(_Module, _Client) ->
     throw(invalid_module).

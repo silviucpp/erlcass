@@ -8,8 +8,8 @@
 - Add support for retry policy settings
 
 Compatibility changes: This versions breaks the API. All query results will return in case of success:
-    - `ok` instead `{ok, []}` for all DDL and DML queries (because they never returns any column or row)
-    - `{ok, Columns, Rows}` instead `{ok, Rows}`, where also each row is encoded as a list not as a tuple as was before. 
+- `ok` instead `{ok, []}` for all DDL and DML queries (because they never returns any column or row)
+- `{ok, Columns, Rows}` instead `{ok, Rows}`, where also each row is encoded as a list not as a tuple as was before. 
 
 ##### v2.9
 

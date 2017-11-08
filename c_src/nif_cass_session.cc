@@ -21,6 +21,7 @@ struct callback_info
     ErlNifEnv *env;
     ErlNifPid pid;
     ERL_NIF_TERM arguments;
+    bool fire_and_forget;
 };
 
 struct callback_statement_info
@@ -39,6 +40,16 @@ callback_info* callback_info_alloc(ErlNifEnv* env, const ErlNifPid& pid, ERL_NIF
     callback->pid = pid;
     callback->env = enif_alloc_env();
     callback->arguments = enif_make_copy(callback->env, arg);
+    callback->fire_and_forget = false;
+    return callback;
+}
+
+callback_info* callback_info_alloc(ErlNifEnv* env, ERL_NIF_TERM identifier)
+{
+    callback_info* callback = static_cast<callback_info*>(enif_alloc(sizeof(callback_info)));
+    callback->env = enif_alloc_env();
+    callback->arguments = enif_make_copy(callback->env, identifier);
+    callback->fire_and_forget = true;
     return callback;
 }
 
@@ -122,21 +133,27 @@ void on_statement_prepared(CassFuture* future, void* user_data)
 
 void on_statement_executed(CassFuture* future, void* user_data)
 {
-    if(user_data == NULL)
+    callback_info* cb = static_cast<callback_info*>(user_data);
+
+    if(cb->fire_and_forget)
     {
         //we only log the response in case it's an error
 
         if (cass_future_error_code(future) != CASS_OK)
         {
+            ErlNifBinary query_id;
             const char* message;
             size_t message_length;
             cass_future_error_message(future, &message, &message_length);
-            cass::Logger::log(CASS_LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, "%.*s", static_cast<int>(message_length), message);
+
+            if(get_bstring(cb->env, cb->arguments, &query_id))
+                cass::Logger::log(CASS_LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, "'%.*s' -> %.*s", static_cast<int>(query_id.size), BIN_TO_STR(query_id.data), static_cast<int>(message_length), message);
+            else
+                cass::Logger::log(CASS_LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, "'unknown identifier' -> %.*s", static_cast<int>(message_length), message);
         }
     }
     else
     {
-        callback_info* cb = static_cast<callback_info*>(user_data);
         ERL_NIF_TERM result;
 
         if (cass_future_error_code(future) != CASS_OK)
@@ -278,28 +295,35 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
     enif_cass_session * enif_session = NULL;
 
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+    if(!enif_get_resource(env, argv[1], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
 
-    CassStatement* stm = get_statement(env, data->resCassStatement, argv[1]);
+    CassStatement* stm = get_statement(env, data->resCassStatement, argv[2]);
 
     if(stm == NULL)
         return make_badarg(env);
 
     callback_info* callback = NULL;
 
-    if(!enif_is_identical(ATOMS.atomNull, argv[2]))
+    if(!enif_is_identical(ATOMS.atomNull, argv[3]))
     {
         ErlNifPid pid;
 
-        if(enif_get_local_pid(env, argv[2], &pid) == 0)
+        if(enif_get_local_pid(env, argv[3], &pid) == 0)
             return make_badarg(env);
 
-        callback = callback_info_alloc(env, pid, argv[3]);
-
-        if(callback == NULL)
-            return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
+        callback = callback_info_alloc(env, pid, argv[4]);
     }
+    else
+    {
+        if(!enif_is_binary(env, argv[0]))
+            return make_badarg(env);
+
+        callback = callback_info_alloc(env, argv[0]);
+    }
+
+    if(callback == NULL)
+        return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
 
     CassFuture* future = cass_session_execute(enif_session->session, stm);
     CassError error = cass_future_set_callback(future, on_statement_executed, callback);

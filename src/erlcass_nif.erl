@@ -17,7 +17,7 @@
     cass_session_connect/3,
     cass_session_close/2,
     cass_session_prepare/4,
-    cass_session_execute/4,
+    cass_session_execute/5,
     cass_session_execute_batch/5,
     cass_session_get_metrics/1,
     cass_session_get_schema_metadata/1,
@@ -88,7 +88,7 @@ cass_session_close(_SessionRef, _Pid) ->
 cass_session_prepare(_SessionRef, _Pid, _Query, _Info) ->
     ?NOT_LOADED.
 
-cass_session_execute(_SessionRef, _StatementRef, _FromPid, _Tag) ->
+cass_session_execute(_Identifier, _SessionRef, _StatementRef, _FromPid, _Tag) ->
     ?NOT_LOADED.
 
 cass_session_execute_batch(_SessionRef, _BatchType, _StmList, _Options, _Pid) ->

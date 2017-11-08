@@ -16,6 +16,7 @@
 
     query/1,
     query_async/1,
+    query_async/3,
     query_new_statement/1,
 
     % prepared statements
@@ -104,10 +105,15 @@ query_new_statement(Query) ->
     {ok, tag()} | {error, reason()}.
 
 query_async(Q) ->
+    query_async(Q, self(), make_ref()).
+
+-spec query_async(query(), recv_pid(), any()) ->
+    {ok, tag()} | {error, reason()}.
+
+query_async(Q, ReceiverPid, Tag) ->
     case query_new_statement(Q) of
         {ok, Stm} ->
-            Tag = make_ref(),
-            case call({execute_normal_statements, Stm, self(), Tag}) of
+            case call({execute_normal_statements, get_identifier(ReceiverPid, Q), Stm, ReceiverPid, Tag}) of
                 ok ->
                     {ok, Tag};
                 Error ->
@@ -173,7 +179,8 @@ async_execute(Identifier) ->
     case bind_prepared_statement(Identifier) of
         {ok, Stm} ->
             Tag = make_ref(),
-            case erlcass_nif:cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, self(), Tag) of
+            ReceiverPid = self(),
+            case erlcass_nif:cass_session_execute(get_identifier(ReceiverPid, Identifier), Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag) of
                 ok ->
                     {ok, Tag};
                 Error ->
@@ -215,7 +222,7 @@ async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
         {ok, Stm} ->
             case erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, BindType, Params) of
                 ok ->
-                    erlcass_nif:cass_session_execute(Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag);
+                    erlcass_nif:cass_session_execute(get_identifier(ReceiverPid, Identifier), Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag);
                 Error ->
                     Error
             end;
@@ -286,8 +293,8 @@ init([]) ->
             {stop, Error, shutdown, #state{}}
     end.
 
-handle_call({execute_normal_statements, StmRef, ReceiverPid, Tag}, _From, State) ->
-    {reply, erlcass_nif:cass_session_execute(State#state.session, StmRef, ReceiverPid, Tag), State};
+handle_call({execute_normal_statements, Identifier, StmRef, ReceiverPid, Tag}, _From, State) ->
+    {reply, erlcass_nif:cass_session_execute(Identifier, State#state.session, StmRef, ReceiverPid, Tag), State};
 
 handle_call({batch_execute, BatchType, StmList, Options}, From, State) ->
     {FromPid, _} = From,
@@ -457,3 +464,17 @@ call(Message, Timeout) ->
         _: Exception ->
             {error, Exception}
     end.
+
+get_identifier(null, Identifier) ->
+    id2bin(Identifier);
+get_identifier(_, _Identifier) ->
+    null.
+
+id2bin(Id) when is_atom(Id) ->
+    atom_to_binary(Id, utf8);
+id2bin(Id) when is_binary(Id) ->
+    Id;
+id2bin({Id, _Opts}) ->
+    id2bin(Id);
+id2bin(Other) ->
+    erlang:term_to_binary(Other).

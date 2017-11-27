@@ -168,8 +168,9 @@ void on_statement_executed(CassFuture* future, void* user_data)
         }
 
         enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomExecuteStatementResult, cb->arguments, result));
-        callback_info_free(cb);
     }
+
+    callback_info_free(cb);
 }
 
 //CassSession

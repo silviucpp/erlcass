@@ -125,7 +125,6 @@ The cluster options can be set inside your `app.config` file under the `cluster_
         {number_threads_io, 4},
         {queue_size_io, 128000},
         {max_connections_host, 5},
-        {pending_requests_high_watermark, 128000},
         {tcp_nodelay, true},
         {tcp_keepalive, {true, 1800}},
         {default_consistency_level, 6}
@@ -326,9 +325,6 @@ In order to get metrics from the native driver you can use `erlcass:get_metrics(
 ##### stats
 
 - `total_connections` - The total number of connections
-- `available_connections` - The number of connections available to take requests
-- `exceeded_pending_requests_water_mark` - Occurrences when requests exceeded a pool's water mark
-- `exceeded_write_bytes_water_mark` - Occurrences when number of bytes exceeded a connection's water mark
 
 ##### errors
 

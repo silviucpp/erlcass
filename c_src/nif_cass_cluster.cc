@@ -382,10 +382,6 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConcurrentCreation, cass_cluster_set_max_concurrent_creation);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConcurrentRequestsThreshold, cass_cluster_set_max_concurrent_requests_threshold);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxRequestsPerFlush, cass_cluster_set_max_requests_per_flush);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingWriteBytesHighWaterMark, cass_cluster_set_write_bytes_high_water_mark);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingWriteBytesLowWaterMark, cass_cluster_set_write_bytes_low_water_mark);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingPendingRequestsHighWaterMark, cass_cluster_set_pending_requests_high_water_mark);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingPendingRequestsLowWaterMark, cass_cluster_set_pending_requests_low_water_mark);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingConnectTimeout, internal_cass_cluster_set_connect_timeout);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingRequestTimeout, internal_cass_cluster_set_request_timeout);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingHeartbeatInterval, internal_cass_cluster_set_connection_heartbeat_interval);

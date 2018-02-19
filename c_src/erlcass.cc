@@ -98,10 +98,6 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingMaxConcurrentCreation = make_atom(env, erlcass::kAtomClusterSettingMaxConcurrentCreation);
     ATOMS.atomClusterSettingMaxConcurrentRequestsThreshold = make_atom(env, erlcass::kAtomClusterSettingMaxConcurrentRequestsThreshold);
     ATOMS.atomClusterSettingMaxRequestsPerFlush = make_atom(env, erlcass::kAtomClusterSettingMaxRequestsPerFlush);
-    ATOMS.atomClusterSettingWriteBytesHighWaterMark = make_atom(env, erlcass::kAtomClusterSettingWriteBytesHighWaterMark);
-    ATOMS.atomClusterSettingWriteBytesLowWaterMark = make_atom(env, erlcass::kAtomClusterSettingWriteBytesLowWaterMark);
-    ATOMS.atomClusterSettingPendingRequestsHighWaterMark = make_atom(env, erlcass::kAtomClusterSettingPendingRequestsHighWaterMark);
-    ATOMS.atomClusterSettingPendingRequestsLowWaterMark = make_atom(env, erlcass::kAtomClusterSettingPendingRequestsLowWaterMark);
     ATOMS.atomClusterSettingConnectTimeout = make_atom(env, erlcass::kAtomClusterSettingConnectTimeout);
     ATOMS.atomClusterSettingRequestTimeout = make_atom(env, erlcass::kAtomClusterSettingRequestTimeout);
     ATOMS.atomClusterSettingCredentials = make_atom(env, erlcass::kAtomClusterSettingCredentials);

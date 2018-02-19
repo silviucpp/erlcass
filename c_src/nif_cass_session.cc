@@ -448,11 +448,8 @@ ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NI
                                             metric_double(env, "five_minute_rate", metrics.requests.five_minute_rate),
                                             metric_double(env, "fifteen_minute_rate", metrics.requests.fifteen_minute_rate));
 
-    ERL_NIF_TERM stats = enif_make_tuple(env, 4,
-                                            metric_uint64(env, "total_connections", metrics.stats.total_connections),
-                                            metric_uint64(env, "available_connections", metrics.stats.available_connections),
-                                            metric_uint64(env, "exceeded_pending_requests_water_mark", metrics.stats.exceeded_pending_requests_water_mark),
-                                            metric_uint64(env, "exceeded_write_bytes_water_mark", metrics.stats.exceeded_write_bytes_water_mark));
+    ERL_NIF_TERM stats = enif_make_tuple(env, 1,
+                                            metric_uint64(env, "total_connections", metrics.stats.total_connections));
 
     ERL_NIF_TERM errors = enif_make_tuple(env, 3,
                                             metric_uint64(env, "connection_timeouts", metrics.errors.connection_timeouts),

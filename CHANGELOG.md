@@ -1,5 +1,12 @@
 ### Changelog:
 
+##### 3.1 (not released yet)
+
+- Update cpp-driver to 2.8.1
+- `write_bytes_high_watermark` and `write_bytes_low_watermark` options were removed
+- `pending_requests_high_watermark` and `pending_requests_low_watermark` options were removed
+- the following stats are removed: `available_connections`, `exceeded_pending_requests_water_mark`, `exceeded_write_bytes_water_mark`
+
 ##### v3.0
 
 - Update cpp-driver to 2.7.1

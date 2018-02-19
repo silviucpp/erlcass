@@ -84,10 +84,6 @@ struct atoms
     ERL_NIF_TERM atomClusterSettingMaxConcurrentCreation;
     ERL_NIF_TERM atomClusterSettingMaxConcurrentRequestsThreshold;
     ERL_NIF_TERM atomClusterSettingMaxRequestsPerFlush;
-    ERL_NIF_TERM atomClusterSettingWriteBytesHighWaterMark;
-    ERL_NIF_TERM atomClusterSettingWriteBytesLowWaterMark;
-    ERL_NIF_TERM atomClusterSettingPendingRequestsHighWaterMark;
-    ERL_NIF_TERM atomClusterSettingPendingRequestsLowWaterMark;
     ERL_NIF_TERM atomClusterSettingConnectTimeout;
     ERL_NIF_TERM atomClusterSettingRequestTimeout;
     ERL_NIF_TERM atomClusterSettingCredentials;

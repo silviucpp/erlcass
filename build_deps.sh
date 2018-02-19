@@ -81,6 +81,6 @@ popd
 
 mkdir -p $DEPS_LOCATION/cpp-driver/build
 pushd $DEPS_LOCATION/cpp-driver/build
-cmake ..
+cmake .. -DCASS_BUILD_STATIC=ON
 make -j 12
 popd

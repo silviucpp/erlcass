@@ -28,9 +28,9 @@ case $OS in
                     then echo "libuv has already been installed"
                 else
                     pushd /tmp
-                    wget http://dist.libuv.org/dist/v1.8.0/libuv-v1.8.0.tar.gz
-                    tar xzf libuv-v1.8.0.tar.gz
-                    pushd libuv-v1.8.0
+                    wget https://dist.libuv.org/dist/v1.18.0/libuv-v1.18.0.tar.gz
+                    tar xzf libuv-v1.18.0.tar.gz
+                    pushd libuv-v1.18.0
                     sh autogen.sh
                     ./configure
                     sudo make install
@@ -54,6 +54,8 @@ case $OS in
 
             *) echo "Your system $KERNEL is not supported"
         esac
+		export CFLAGS=-fPIC
+		export CXXFLAGS=-fPIC
     ;;
 
     Darwin)

@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := compile
+
 REBAR=rebar
 
 # for benchmark

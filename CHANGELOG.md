@@ -1,6 +1,6 @@
 ### Changelog:
 
-##### 3.1 (not released yet)
+##### v3.1
 
 - Update cpp-driver to 2.8.1
 - `write_bytes_high_watermark` and `write_bytes_low_watermark` options were removed

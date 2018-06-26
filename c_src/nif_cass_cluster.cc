@@ -500,13 +500,13 @@ ERL_NIF_TERM nif_cass_log_set_callback(ErlNifEnv* env, int argc, const ERL_NIF_T
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    if(enif_is_identical(argv[1], ATOMS.atomNull))
+    if(enif_is_identical(argv[0], ATOMS.atomNull))
     {
         cass_log_set_callback(cass_log_callback, NULL);
     }
     else
     {
-        if(!enif_get_local_pid(env, argv[1], &data->log_pid))
+        if(!enif_get_local_pid(env, argv[0], &data->log_pid))
             return make_badarg(env);
 
         cass_log_set_callback(cass_log_callback, &data->log_pid);

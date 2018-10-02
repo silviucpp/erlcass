@@ -1,8 +1,11 @@
 {application, erlcass, [
     {description, "ErlCass - Erlang Cassandra Driver"},
-    {vsn, "3.1"},
+    {vsn, "3.1.0"},
     {registered, []},
     {applications, [kernel, stdlib, lager]},
     {mod, {erlcass_app, []}},
-    {env, []}
+    {env, []},
+    {maintainers, ["Silviu Caragea"]},
+    {licenses, ["MIT"]},
+    {links,[{"Github","https://github.com/silviucpp/erlcass"}]}
 ]}.

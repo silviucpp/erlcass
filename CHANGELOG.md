@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v3.2.0
+
+- Prepare for submitting to hex.pm (Thanks to Gonçalo Tomás)
+- Fix log pid bug (Thanks to Cibin George)
+
 ##### v3.1
 
 - Update cpp-driver to 2.8.1

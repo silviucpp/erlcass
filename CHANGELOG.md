@@ -4,6 +4,7 @@
 
 - Prepare for submitting to hex.pm (Thanks to Gonçalo Tomás)
 - Fix log pid bug (Thanks to Cibin George)
+- Update cpp-driver to 2.9.0
 
 ##### v3.1
 

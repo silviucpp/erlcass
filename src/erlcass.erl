@@ -36,7 +36,7 @@
     batch_execute/3,
     batch_async_execute/3,
 
-	% schema metadata
+    % schema metadata
 
     get_schema_metadata/0,
     get_schema_metadata/1,

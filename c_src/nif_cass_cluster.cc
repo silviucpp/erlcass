@@ -404,7 +404,7 @@ ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TER
 
     if(data->cluster)
     {
-    	//this can happened in case the erlcass gen_server is crashes
+        //this can happened in case the erlcass gen_server is crashes
         cass_cluster_free(data->cluster);
         data->cluster = NULL;
     }

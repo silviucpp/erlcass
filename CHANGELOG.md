@@ -1,9 +1,14 @@
 ### Changelog:
 
+##### v3.3.3
+
+- Add Trevis CI (Thanks to Gonçalo Tomás)
+- Add the proper fix for libuv-dev on Ubuntu > 14.04
+- Update lager
+
 ##### v3.2.2
 
 - Fix the way libuv-dev is installed on Ubuntu > 14.04 (Thanks to Gonçalo Tomás)
-- Add Trevis CI (Thanks to Gonçalo Tomás)
 
 ##### v3.2.1
 

@@ -3,7 +3,7 @@
     {maintainers, ["Silviu Caragea"]},
     {licenses, ["MIT"]},
     {links,[{"Github","https://github.com/silviucpp/erlcass"}]},
-    {vsn, "3.2.2"},
+    {vsn, "3.2.3"},
     {registered, []},
     {applications, [kernel, stdlib, lager]},
     {mod, {erlcass_app, []}},

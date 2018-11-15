@@ -51,19 +51,9 @@ case $OS in
                 if [[ $ubuntu_version == "14.04" ]]; then
                     # system is Ubuntu 14.04, need to install PPA and possibly override libuv
                     sudo apt-add-repository -y ppa:linuxjedi/ppa
-                    sudo apt-get -y update
-                    sudo apt-get -y install g++ make cmake libuv-dev libssl-dev
-                else
-                    # system is assumed to be more recent than 14.04, check if libuv exists
-                    # if it doesn't, install it.
-                    OUTPUT=`ldconfig -p | grep libuv`
-                    if [[ $(echo $OUTPUT) != "" ]]
-                        then echo "libuv has already been installed"
-                    else
-                        sudo apt-get -y update
-                        sudo apt-get -y install g++ make cmake libuv-dev libssl-dev
-                    fi
                 fi
+                sudo apt-get -y update
+                sudo apt-get -y install g++ make cmake libuv-dev libssl-dev
             ;;
 
             *) echo "Your system $KERNEL is not supported"

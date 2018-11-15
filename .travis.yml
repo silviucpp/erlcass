@@ -1,3 +1,6 @@
+os:
+- linux
+- osx
 dist: xenial
 addons:
   apt:
@@ -12,5 +15,7 @@ otp_release:
     - 21.1
     - 20.3.8.5
     - 19.3
+before_script:
+- if [[ $TRAVIS_OS_NAME == osx ]]; then brew install libuv cmake openssl; fi
 script:
     - rebar3 compile

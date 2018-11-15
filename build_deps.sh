@@ -47,8 +47,8 @@ case $OS in
 
                 echo "Linux, Ubuntu"
                 # check ubuntu version
-                $ubuntu_version=$(lsb_release -sr)
-                if [[ $ubuntu_version == "14.04" ]]; then
+                UBUNTU_VSN=$(lsb_release -sr)
+                if [[ $UBUNTU_VSN == "14.04" ]]; then
                     # system is Ubuntu 14.04, need to install PPA and possibly override libuv
                     sudo apt-add-repository -y ppa:linuxjedi/ppa
                     sudo apt-get -y update

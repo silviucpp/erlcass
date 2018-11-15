@@ -51,13 +51,12 @@ case $OS in
                 if [[ $UBUNTU_VSN == "14.04" ]]; then
                     # system is Ubuntu 14.04, need to install PPA and possibly override libuv
                     sudo apt-add-repository -y ppa:linuxjedi/ppa
-                    sudo apt-get -y update
-                    sudo apt-get -y install g++ make cmake libuv-dev libssl-dev
+                    LIBUDEV_PACKAGE_NAME=libuv-dev
                 else
-                    # make sure we request libuv1-dev and not libuv-dev
-                    sudo apt-get -y update
-                    sudo apt-get -y install g++ make cmake libuv1-dev libssl-dev
+                    LIBUDEV_PACKAGE_NAME=libuv1-dev
                 fi
+                sudo apt-get -y update
+                sudo apt-get -y install g++ make cmake libssl-dev $LIBUDEV_PACKAGE_NAME
             ;;
 
             *) echo "Your system $KERNEL is not supported"

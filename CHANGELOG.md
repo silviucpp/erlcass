@@ -3,6 +3,7 @@
 ##### v3.2.2
 
 - Fix the way libuv-dev is installed on Ubuntu > 14.04 (Thanks to Gonçalo Tomás)
+- Add Trevis CI (Thanks to Gonçalo Tomás)
 
 ##### v3.2.1
 

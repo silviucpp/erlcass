@@ -2,14 +2,16 @@ language: erlang
 matrix:
   include:
     - os: linux
+      dist: xenial
       otp_release: 21.1
     - os: linux
+      dist: xenial
       otp_release: 20.3.8.5
     - os: linux
+      dist: xenial
       otp_release: 19.3
     - os: osx
       language: generic
-dist: xenial
 before_script:
 - if [[ $TRAVIS_OS_NAME == linux ]]; then sudo apt-get -y update || true ; fi
 - if [[ $TRAVIS_OS_NAME == linux ]]; then sudo apt-get install -y g++ make cmake libssl-dev libuv1-dev || true ; fi

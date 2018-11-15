@@ -1,0 +1,14 @@
+language: erlang
+otp_release:
+    - 21.1
+    - 20.3
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: linux
+      dist: xenial
+      sudo: false
+script:
+    - rebar3 compile

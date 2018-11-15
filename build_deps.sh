@@ -47,13 +47,16 @@ case $OS in
 
                 echo "Linux, Ubuntu"
                 # check ubuntu version
-                $ubuntu_version = $(lsb_release -sr)
-                if [[ $ubuntu_version == "14.04" ]]; then
+                UBUNTU_VSN=$(lsb_release -sr)
+                if [[ $UBUNTU_VSN == "14.04" ]]; then
                     # system is Ubuntu 14.04, need to install PPA and possibly override libuv
                     sudo apt-add-repository -y ppa:linuxjedi/ppa
+                    LIBUDEV_PACKAGE_NAME=libuv-dev
+                else
+                    LIBUDEV_PACKAGE_NAME=libuv1-dev
                 fi
                 sudo apt-get -y update
-                sudo apt-get -y install g++ make cmake libuv-dev libssl-dev
+                sudo apt-get -y install g++ make cmake libssl-dev $LIBUDEV_PACKAGE_NAME
             ;;
 
             *) echo "Your system $KERNEL is not supported"

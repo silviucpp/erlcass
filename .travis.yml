@@ -1,0 +1,16 @@
+dist: xenial
+addons:
+  apt:
+    packages:
+      - g++
+      - make
+      - cmake
+      - libuv1-dev
+      - libssl-dev
+language: erlang
+otp_release:
+    - 21.1
+    - 20.3.8.5
+    - 19.3
+script:
+    - rebar3 compile

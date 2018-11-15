@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := compile
 
-REBAR=rebar
+REBAR=rebar3
 
 # for benchmark
 

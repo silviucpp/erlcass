@@ -46,8 +46,12 @@ case $OS in
             Ubuntu)
 
                 echo "Linux, Ubuntu"
-
-                sudo apt-add-repository -y ppa:linuxjedi/ppa
+                # check ubuntu version
+                $ubuntu_version = $(lsb_release -sr)
+                if [[ $ubuntu_version == "14.04" ]]; then
+                    # system is Ubuntu 14.04, need to install PPA and possibly override libuv
+                    sudo apt-add-repository -y ppa:linuxjedi/ppa
+                fi
                 sudo apt-get -y update
                 sudo apt-get -y install g++ make cmake libuv-dev libssl-dev
             ;;

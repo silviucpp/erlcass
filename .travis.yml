@@ -1,4 +1,24 @@
-dist: xenial
+language: erlang
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+      otp_release: 19.3
+    - os: linux
+      dist: xenial
+      otp_release: 20.3.8.5
+    - os: linux
+      dist: xenial
+      otp_release: 21.1
+    - os: osx
+      language: generic
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  ## should eventually use a tap that has previous erlang versions here
+  ## as this only uses the latest erlang available via brew
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install erlang; fi
+script:
+  - rebar3 compile
 addons:
   apt:
     packages:
@@ -7,10 +27,3 @@ addons:
       - cmake
       - libuv1-dev
       - libssl-dev
-language: erlang
-otp_release:
-    - 21.1
-    - 20.3.8.5
-    - 19.3
-script:
-    - rebar3 compile

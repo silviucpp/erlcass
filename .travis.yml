@@ -16,7 +16,7 @@ before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   ## should eventually use a tap that has previous erlang versions here
   ## as this only uses the latest erlang available via brew
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install erlang; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install erlang rebar3; fi
 script:
   - rebar3 compile
 addons:

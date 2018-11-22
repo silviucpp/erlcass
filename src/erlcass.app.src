@@ -12,17 +12,17 @@
     {files, [
         "Makefile",
         "build_deps.sh",
-        "rebar.config",
-        "rebar.config.script" ,
-        "rebar.lock",
-        "priv",
+        "rebar.*",
+        "*.md",
+        "LICENSE*",
         "include/*.hrl",
         "src/*.erl",
         "c_src/*.h",
         "c_src/*.cc",
         "c_src/Makefile",
         "c_src/nif.mk",
-        "README*",
-        "LICENSE*"
+        "test/*.erl",
+        "benchmarks/*.config",
+        "benchmarks/*.erl"
     ]}
 ]}.

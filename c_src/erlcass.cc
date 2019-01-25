@@ -13,6 +13,8 @@ atoms ATOMS;
 void open_resources(ErlNifEnv* env, cassandra_data* data)
 {
     ErlNifResourceFlags flags =  static_cast<ErlNifResourceFlags>(ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
+
+    data->resCassCluster = enif_open_resource_type(env, NULL, "enif_cass_cluster", nif_cass_cluster_free, flags, NULL);
     data->resCassSession = enif_open_resource_type(env, NULL, "enif_cass_session", nif_cass_session_free, flags, NULL);
     data->resCassPrepared = enif_open_resource_type(env, NULL, "enif_cass_prepared", nif_cass_prepared_free, flags, NULL);
     data->resCassStatement = enif_open_resource_type(env, NULL, "enif_cass_statement", nif_cass_statement_free, flags, NULL);
@@ -120,7 +122,6 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingRetryPolicyFallthrough = make_atom(env, erlcass::kAtomClusterSettingRetryPolicyFallthrough);
 
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
-    data->cluster = NULL;
     data->uuid_gen = cass_uuid_gen_new();
     data->defaultConsistencyLevel = CASS_CONSISTENCY_LOCAL_QUORUM;
 
@@ -134,9 +135,6 @@ void on_nif_unload(ErlNifEnv* env, void* priv_data)
 {
     cassandra_data* data = static_cast<cassandra_data*>(priv_data);
 
-    if(data->cluster)
-        cass_cluster_free(data->cluster);
-
     if(data->uuid_gen)
         cass_uuid_gen_free(data->uuid_gen);
 
@@ -148,12 +146,10 @@ int on_nif_upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM in
     cassandra_data* old_data = static_cast<cassandra_data*>(*old_priv);
 
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
-    data->cluster = old_data->cluster;
     data->uuid_gen = old_data->uuid_gen;
     data->defaultConsistencyLevel = old_data->defaultConsistencyLevel;
     open_resources(env, data);
 
-    old_data->cluster = NULL;
     old_data->uuid_gen = NULL;
     *priv = data;
 
@@ -165,16 +161,16 @@ static ErlNifFunc nif_funcs[] =
     //CassCluster
 
     {"cass_cluster_create", 0, nif_cass_cluster_create},
-    {"cass_cluster_release", 0, nif_cass_cluster_release},
+    {"cass_cluster_release", 1, nif_cass_cluster_release},
     {"cass_log_set_callback", 1, nif_cass_log_set_callback},
     {"cass_log_set_level", 1, nif_cass_log_set_level},
-    {"cass_cluster_set_options", 1, nif_cass_cluster_set_options},
+    {"cass_cluster_set_options", 2, nif_cass_cluster_set_options},
 
     //CassSession
 
     {"cass_session_new", 0, nif_cass_session_new},
-    {"cass_session_connect", 2, nif_cass_session_connect},
     {"cass_session_connect", 3, nif_cass_session_connect},
+    {"cass_session_connect", 4, nif_cass_session_connect},
     {"cass_session_close", 2, nif_cass_session_close},
     {"cass_session_prepare", 4, nif_cass_session_prepare},
 

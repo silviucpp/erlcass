@@ -1,28 +1,37 @@
 -module(erlcass_stm_cache).
 
 -export([
-    create/0,
-    set/2,
-    find/1,
-    to_list/0
+    get_table_name/1,
+    get_existing_table_name/1,
+    create/1,
+    set/3,
+    find/2,
+    to_list/1
 ]).
 
--define(ETS_PREPARED_STM_CACHE, erlcass_ets_prepared_stm_cache).
+table_name(Name) ->
+    erlcass_utils:concat_atoms(Name, '_erlcass_ets_prepared_stm_cache').
 
-create() ->
-    ?ETS_PREPARED_STM_CACHE = ets:new(?ETS_PREPARED_STM_CACHE, [set, named_table, public, {read_concurrency, true}]),
+get_table_name(Name) ->
+    binary_to_atom(table_name(Name), utf8).
+
+get_existing_table_name(Name) ->
+    binary_to_existing_atom(table_name(Name), utf8).
+
+create(Name) ->
+    Name = ets:new(Name, [set, named_table, public, {read_concurrency, true}]),
     ok.
 
-set(Identifier, Query) ->
-    true = ets:insert(?ETS_PREPARED_STM_CACHE, {Identifier, Query}).
+set(Name, Identifier, Query) ->
+    true = ets:insert(Name, {Identifier, Query}).
 
-find(Identifier) ->
-    case ets:lookup(?ETS_PREPARED_STM_CACHE, Identifier) of
+find(Name, Identifier) ->
+    case ets:lookup(Name, Identifier) of
         [{Identifier, _Query}] ->
             true;
         [] ->
             false
     end.
 
-to_list() ->
-    ets:tab2list(?ETS_PREPARED_STM_CACHE).
+to_list(Name) ->
+    ets:tab2list(Name).

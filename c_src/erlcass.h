@@ -108,11 +108,11 @@ struct atoms
 
 struct cassandra_data
 {
-    CassCluster* cluster;
     CassUuidGen* uuid_gen;
     ErlNifPid log_pid;
 
     CassConsistency defaultConsistencyLevel;
+    ErlNifResourceType* resCassCluster;
     ErlNifResourceType* resCassSession;
     ErlNifResourceType* resCassPrepared;
     ErlNifResourceType* resCassStatement;

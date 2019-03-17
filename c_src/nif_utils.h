@@ -34,6 +34,7 @@ ERL_NIF_TERM parse_consistency_level_options(ErlNifEnv* env, ERL_NIF_TERM option
 ERL_NIF_TERM parse_query_term(ErlNifEnv* env, ERL_NIF_TERM qterm, QueryTerm* q);
 
 bool get_bstring(ErlNifEnv* env, ERL_NIF_TERM term, ErlNifBinary* bin);
+int  get_atom(ErlNifEnv* env, ERL_NIF_TERM term, char* buf, size_t buffer_size);
 bool get_boolean(ERL_NIF_TERM term, cass_bool_t* val);
 
 #endif  // C_SRC_NIF_UTILS_H_

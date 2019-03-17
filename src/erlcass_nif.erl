@@ -18,6 +18,7 @@
     cass_session_close/2,
     cass_session_prepare/4,
     cass_session_execute/5,
+    cass_session_execute_paged/5,
     cass_session_execute_batch/5,
     cass_session_get_metrics/1,
     cass_session_get_schema_metadata/1,
@@ -25,6 +26,7 @@
     cass_session_get_schema_metadata/3,
     cass_prepared_bind/1,
     cass_statement_new/1,
+    cass_statement_set_paging_size/2,
     cass_statement_bind_parameters/3,
     cass_uuid_gen_new/0,
     cass_uuid_gen_time/0,
@@ -91,6 +93,9 @@ cass_session_prepare(_SessionRef, _Pid, _Query, _Info) ->
 cass_session_execute(_Identifier, _SessionRef, _StatementRef, _FromPid, _Tag) ->
     ?NOT_LOADED.
 
+cass_session_execute_paged(_Identifier, _SessionRef, _StatementRef, _FromPid, _Tag) ->
+    ?NOT_LOADED.
+
 cass_session_execute_batch(_SessionRef, _BatchType, _StmList, _Options, _Pid) ->
     ?NOT_LOADED.
 
@@ -110,6 +115,9 @@ cass_prepared_bind(_PrepStatementRef) ->
     ?NOT_LOADED.
 
 cass_statement_new(_Query) ->
+    ?NOT_LOADED.
+
+cass_statement_set_paging_size(_StatementRef, _PageSize)->
     ?NOT_LOADED.
 
 cass_statement_bind_parameters(_StatementRef, _BindType, _Args)->

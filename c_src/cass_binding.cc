@@ -10,6 +10,8 @@
 #include <memory>
 #include <functional>
 
+#define MAX_ATOM_SIZE 256
+
 static const int kIndexKey = 0;
 static const int kIndexVal = 1;
 
@@ -122,11 +124,17 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T obj, size
         case CASS_VALUE_TYPE_TEXT:
         {
             ErlNifBinary bin;
+            if(get_bstring(env, value, &bin)) {
+                return cass_error_to_nif_term(env, fun.set_string(obj, index, BIN_TO_STR(bin.data), bin.size));
+            } else {
+                char atom[MAX_ATOM_SIZE];
+                int atom_size = 0;
+                if((atom_size = get_atom(env, value, atom, MAX_ATOM_SIZE)) && atom_size > 0) {
+                    return cass_error_to_nif_term(env, fun.set_string(obj, index, atom, atom_size - 1));
+                }
+            }
 
-            if(!get_bstring(env, value, &bin))
-                return make_badarg(env);
-
-            return cass_error_to_nif_term(env, fun.set_string(obj, index, BIN_TO_STR(bin.data), bin.size));
+            return make_badarg(env);
         }
 
         case CASS_VALUE_TYPE_TINY_INT:
@@ -206,14 +214,24 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T obj, size
         case CASS_VALUE_TYPE_FLOAT:
         case CASS_VALUE_TYPE_DOUBLE:
         {
-            double val_double;
-            if(!enif_get_double(env, value, &val_double))
-                return make_badarg(env);
+            double val_double = 0;
+            long val_long = 0;
+            bool success = false;
+            if(enif_get_double(env, value, &val_double)) {
+                success = true;
+            } else if (enif_get_int64(env, value, &val_long)) {
+                val_double = static_cast<double>(val_long);
+                success = true;
+            }
 
-            if(data_type->value_type() == CASS_VALUE_TYPE_FLOAT)
-                return cass_error_to_nif_term(env, fun.set_float(obj, index, static_cast<float>(val_double)));
-            else
-                return cass_error_to_nif_term(env, fun.set_double(obj, index, val_double));
+            if(success) {
+                if(data_type->value_type() == CASS_VALUE_TYPE_FLOAT)
+                    return cass_error_to_nif_term(env, fun.set_float(obj, index, static_cast<float>(val_double)));
+                else
+                    return cass_error_to_nif_term(env, fun.set_double(obj, index, val_double));
+            }
+
+            return make_badarg(env);
         }
 
         case CASS_VALUE_TYPE_INET:

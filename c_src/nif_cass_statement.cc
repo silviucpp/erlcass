@@ -179,3 +179,22 @@ ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const 
 
     return bind_prepared_statement_params(env, enif_stm->statement, bind_type, argv[2]);
 }
+
+ERL_NIF_TERM nif_cass_statement_set_paging_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
+
+    enif_cass_statement * enif_stm = NULL;
+
+    if(!enif_get_resource(env, argv[0], data->resCassStatement, (void**) &enif_stm))
+        return make_badarg(env);
+
+    int page_size = 0;
+
+    if((!enif_get_int(env, argv[1], &page_size)) || (page_size < 1))
+        return make_badarg(env);
+
+    cass_statement_set_paging_size(enif_stm->statement, page_size);
+
+    return ATOMS.atomOk;
+}

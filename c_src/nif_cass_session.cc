@@ -22,6 +22,7 @@ struct callback_info
     ErlNifPid pid;
     ERL_NIF_TERM arguments;
     bool fire_and_forget;
+    CassStatement* paged_statment;
 };
 
 struct callback_statement_info
@@ -41,6 +42,7 @@ callback_info* callback_info_alloc(ErlNifEnv* env, const ErlNifPid& pid, ERL_NIF
     callback->env = enif_alloc_env();
     callback->arguments = enif_make_copy(callback->env, arg);
     callback->fire_and_forget = false;
+    callback->paged_statment = NULL;
     return callback;
 }
 
@@ -50,6 +52,7 @@ callback_info* callback_info_alloc(ErlNifEnv* env, ERL_NIF_TERM identifier)
     callback->env = enif_alloc_env();
     callback->arguments = enif_make_copy(callback->env, identifier);
     callback->fire_and_forget = true;
+    callback->paged_statment = NULL;
     return callback;
 }
 
@@ -135,6 +138,8 @@ void on_statement_executed(CassFuture* future, void* user_data)
 {
     callback_info* cb = static_cast<callback_info*>(user_data);
 
+    cass_bool_t has_more_pages = cass_false;
+
     if(cb->fire_and_forget)
     {
         // we only log the response in case it's an error
@@ -164,10 +169,27 @@ void on_statement_executed(CassFuture* future, void* user_data)
         {
             const CassResult* cassResult = cass_future_get_result(future);
             result = cass_result_to_erlang_term(cb->env, cassResult);
+            if (cb->paged_statment != NULL) {
+                /* Check to see if there are more pages remaining for this result */
+                has_more_pages = cass_result_has_more_pages(cassResult);
+
+                if (has_more_pages) {
+                    /* If there are more pages we need to set the position for the next execute */
+                    cass_statement_set_paging_state(cb->paged_statment, cassResult);
+                }
+            }
             cass_result_free(cassResult);
         }
 
-        enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomExecuteStatementResult, cb->arguments, result));
+        if (cb->paged_statment != NULL) {
+            if (!has_more_pages) {
+                enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomPagedExecuteStatementResult, cb->arguments, result));
+            } else {
+                enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomPagedExecuteStatementResultHasMore, cb->arguments, result));
+            }
+        } else {
+            enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomExecuteStatementResult, cb->arguments, result));
+        }
     }
 
     callback_info_free(cb);
@@ -325,6 +347,47 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
     if(callback == NULL)
         return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
+
+    CassFuture* future = cass_session_execute(enif_session->session, stm);
+    CassError error = cass_future_set_callback(future, on_statement_executed, callback);
+    cass_future_free(future);
+    return cass_error_to_nif_term(env, error);
+}
+
+ERL_NIF_TERM nif_cass_session_execute_paged(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
+
+    enif_cass_session * enif_session = NULL;
+
+    if(!enif_get_resource(env, argv[1], data->resCassSession, (void**) &enif_session))
+        return make_badarg(env);
+
+    CassStatement* stm = get_statement(env, data->resCassStatement, argv[2]);
+
+    if(stm == NULL)
+        return make_badarg(env);
+
+    callback_info* callback = NULL;
+
+    if(!enif_is_identical(ATOMS.atomNull, argv[3]))
+    {
+        ErlNifPid pid;
+
+        if(enif_get_local_pid(env, argv[3], &pid) == 0)
+            return make_badarg(env);
+
+        callback = callback_info_alloc(env, pid, argv[4]);
+    }
+    else
+    {
+        return make_badarg(env);
+    }
+
+    if(callback == NULL)
+        return make_error(env, erlcass::kFailedToCreateCallbackInfoMsg);
+
+    callback->paged_statment = stm;
 
     CassFuture* future = cass_session_execute(enif_session->session, stm);
     CassError error = cass_future_set_callback(future, on_statement_executed, callback);

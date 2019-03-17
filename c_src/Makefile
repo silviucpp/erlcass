@@ -26,6 +26,7 @@ ifeq ($(UNAME_SYS), darwin)
 				-Wl,-U,_enif_is_tuple \
 				-Wl,-U,_enif_is_atom \
 				-Wl,-U,_enif_is_list \
+				-Wl,-U,_enif_get_atom \
 				-Wl,-U,_enif_get_int \
 				-Wl,-U,_enif_get_list_cell \
 				-Wl,-U,_enif_get_resource \
@@ -57,7 +58,7 @@ else
 	CXXFLAGS+= -Wno-class-memaccess
 endif
 
-CXXFLAGS+=  -g -std=c++11 -Wextra -Werror -fno-rtti \
+CXXFLAGS+= -O3 -std=c++11 -Wextra -Werror -fno-rtti \
 			-Wno-unused-local-typedefs -Wno-unused-parameter -Wno-missing-field-initializers \
             -I $(BASEDIR)/_build/deps/cpp-driver/include \
             -I $(BASEDIR)/_build/deps/cpp-driver/src \

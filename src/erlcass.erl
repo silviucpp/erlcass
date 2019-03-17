@@ -22,6 +22,7 @@
     % prepared statements
 
     add_prepare_statement/2,
+    set_paging_size/2,
     async_execute/1,
     async_execute/2,
     async_execute/3,
@@ -30,6 +31,9 @@
     execute/1,
     execute/2,
     execute/3,
+    async_execute_paged/2,
+    async_execute_paged/3,
+    execute_paged/2,
 
     % batch
 
@@ -61,13 +65,14 @@
 -record(erlcass_stm, {session, stm}).
 -record(state, {session}).
 
--type query()           :: binary() | {binary(), integer()} | {binary(), list()}.
--type statement_ref()   :: #erlcass_stm{}.
--type bind_type()       :: ?BIND_BY_INDEX | ?BIND_BY_NAME.
--type batch_type()      :: ?CASS_BATCH_TYPE_LOGGED | ?CASS_BATCH_TYPE_UNLOGGED | ?CASS_BATCH_TYPE_COUNTER.
--type tag()             :: reference().
--type recv_pid()        :: pid() | null.
--type query_result()    :: ok | {ok, list(), list()} | {error, reason()}.
+-type query()               :: binary() | {binary(), integer()} | {binary(), list()}.
+-type statement_ref()       :: #erlcass_stm{}.
+-type bind_type()           :: ?BIND_BY_INDEX | ?BIND_BY_NAME.
+-type batch_type()          :: ?CASS_BATCH_TYPE_LOGGED | ?CASS_BATCH_TYPE_UNLOGGED | ?CASS_BATCH_TYPE_COUNTER.
+-type tag()                 :: reference().
+-type recv_pid()            :: pid() | null.
+-type query_result()        :: ok | {ok, list(), list()} | {error, reason()}.
+-type paged_query_result()  :: {ok, list(), list(), boolean()} | {error, reason()}.
 
 -spec get_metrics() ->
     {ok, list()} | {error, reason()}.
@@ -258,6 +263,48 @@ execute(Identifier, BindType, Params) ->
             Error
     end.
 
+-spec set_paging_size(statement_ref(), integer()) ->
+    ok | {error, reason()}.
+
+set_paging_size(Stm, PageSize) ->
+    erlcass_nif:cass_statement_set_paging_size(Stm#erlcass_stm.stm, PageSize).
+
+-spec async_execute_paged(statement_ref(), atom()) ->
+    {ok, tag()} | {error, reason()}.
+
+async_execute_paged(Stm, Identifier) ->
+    Tag = make_ref(),
+    ReceiverPid = self(),
+    case erlcass_nif:cass_session_execute_paged(get_identifier(ReceiverPid, Identifier), Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag) of
+        ok ->
+            {ok, Tag};
+        Error ->
+            Error
+    end.
+
+-spec async_execute_paged(statement_ref(), atom(), recv_pid()) ->
+    {ok, tag()} | {error, reason()}.
+
+async_execute_paged(Stm, Identifier, ReceiverPid) ->
+    Tag = make_ref(),
+    case erlcass_nif:cass_session_execute_paged(get_identifier(ReceiverPid, Identifier), Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag) of
+        ok ->
+            {ok, Tag};
+        Error ->
+            Error
+    end.
+
+-spec execute_paged(statement_ref(), atom()) ->
+    paged_query_result().
+
+execute_paged(Stm, Identifier) ->
+    case async_execute_paged(Stm, Identifier) of
+        {ok, Tag} ->
+            receive_paged_response(Tag);
+        Error ->
+            Error
+    end.
+
 -spec batch_async_execute(batch_type(), list(), list()) ->
     {ok, tag()} | {error, reason()}.
 
@@ -368,13 +415,26 @@ receive_response(Tag) ->
         {error, timeout}
     end.
 
-do_connect(Session, Pid) ->
-    case erlcass_utils:get_env(keyspace) of
-        {ok, Keyspace} ->
-            erlcass_nif:cass_session_connect(Session, Pid, Keyspace);
-        _ ->
-            erlcass_nif:cass_session_connect(Session, Pid)
+receive_paged_response(Tag) ->
+    receive
+        {paged_execute_statement_result, Tag, {ok, Columns, Rows}} ->
+            {ok, Columns, Rows, false};
+        {paged_execute_statement_result_has_more, Tag, {ok, Columns, Rows}} ->
+            {ok, Columns, Rows, true};
+        {paged_execute_statement_result, Tag, Error} ->
+            Error;
+        {paged_execute_statement_result_has_more, Tag, Error} ->
+            Error
+
+    after ?RESPONSE_TIMEOUT ->
+        {error, timeout}
     end.
+
+do_connect(Session, Pid, Keyspace) ->
+    erlcass_nif:cass_session_connect(Session, Pid, Keyspace).
+
+do_connect(Session, Pid) ->
+    erlcass_nif:cass_session_connect(Session, Pid).
 
 do_close(undefined, _Pid, _Timeout) ->
     ok;
@@ -393,22 +453,65 @@ session_create() ->
     case erlcass_nif:cass_session_new() of
         {ok, Session} ->
             Self = self(),
-            case do_connect(Session, Self) of
+            Keyspace = case erlcass_utils:get_env(keyspace) of
+                {ok, Space} -> Space;
+                _ -> ""
+            end,
+            KeyspaceCQL = case erlcass_utils:get_env(keyspace_cql) of
+                {ok, CQL} -> CQL;
+                _ -> ""
+            end,
+            Connect = case Keyspace of
+              ""       -> do_connect(Session, Self);
+              Keyspace -> do_connect(Session, Self, Keyspace)
+            end,
+            case Connect of
                 ok ->
-                    receive
-                        {session_connected, Self, Result} ->
-                            ?INFO_MSG("session ~p connection complete result: ~p", [Self, Result]),
-                            {ok, Session}
-
-                    after ?CONNECT_TIMEOUT ->
-                        ?ERROR_MSG("session ~p connection timeout", [Self]),
-                        {error, connect_session_timeout}
+                    case receive_session_connect(Keyspace, Self) of
+                        ok -> {ok, Session};
+                        {error, missing_keyspace} when KeyspaceCQL =/= "", Keyspace =/= "" ->
+                            ?INFO_MSG("Keyspace '~s' is missing, will create using: '~s'", [Keyspace, KeyspaceCQL]),
+                            ok = do_connect(Session, Self),
+                            case receive_session_connect("", Self) of
+                                ok ->
+                                    {ok, StmRef} = query_new_statement(KeyspaceCQL),
+                                    erlcass_nif:cass_session_execute(nil, Session, StmRef, Self, init_keyspace),
+                                    ?INFO_MSG("Creating Keyspace '~s'", [Keyspace]),
+                                    ok = receive_response(init_keyspace),
+                                    ?INFO_MSG("Keyspace '~s' Created", [Keyspace]),
+                                    ok = do_close(Session, Self, 5000),
+                                    ?INFO_MSG("Session Closed", []);
+                                Error -> Error
+                            end,
+                            ?INFO_MSG("Reconnecting with Keyspace", []),
+                            ok = do_connect(Session, Self, Keyspace),
+                            ?INFO_MSG("Waiting for coonection", []),
+                            case receive_session_connect(Keyspace, Self) of
+                                ok -> {ok, Session};
+                                Err -> Err
+                            end;
+                        Error -> Error
                     end;
                 Error ->
                     Error
             end;
         Error ->
             Error
+    end.
+
+receive_session_connect(Keyspace, Self) ->
+    MissingKeyspaceError = list_to_binary(lists:flatten(io_lib:format("Keyspace '~s' does not exist", [Keyspace]))),
+    receive
+        {session_connected, Self, {error, MissingKeyspaceError}} ->
+            {error, missing_keyspace};
+
+        {session_connected, Self, Result} ->
+            ?INFO_MSG("session ~p connection complete result: ~p", [Self, Result]),
+            ok
+
+    after ?CONNECT_TIMEOUT ->
+        ?ERROR_MSG("session ~p connection timeout", [Self]),
+        {error, connect_session_timeout}
     end.
 
 session_prepare_cached_statements(SessionRef) ->

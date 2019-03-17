@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 DEPS_LOCATION=_build/deps
 
@@ -61,8 +61,8 @@ case $OS in
 
             *) echo "Your system $KERNEL is not supported"
         esac
-        export CFLAGS="-fPIC -Wno-class-memaccess"
-		export CXXFLAGS="-fPIC -Wno-class-memaccess"
+        export CFLAGS="-fPIC"
+        export CXXFLAGS="-fPIC -Wno-class-memaccess"
     ;;
 
     Darwin)
@@ -91,5 +91,5 @@ popd
 mkdir -p $DEPS_LOCATION/cpp-driver/build
 pushd $DEPS_LOCATION/cpp-driver/build
 cmake .. -DCASS_BUILD_STATIC=ON -DCMAKE_BUILD_TYPE=RELEASE
-make -j 12
+make -j ${ERLCASS_DEPS_CORES:-12}
 popd

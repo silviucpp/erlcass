@@ -37,6 +37,8 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomSessionClosed = make_atom(env, erlcass::kAtomSessionClosed);
     ATOMS.atomPreparedStatementResult = make_atom(env, erlcass::kAtomPreparedStatementResult);
     ATOMS.atomExecuteStatementResult = make_atom(env, erlcass::kAtomExecuteStatementResult);
+    ATOMS.atomPagedExecuteStatementResult = make_atom(env, erlcass::kAtomPagedExecuteStatementResult);
+    ATOMS.atomPagedExecuteStatementResultHasMore = make_atom(env, erlcass::kAtomPagedExecuteStatementResultHasMore);
     ATOMS.atomLogMessageReceived = make_atom(env, erlcass::kAtomLogMessageReceived);
 
     // data types
@@ -183,7 +185,9 @@ static ErlNifFunc nif_funcs[] =
     {"cass_prepared_bind", 1, nif_cass_prepared_bind},
     {"cass_statement_new", 1, nif_cass_statement_new},
     {"cass_statement_bind_parameters", 3, nif_cass_statement_bind_parameters},
+    {"cass_statement_set_paging_size", 2, nif_cass_statement_set_paging_size},
     {"cass_session_execute", 5, nif_cass_session_execute},
+    {"cass_session_execute_paged", 5, nif_cass_session_execute_paged},
     {"cass_session_execute_batch", 5, nif_cass_session_execute_batch},
     {"cass_session_get_metrics", 1, nif_cass_session_get_metrics},
 

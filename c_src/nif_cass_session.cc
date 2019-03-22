@@ -275,7 +275,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(!enif_is_identical(ATOMS.atomOk, parse_result))
         return parse_result;
 
-    callback_statement_info* callback = static_cast<callback_statement_info*>(enif_alloc(sizeof(callback_info)));
+    callback_statement_info* callback = static_cast<callback_statement_info*>(enif_alloc(sizeof(callback_statement_info)));
     callback->pid = pid;
     callback->prepared_res = data->resCassPrepared;
     callback->env = enif_alloc_env();

@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v3.2.4
+
+- Fix a critical memory issue discovered by running the VM in debug mode.
+
 ##### v3.2.3
 
 - Add Trevis CI (Thanks to Gonçalo Tomás)

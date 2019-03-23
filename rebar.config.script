@@ -1,7 +1,7 @@
 IsRebar3 = erlang:function_exported(rebar3, main, 1),
 
 Rebar2Deps0 = [
-    {lager, ".*", {git, "https://github.com/erlang-lager/lager.git", {tag, "3.6.1"}}}
+    {lager, ".*", {git, "https://github.com/erlang-lager/lager.git", {tag, "3.6.9"}}}
 ],
 
 Rebar2Deps = case os:getenv("TEST") of

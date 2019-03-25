@@ -3,6 +3,7 @@
 ##### v3.2.4
 
 - Fix a critical memory issue discovered by running the VM in debug mode.
+- Update lager
 
 ##### v3.2.3
 

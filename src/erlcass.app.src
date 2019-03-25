@@ -1,6 +1,5 @@
 {application, erlcass, [
     {description, "ErlCass - Erlang Cassandra Driver"},
-    {maintainers, ["Silviu Caragea"]},
     {licenses, ["MIT"]},
     {links,[{"Github","https://github.com/silviucpp/erlcass"}]},
     {vsn, "3.2.4"},

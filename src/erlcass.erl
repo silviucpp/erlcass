@@ -470,11 +470,12 @@ get_identifier(null, Identifier) ->
 get_identifier(_, _Identifier) ->
     null.
 
+-spec id2bin(Id) -> Bin when
+    Id :: atom() | binary() | {atom() | binary(), term()},
+    Bin :: binary().
 id2bin(Id) when is_atom(Id) ->
     atom_to_binary(Id, utf8);
 id2bin(Id) when is_binary(Id) ->
     Id;
 id2bin({Id, _Opts}) ->
-    id2bin(Id);
-id2bin(Other) ->
-    erlang:term_to_binary(Other).
+    id2bin(Id).

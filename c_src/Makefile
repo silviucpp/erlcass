@@ -52,10 +52,13 @@ ifeq ($(UNAME_SYS), darwin)
 				-Wl,-U,_enif_make_tuple_from_array \
 				-Wl,-U,_enif_make_uint \
 				-Wl,-U,_enif_make_ulong
+else
+	# Needed for gcc-8
+	CXXFLAGS+= -Wno-class-memaccess
 endif
 
 CXXFLAGS+=  -g -std=c++11 -Wextra -Werror -fno-rtti \
-			-Wno-unused-local-typedefs -Wno-unused-parameter -Wno-missing-field-initializers -Wno-class-memaccess \
+			-Wno-unused-local-typedefs -Wno-unused-parameter -Wno-missing-field-initializers \
             -I $(BASEDIR)/_build/deps/cpp-driver/include \
             -I $(BASEDIR)/_build/deps/cpp-driver/src \
             -I $(BASEDIR)/_build/deps/cpp-driver/src/third_party/sparsehash/src \

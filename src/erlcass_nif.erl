@@ -10,11 +10,11 @@
     cass_log_set_level/1,
     cass_log_set_callback/1,
     cass_cluster_create/0,
-    cass_cluster_release/0,
-    cass_cluster_set_options/1,
+    cass_cluster_release/1,
+    cass_cluster_set_options/2,
     cass_session_new/0,
-    cass_session_connect/2,
     cass_session_connect/3,
+    cass_session_connect/4,
     cass_session_close/2,
     cass_session_prepare/4,
     cass_session_execute/5,
@@ -67,19 +67,19 @@ cass_log_set_callback(_LogPid) ->
 cass_cluster_create() ->
     ?NOT_LOADED.
 
-cass_cluster_release() ->
+cass_cluster_release(_Cluster) ->
     ?NOT_LOADED.
 
-cass_cluster_set_options(_OptionList) ->
+cass_cluster_set_options(_Cluster, _OptionList) ->
     ?NOT_LOADED.
 
 cass_session_new() ->
     ?NOT_LOADED.
 
-cass_session_connect(_SessionRef, _FromPid) ->
+cass_session_connect(_Cluster, _SessionRef, _FromPid) ->
     ?NOT_LOADED.
 
-cass_session_connect(_SessionRef, _FromPid, _Keyspace) ->
+cass_session_connect(_Cluster, _SessionRef, _FromPid, _Keyspace) ->
     ?NOT_LOADED.
 
 cass_session_close(_SessionRef, _Pid) ->

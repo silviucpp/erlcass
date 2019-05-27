@@ -3,8 +3,6 @@
 
 #include "erl_nif.h"
 
-#define EPOCH_DAYS_OFFSET 2147483648
-
 typedef struct CassTableMeta_ CassTableMeta;
 typedef struct CassKeyspaceMeta_ CassKeyspaceMeta;
 typedef struct CassSchemaMeta_ CassSchemaMeta;

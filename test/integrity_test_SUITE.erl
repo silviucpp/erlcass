@@ -436,5 +436,3 @@ get_metrics(_Config) ->
 
 drop_keyspace(_Config) ->
     ok = erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>).
-
-

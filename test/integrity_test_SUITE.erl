@@ -45,7 +45,7 @@ end_per_suite(_Config) ->
     application:stop(erlcass).
 
 create_keyspace(_Config) ->
-    erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>),
+    ok = erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>),
     ok = erlcass:query(<<"CREATE KEYSPACE erlang_driver_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}">>).
 
 create_table(_Config) ->
@@ -128,7 +128,8 @@ all_datatypes(_Config) ->
     SmallIntPositive = 32767,
     IntPositive = 2147483647,
     Timestamp = 2147483647,
-    Date = 2147483648,
+    Date = 0,
+    DateWithOffset = erlcass_time:date_from_epoch(Date),
     Time = 86399999999999,
     {ok, Uuid} = erlcass_uuid:gen_random(),
     Varchar1 = <<"Юникод"/utf8>>,
@@ -136,8 +137,15 @@ all_datatypes(_Config) ->
     {ok, Timeuuid} = erlcass_uuid:gen_time(),
     Inet = <<"127.0.0.1">>,
 
-    InsertQuery = <<"INSERT INTO erlang_driver_test.entries2(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)">>,
-    SelectQuery = <<"SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18 FROM erlang_driver_test.entries2 WHERE col1 =?">>,
+    InsertQuery = <<"
+        INSERT INTO erlang_driver_test.entries2(col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ">>,
+    SelectQuery = <<"
+        SELECT col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18
+        FROM erlang_driver_test.entries2
+        WHERE col1 = ?
+    ">>,
 
     ok = erlcass:add_prepare_statement(insert_all_datatypes, InsertQuery),
     ok = erlcass:add_prepare_statement(select_all_datatypes, SelectQuery),
@@ -159,13 +167,31 @@ all_datatypes(_Config) ->
         Inet,
         TinyIntPositive,
         SmallIntPositive,
-        Date,
+        DateWithOffset,
         Time
     ]),
 
     {ok, SelectCols, [Result]} = erlcass:execute(select_all_datatypes, [AsciiValBin]),
-
-    [AsciiValBin, BigIntPositive, Blob, BooleanTrue, DecimalPositive, DoublePositive, _, IntPositive, Timestamp, Uuid, Varchar1, Varint1, Timeuuid, Inet, TinyIntPositive, SmallIntPositive, Date, Time] = Result,
+    [
+        AsciiValBin,
+        BigIntPositive,
+        Blob,
+        BooleanTrue,
+        DecimalPositive,
+        DoublePositive,
+        _,
+        IntPositive,
+        Timestamp,
+        Uuid,
+        Varchar1,
+        Varint1,
+        Timeuuid,
+        Inet,
+        TinyIntPositive,
+        SmallIntPositive,
+        Date,
+        Time
+    ] = Result,
 
     AsciiString = "foo",
     BigIntNegative = -9223372036854775806,
@@ -178,7 +204,6 @@ all_datatypes(_Config) ->
     SmallIntNegative = -32768,
     Varchar2 = <<"åäö"/utf8>>,
     Varint2 = erlang:integer_to_binary(123124211928301970128391280192830198049113123),
-
     ok = erlcass:execute(insert_all_datatypes, ?BIND_BY_NAME, [
         {<<"col1">>, AsciiString},
         {<<"col2">>, BigIntNegative},
@@ -196,15 +221,32 @@ all_datatypes(_Config) ->
         {<<"col14">>, Inet},
         {<<"col15">>, TinyIntNegative},
         {<<"col16">>, SmallIntNegative},
-        {<<"col17">>, Date},
+        {<<"col17">>, DateWithOffset},
         {<<"col18">>, Time}
     ]),
 
     {ok, _, [Result2]} = erlcass:execute(select_all_datatypes, ?BIND_BY_NAME, [{<<"col1">>, AsciiString}]),
-
     BinAsciiString = list_to_binary(AsciiString),
-    [BinAsciiString, BigIntNegative, Blob, BooleanFalse, DecimalNegative, DoubleNegative, _, IntNegative, Timestamp, Uuid, Varchar2, Varint2, Timeuuid, Inet, TinyIntNegative, SmallIntNegative, Date, Time] = Result2,
-    ok.
+    [
+        BinAsciiString,
+        BigIntNegative,
+        Blob,
+        BooleanFalse,
+        DecimalNegative,
+        DoubleNegative,
+        _,
+        IntNegative,
+        Timestamp,
+        Uuid,
+        Varchar2,
+        Varint2,
+        Timeuuid,
+        Inet,
+        TinyIntNegative,
+        SmallIntNegative,
+        Date,
+        Time
+    ] = Result2.
 
 async_custom_tag(_Config) ->
     CreationQ = <<"CREATE TABLE erlang_driver_test.async_custom_tag(key int PRIMARY KEY, value map<text, text>)">>,
@@ -436,5 +478,3 @@ get_metrics(_Config) ->
 
 drop_keyspace(_Config) ->
     ok = erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>).
-
-

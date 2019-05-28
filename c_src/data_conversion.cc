@@ -8,6 +8,8 @@
 #include <string.h>
 #include <vector>
 
+static const cass_uint32_t kEpochDaysOffset = 2147483648;
+
 ERL_NIF_TERM string_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM blob_to_erlang_term(ErlNifEnv* env, const CassValue* value);
 ERL_NIF_TERM uuid_to_erlang_term(ErlNifEnv* env, const CassValue* value);
@@ -301,6 +303,10 @@ ERL_NIF_TERM date_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 {
     cass_uint32_t value_uint;
     cass_value_get_uint32(value, &value_uint);
+    // Values of the `date` type are encoded as 32-bit unsigned integers
+    // representing a number of days with epoch (January 1st, 1970) at the center of the
+    // range (2^31).
+    value_uint -= kEpochDaysOffset;
     return enif_make_uint(env, value_uint);
 }
 

@@ -3,6 +3,14 @@
 
 *An Erlang Cassandra driver, based on [DataStax cpp driver][1] focused on performance.*
 
+### Note for v3.2.5
+
+Starting with `erlcass` version 3.2.5 the native driver is based on Datastax cpp-driver > 2.10.0 which is a massive 
+release that includes many new features as well as architectural and performance improvements. 
+Their initial results show up to a 50% percent improvement in throughput depending on the workload and cluster setup.
+
+Some configs were deprecated. For more info please see the [Changelog][5].
+
 ### Update from 2.x to 3.0
 
 This update breaks the compatibility with the other versions. All query results will return in case of success:
@@ -125,7 +133,6 @@ The cluster options can be set inside your `app.config` file under the `cluster_
         {token_aware_routing, true},
         {number_threads_io, 4},
         {queue_size_io, 128000},
-        {max_connections_host, 5},
         {tcp_nodelay, true},
         {tcp_keepalive, {true, 1800}},
         {default_consistency_level, 6}

@@ -89,13 +89,7 @@ extern const char kAtomClusterSettingPort[];
 extern const char kAtomClusterSettingProtocolVersion[];
 extern const char kAtomClusterSettingNumThreadsIo[];
 extern const char kAtomClusterSettingQueueSizeIo[];
-extern const char kAtomClusterSettingQueueSizeEvent[];
 extern const char kAtomClusterSettingCoreConnectionsPerHost[];
-extern const char kAtomClusterSettingMaxConnectionsPerHost[];
-extern const char kAtomClusterSettingReconnectWaitTime[];
-extern const char kAtomClusterSettingMaxConcurrentCreation[];
-extern const char kAtomClusterSettingMaxConcurrentRequestsThreshold[];
-extern const char kAtomClusterSettingMaxRequestsPerFlush[];
 extern const char kAtomClusterSettingConnectTimeout[];
 extern const char kAtomClusterSettingRequestTimeout[];
 extern const char kAtomClusterSettingCredentials[];
@@ -114,7 +108,6 @@ extern const char kAtomClusterSettingSslCert[];
 extern const char kAtomClusterSettingSslPrivateKey[];
 extern const char kAtomClusterSettingRetryPolicy[];
 extern const char kAtomClusterSettingRetryPolicyDefault[];
-extern const char kAtomClusterSettingRetryPolicyDowngradingConsistency[];
 extern const char kAtomClusterSettingRetryPolicyFallthrough[];
 
 }

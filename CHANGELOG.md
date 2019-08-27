@@ -1,5 +1,23 @@
 ### Changelog:
 
+##### v3.2.5
+
+Note: This is a major update due to upgrade of the cpp-driver to a major version which use a different internal 
+architecture which provides a significant performance improvement. 
+
+- Update cpp-driver to 2.13.0
+- Use epoch day offset when returning date types
+- Fix gcc 8 build
+- Removed deprecated cluster configs: 
+    - `queue_size_event`
+    - `max_connections_host`
+    - `reconnect_wait_time`
+    - `max_concurrent_creation`
+    - `max_requests_threshold`
+    - `requests_per_flush`
+    
+- Removed deprecated retry policy: `downgrading_consistency`
+
 ##### v3.2.4
 
 - Fix a critical memory issue discovered by running the VM in debug mode.

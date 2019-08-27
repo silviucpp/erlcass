@@ -109,11 +109,11 @@ const set_data_functions<CassUserType*> kCassUserTypeFuns = {
     cass_user_type_set_user_type
 };
 
-ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const cass::DataType* data_type, CassUserType** udt);
-ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const cass::DataType* data_type, CassTuple** tp);
-ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const cass::DataType* data_type, CassCollection ** col);
+ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const datastax::internal::core::DataType* data_type, CassUserType** udt);
+ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const datastax::internal::core::DataType* data_type, CassTuple** tp);
+ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const datastax::internal::core::DataType* data_type, CassCollection ** col);
 
-template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T obj, size_t index, set_data_functions<T> fun, const cass::DataType* data_type, ERL_NIF_TERM value)
+template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T obj, size_t index, set_data_functions<T> fun, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value)
 {
     switch (data_type->value_type())
     {
@@ -311,7 +311,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T obj, size
     }
 }
 
-ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const cass::DataType* dt, CassUserType** udt)
+ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const datastax::internal::core::DataType* dt, CassUserType** udt)
 {
     unsigned int length;
 
@@ -320,7 +320,7 @@ ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const cass:
 
     scoped_ptr(data_type, CassDataType, cass_data_type_new_udt(length), cass_data_type_free);
 
-    const cass::UserType* ut = static_cast<const cass::UserType*>(dt);
+    const datastax::internal::core::UserType* ut = static_cast<const datastax::internal::core::UserType*>(dt);
 
     for(auto it = ut->fields().begin(); it != ut->fields().end(); ++it)
     {
@@ -346,13 +346,13 @@ ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const cass:
         if(!get_bstring(env, items[0], &bin))
             return make_badarg(env);
 
-        cass::IndexVec indices;
+        datastax::internal::core::IndexVec indices;
 
-        if(ut->get_indices(cass::StringRef(BIN_TO_STR(bin.data), bin.size), &indices) == 0)
+        if(ut->get_indices(datastax::StringRef(BIN_TO_STR(bin.data), bin.size), &indices) == 0)
             return make_badarg(env);
 
         size_t index = indices[0];
-        const cass::DataType* type = ut->fields().at(index).type.get();
+        const datastax::internal::core::DataType* type = ut->fields().at(index).type.get();
 
         ERL_NIF_TERM item_term = cass_set_from_nif(env, utv.get(), index, kCassUserTypeFuns, type, items[1]);
 
@@ -364,9 +364,9 @@ ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const cass:
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const cass::DataType* data_type, CassTuple** tp)
+ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const datastax::internal::core::DataType* data_type, CassTuple** tp)
 {
-    const cass::CompositeType* ct = static_cast<const cass::CompositeType*>(data_type);
+    const datastax::internal::core::CompositeType* ct = static_cast<const datastax::internal::core::CompositeType*>(data_type);
 
     const ERL_NIF_TERM *items;
     int arity;
@@ -377,7 +377,7 @@ ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const cas
     scoped_ptr(tuple, CassTuple, cass_tuple_new(arity), cass_tuple_free);
     size_t index = 0;
 
-    for(cass::DataType::Vec::const_iterator it = ct->types().begin(); it != ct->types().end(); ++it)
+    for(datastax::internal::core::DataType::Vec::const_iterator it = ct->types().begin(); it != ct->types().end(); ++it)
     {
         ERL_NIF_TERM item_term = cass_set_from_nif(env, tuple.get(), index, kCassTupleFuns, (*it).get(), items[index]);
 
@@ -393,7 +393,7 @@ ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const cas
 
 //collections
 
-ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const cass::DataType* dt)
+ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const datastax::internal::core::DataType* dt)
 {
     ERL_NIF_TERM head;
     ERL_NIF_TERM item_term;
@@ -409,7 +409,7 @@ ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, Cas
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const cass::DataType* kt, const cass::DataType* vt)
+ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const datastax::internal::core::DataType* kt, const datastax::internal::core::DataType* vt)
 {
     ERL_NIF_TERM head;
     ERL_NIF_TERM item_term;
@@ -438,9 +438,9 @@ ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassColl
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const cass::DataType* data_type, CassCollection ** col)
+ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const datastax::internal::core::DataType* data_type, CassCollection ** col)
 {
-    const cass::CompositeType* ct = static_cast<const cass::CompositeType*>(data_type);
+    const datastax::internal::core::CompositeType* ct = static_cast<const datastax::internal::core::CompositeType*>(data_type);
 
     unsigned int length;
 
@@ -464,7 +464,7 @@ ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, cons
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const cass::DataType* data_type, ERL_NIF_TERM value)
+ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value)
 {
     if(enif_is_identical(value, ATOMS.atomNull))
         return cass_error_to_nif_term(env, cass_statement_bind_null(statement, index));

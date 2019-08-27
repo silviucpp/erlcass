@@ -77,13 +77,7 @@ struct atoms
     ERL_NIF_TERM atomClusterSettingProtocolVersion;
     ERL_NIF_TERM atomClusterSettingNumThreadsIo;
     ERL_NIF_TERM atomClusterSettingQueueSizeIo;
-    ERL_NIF_TERM atomClusterSettingQueueSizeEvent;
     ERL_NIF_TERM atomClusterSettingCoreConnectionsPerHost;
-    ERL_NIF_TERM atomClusterSettingMaxConnectionsPerHost;
-    ERL_NIF_TERM atomClusterSettingReconnectWaitTime;
-    ERL_NIF_TERM atomClusterSettingMaxConcurrentCreation;
-    ERL_NIF_TERM atomClusterSettingMaxConcurrentRequestsThreshold;
-    ERL_NIF_TERM atomClusterSettingMaxRequestsPerFlush;
     ERL_NIF_TERM atomClusterSettingConnectTimeout;
     ERL_NIF_TERM atomClusterSettingRequestTimeout;
     ERL_NIF_TERM atomClusterSettingCredentials;
@@ -102,7 +96,6 @@ struct atoms
     ERL_NIF_TERM atomClusterSettingSslPrivateKey;
     ERL_NIF_TERM atomClusterSettingRetryPolicy;
     ERL_NIF_TERM atomClusterSettingRetryPolicyDefault;
-    ERL_NIF_TERM atomClusterSettingRetryPolicyDowngradingConsistency;
     ERL_NIF_TERM atomClusterSettingRetryPolicyFallthrough;
 };
 

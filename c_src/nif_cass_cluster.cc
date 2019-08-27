@@ -40,13 +40,6 @@
     if(enif_is_identical(term_key, Key)) \
         return Func(env, term_option, term_value, data);
 
-
-CassError internal_cass_cluster_set_reconnect_wait_time(CassCluster* cluster, unsigned wait_time)
-{
-    cass_cluster_set_reconnect_wait_time(cluster, wait_time);
-    return CASS_OK;
-}
-
 CassError internal_cass_cluster_set_connect_timeout(CassCluster* cluster, unsigned timeout)
 {
     cass_cluster_set_connect_timeout(cluster, timeout);
@@ -199,8 +192,6 @@ ERL_NIF_TERM internal_cluster_set_retry_policy(ErlNifEnv* env, ERL_NIF_TERM term
 
     if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyDefault))
         retry_policy.reset(cass_retry_policy_default_new());
-    else if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyDowngradingConsistency))
-        retry_policy.reset(cass_retry_policy_downgrading_consistency_new());
     else if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyFallthrough))
         retry_policy.reset(cass_retry_policy_fallthrough_new());
     else
@@ -374,14 +365,7 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     INT_SETTING(ATOMS.atomClusterSettingProtocolVersion, cass_cluster_set_protocol_version);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingNumThreadsIo, cass_cluster_set_num_threads_io);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingQueueSizeIo, cass_cluster_set_queue_size_io);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingQueueSizeEvent, cass_cluster_set_queue_size_event);
-    //@todo: implement cass_cluster_set_queue_size_log
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingCoreConnectionsPerHost, cass_cluster_set_core_connections_per_host);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConnectionsPerHost, cass_cluster_set_max_connections_per_host);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingReconnectWaitTime, internal_cass_cluster_set_reconnect_wait_time);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConcurrentCreation, cass_cluster_set_max_concurrent_creation);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConcurrentRequestsThreshold, cass_cluster_set_max_concurrent_requests_threshold);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxRequestsPerFlush, cass_cluster_set_max_requests_per_flush);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingConnectTimeout, internal_cass_cluster_set_connect_timeout);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingRequestTimeout, internal_cass_cluster_set_request_timeout);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingHeartbeatInterval, internal_cass_cluster_set_connection_heartbeat_interval);

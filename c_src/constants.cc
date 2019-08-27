@@ -88,13 +88,7 @@ const char kAtomClusterSettingPort[] = "port";
 const char kAtomClusterSettingProtocolVersion[] = "protocol_version";
 const char kAtomClusterSettingNumThreadsIo[] = "number_threads_io";
 const char kAtomClusterSettingQueueSizeIo[] = "queue_size_io";
-const char kAtomClusterSettingQueueSizeEvent[] = "queue_size_event";
 const char kAtomClusterSettingCoreConnectionsPerHost[] = "core_connections_host";
-const char kAtomClusterSettingMaxConnectionsPerHost[] = "max_connections_host";
-const char kAtomClusterSettingReconnectWaitTime[] = "reconnect_wait_time";
-const char kAtomClusterSettingMaxConcurrentCreation[] = "max_concurrent_creation";
-const char kAtomClusterSettingMaxConcurrentRequestsThreshold[] = "max_requests_threshold";
-const char kAtomClusterSettingMaxRequestsPerFlush[] = "requests_per_flush";
 const char kAtomClusterSettingConnectTimeout[] = "connect_timeout";
 const char kAtomClusterSettingRequestTimeout[] = "request_timeout";
 const char kAtomClusterSettingCredentials[] = "credentials";
@@ -113,7 +107,6 @@ const char kAtomClusterSettingSslCert[] = "cert";
 const char kAtomClusterSettingSslPrivateKey[] = "private_key";
 const char kAtomClusterSettingRetryPolicy[] = "retry_policy";
 const char kAtomClusterSettingRetryPolicyDefault[] = "default";
-const char kAtomClusterSettingRetryPolicyDowngradingConsistency[] = "downgrading_consistency";
 const char kAtomClusterSettingRetryPolicyFallthrough[] = "fallthrough";
 
 }

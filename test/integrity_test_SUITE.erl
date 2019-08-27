@@ -45,7 +45,12 @@ end_per_suite(_Config) ->
     application:stop(erlcass).
 
 create_keyspace(_Config) ->
-    ok = erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>),
+    case erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>) of
+        ok ->
+            ok;
+        {error,<<"Cannot drop non existing", _/binary>>} ->
+            ok
+    end,
     ok = erlcass:query(<<"CREATE KEYSPACE erlang_driver_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}">>).
 
 create_table(_Config) ->

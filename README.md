@@ -9,7 +9,7 @@ Starting with `erlcass` version 3.2.5 the native driver is based on Datastax cpp
 release that includes many new features as well as architectural and performance improvements. 
 Their initial results show up to a 50% percent improvement in throughput depending on the workload and cluster setup.
 
-Some configs were deprecated. For more info please see the [Changelog][5].
+Some cluster configs were removed and some other were added. For more info please see the [Changelog][5].
 
 ### Update from 2.x to 3.0
 

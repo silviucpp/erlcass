@@ -15,6 +15,16 @@ architecture which provides a significant performance improvement.
     - `max_concurrent_creation`
     - `max_requests_threshold`
     - `requests_per_flush`
+Add support for new cluster configs (for more details see wiki):
+    - `constant_reconnect`
+    - `exponential_reconnect`
+    - `coalesce_delay`
+    - `request_ratio`
+    - `max_schema_wait_time`
+    - `token_aware_routing_shuffle_replicas`
+    - `use_hostname_resolution`
+    - `speculative_execution_policy`
+    - `max_reusable_write_objects`
     
 - Removed deprecated retry policy: `downgrading_consistency`
 

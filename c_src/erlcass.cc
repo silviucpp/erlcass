@@ -93,6 +93,15 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingQueueSizeIo = make_atom(env, erlcass::kAtomClusterSettingQueueSizeIo);
     ATOMS.atomClusterSettingCoreConnectionsPerHost = make_atom(env, erlcass::kAtomClusterSettingCoreConnectionsPerHost);
     ATOMS.atomClusterSettingConnectTimeout = make_atom(env, erlcass::kAtomClusterSettingConnectTimeout);
+    ATOMS.atomClusterSettingConstantReconnect = make_atom(env, erlcass::kAtomClusterSettingConstantReconnect);
+    ATOMS.atomClusterSettingExponentialReconnect = make_atom(env, erlcass::kAtomClusterSettingExponentialReconnect);
+    ATOMS.atomClusterSettingCoalesceDelay = make_atom(env, erlcass::kAtomClusterSettingCoalesceDelay);
+    ATOMS.atomClusterSettingRequestRatio = make_atom(env, erlcass::kAtomClusterSettingRequestRatio);
+    ATOMS.atomClusterSettingMaxSchemaWaitTime = make_atom(env, erlcass::kAtomClusterSettingMaxSchemaWaitTime);
+    ATOMS.atomClusterSettingTokenAwareRoutingShuffleReplicas = make_atom(env, erlcass::kAtomClusterSettingTokenAwareRoutingShuffleReplicas);
+    ATOMS.atomClusterSettingUseHostnameResolution = make_atom(env, erlcass::kAtomClusterSettingUseHostnameResolution);
+    ATOMS.atomClusterSettingSpeculativeExecutionPolicy = make_atom(env, erlcass::kAtomClusterSettingSpeculativeExecutionPolicy);
+    ATOMS.atomClusterSettingMaxReusableWriteObjects = make_atom(env, erlcass::kAtomClusterSettingMaxReusableWriteObjects);
     ATOMS.atomClusterSettingRequestTimeout = make_atom(env, erlcass::kAtomClusterSettingRequestTimeout);
     ATOMS.atomClusterSettingCredentials = make_atom(env, erlcass::kAtomClusterSettingCredentials);
     ATOMS.atomClusterSettingLoadBalanceRoundRobin = make_atom(env, erlcass::kAtomClusterSettingLoadBalanceRoundRobin);

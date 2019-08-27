@@ -79,6 +79,15 @@ struct atoms
     ERL_NIF_TERM atomClusterSettingQueueSizeIo;
     ERL_NIF_TERM atomClusterSettingCoreConnectionsPerHost;
     ERL_NIF_TERM atomClusterSettingConnectTimeout;
+    ERL_NIF_TERM atomClusterSettingConstantReconnect;
+    ERL_NIF_TERM atomClusterSettingExponentialReconnect;
+    ERL_NIF_TERM atomClusterSettingCoalesceDelay;
+    ERL_NIF_TERM atomClusterSettingRequestRatio;
+    ERL_NIF_TERM atomClusterSettingMaxSchemaWaitTime;
+    ERL_NIF_TERM atomClusterSettingTokenAwareRoutingShuffleReplicas;
+    ERL_NIF_TERM atomClusterSettingUseHostnameResolution;
+    ERL_NIF_TERM atomClusterSettingSpeculativeExecutionPolicy;
+    ERL_NIF_TERM atomClusterSettingMaxReusableWriteObjects;
     ERL_NIF_TERM atomClusterSettingRequestTimeout;
     ERL_NIF_TERM atomClusterSettingCredentials;
     ERL_NIF_TERM atomClusterSettingLoadBalanceRoundRobin;

@@ -405,7 +405,13 @@ ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value)
         items_list[rowIndex++] = enif_make_tuple2(env, make_binary(env, field_name_ptr, field_name_length), field_value);
     }
 
-    return enif_make_list_from_array(env, items_list, items_count);
+    //as workaround for https://github.com/silviucpp/erlcass/issues/42 we are using as array length the rowIndex not
+    //items_count. seems for the old UDT type values inserted before alter cpp-driver cass_value_item_count returns the actual
+    //number of properties but the iterator will only walk through the existing one.
+    //for sure this is not the expected behaviour. Iterator should be able to walk through a number of elements equal with the value
+    //returned by cass_value_item_count.
+
+    return enif_make_list_from_array(env, items_list, rowIndex);
 }
 
 ERL_NIF_TERM column_data_to_erlang_term(ErlNifEnv* env, const CassResult* result, size_t columns_count)

@@ -8,6 +8,7 @@ architecture which provides a significant performance improvement.
 - Update cpp-driver to 2.13.0
 - Use epoch day offset when returning date types
 - Fix gcc 8 build
+- Add support for speculative execution (see `speculative_execution_policy`)
 - Removed deprecated cluster configs: 
     - `queue_size_event`
     - `max_connections_host`

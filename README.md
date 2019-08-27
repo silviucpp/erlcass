@@ -5,11 +5,15 @@
 
 ### Note for v3.2.5
 
-Starting with `erlcass` version 3.2.5 the native driver is based on Datastax cpp-driver > 2.10.0 which is a massive 
+- Starting with `erlcass` version 3.2.5 the native driver is based on Datastax cpp-driver > 2.10.0 which is a massive 
 release that includes many new features as well as architectural and performance improvements. 
 Their initial results show up to a 50% percent improvement in throughput depending on the workload and cluster setup.
 
-Some cluster configs were removed and some other were added. For more info please see the [Changelog][5].
+- Some cluster configs were removed and some other were added. For more info please see the [Changelog][5].
+- This new version adds support for speculative execution. For certain applications it is of the utmost importance to 
+minimize latency. Speculative execution is a way to minimize latency by preemptively executing several instances of 
+the same query against different nodes. The fastest response is then returned to the client application and the other 
+requests are cancelled. Speculative execution is disabled by default. (see `speculative_execution_policy`)
 
 ### Update from 2.x to 3.0
 

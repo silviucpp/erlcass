@@ -33,6 +33,34 @@ functions will return immediately. The DataStax driver use it's own thread pool 
 Also the responses are received on this threads and sent back to Erlang calling processes using `enif_send` in
 an async manner.
 
+#### Features
+
+List of supported features:
+
+- Asynchronous API
+- Synchronous API
+- Simple, Prepared, and Batch statements
+- Asynchronous I/O, parallel execution, and request pipelining
+- Connection pooling
+- Automatic node discovery
+- Automatic reconnection
+- Configurable load balancing
+- Works with any cluster size
+- Authentication
+- SSL
+- Latency-aware routing
+- Performance metrics
+- Tuples and UDTs
+- Nested collections
+- Retry policies
+- Support for materialized view and secondary index metadata
+- Support for clustering key order, `frozen<>` and Cassandra version metadata
+- Reverse DNS with SSL peer identity verification support
+- Randomized contact points
+- Speculative execution
+
+Missing features from Datastax driver can be found into the [Todo List][9].
+
 #### Benchmark comparing with other drivers
 
 The benchmark (`benchmarks/benchmark.erl`) is spawning N processes that will send a total of X request using the async
@@ -381,3 +409,4 @@ For mode details about bind by index and name please see: 'Run a prepared statem
 [6]:https://github.com/matehat/cqerl
 [7]:https://github.com/lpgauth/marina
 [8]:https://github.com/silviucpp/erlcass
+[9]:https://github.com/silviucpp/erlcass/wiki/Todo-list

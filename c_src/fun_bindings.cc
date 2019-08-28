@@ -61,7 +61,7 @@ CassError erlcass_cass_collection_append_double(CassCollection* collection, size
     return cass_collection_append_double(collection, value);
 }
 
-CassError erlcass_cass_collection_append_inet(CassCollection* collection, size_t index, CassInet value)
+CassError erlcass_cass_collection_append_inet(CassCollection* collection, size_t index, const CassInet& value)
 {
     UNUSED(index);
     return cass_collection_append_inet(collection, value);

@@ -11,3 +11,4 @@
 /log/
 /.editorconfig
 /DerivedData/
+/cppcheck_results.xml

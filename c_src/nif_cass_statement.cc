@@ -42,10 +42,10 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             size_t index = indices[0];
 
             const cass::DataType* data_type = result->metadata()->get_column_definition(index).data_type.get();
-            ERL_NIF_TERM result = cass_bind_by_index(env, statement, index, data_type, items[1]);
+            ERL_NIF_TERM nif_result = cass_bind_by_index(env, statement, index, data_type, items[1]);
 
-            if(!enif_is_identical(result, ATOMS.atomOk))
-                return result;
+            if(!enif_is_identical(nif_result, ATOMS.atomOk))
+                return nif_result;
         }
     }
     else
@@ -66,10 +66,10 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
 
             const cass::DataType* data_type = def.data_type.get();
 
-            ERL_NIF_TERM result = cass_bind_by_index(env, statement, index, data_type, head);
+            ERL_NIF_TERM nif_result = cass_bind_by_index(env, statement, index, data_type, head);
 
-            if(!enif_is_identical(result, ATOMS.atomOk))
-                return result;
+            if(!enif_is_identical(nif_result, ATOMS.atomOk))
+                return nif_result;
 
             index++;
         }

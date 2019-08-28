@@ -396,11 +396,10 @@ ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const cas
 ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const cass::DataType* dt)
 {
     ERL_NIF_TERM head;
-    ERL_NIF_TERM item_term;
 
     while(enif_get_list_cell(env, list, &head, &list))
     {
-        item_term = cass_set_from_nif(env, collection, 0, kCassCollectionFuns, dt, head);
+        ERL_NIF_TERM item_term = cass_set_from_nif(env, collection, 0, kCassCollectionFuns, dt, head);
 
         if(!enif_is_identical(item_term, ATOMS.atomOk))
             return item_term;
@@ -412,7 +411,6 @@ ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, Cas
 ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const cass::DataType* kt, const cass::DataType* vt)
 {
     ERL_NIF_TERM head;
-    ERL_NIF_TERM item_term;
     const ERL_NIF_TERM *items;
     int arity;
 
@@ -422,7 +420,7 @@ ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassColl
             return make_badarg(env);
 
         // add key
-        item_term = cass_set_from_nif(env, collection, 0, kCassCollectionFuns, kt, items[0]);
+        ERL_NIF_TERM item_term = cass_set_from_nif(env, collection, 0, kCassCollectionFuns, kt, items[0]);
 
         if(!enif_is_identical(item_term, ATOMS.atomOk))
             return item_term;

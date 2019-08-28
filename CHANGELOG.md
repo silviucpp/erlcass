@@ -1,5 +1,11 @@
 ### Changelog:
 
+##### v3.2.5
+
+- Use epoch day offset when returning date types
+- Fix gcc 8 build
+- Fix crash in UDT types (https://github.com/silviucpp/erlcass/issues/42)
+
 ##### v3.2.4
 
 - Fix a critical memory issue discovered by running the VM in debug mode.

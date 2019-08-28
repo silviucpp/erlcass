@@ -1,7 +1,7 @@
 -module(benchmark).
 
 -include("erlcass.hrl").
--include_lib("cqerl/include/cqerl.hrl").
+%-include_lib("cqerl/include/cqerl.hrl").
 -include_lib("marina/include/marina.hrl").
 -include_lib("shackle/include/shackle.hrl").
 
@@ -9,7 +9,7 @@
 -define(ARG_VAL, <<"hello">>).
 
 -define(DRIVER_ERLCASS, erlcass).
--define(DRIVER_CQERL, cqerl).
+%-define(DRIVER_CQERL, cqerl).
 -define(DRIVER_MARINA, marina).
 
 -export([
@@ -32,9 +32,9 @@ start(Module) ->
 
 get_client(?DRIVER_ERLCASS) ->
     undefined;
-get_client(?DRIVER_CQERL) ->
-    {ok, Client} = cqerl:get_client(),
-    Client;
+%%get_client(?DRIVER_CQERL) ->
+%%    {ok, Client} = cqerl:get_client(),
+%%    Client;
 get_client(?DRIVER_MARINA) ->
     undefined;
 get_client(_) ->
@@ -42,8 +42,8 @@ get_client(_) ->
 
 close_client(?DRIVER_ERLCASS, _Client) ->
     ok;
-close_client(?DRIVER_CQERL, Client) ->
-    cqerl:close_client(Client);
+%%close_client(?DRIVER_CQERL, Client) ->
+%%    cqerl:close_client(Client);
 close_client(?DRIVER_MARINA, _) ->
     ok;
 close_client(_, _) ->
@@ -52,15 +52,20 @@ close_client(_, _) ->
 execute_async(?DRIVER_ERLCASS, _Client) ->
     {ok, _Tag} = erlcass:async_execute(testing_query, [?ARG_VAL]),
     ok;
-execute_async(?DRIVER_CQERL, Client) ->
-    true = is_reference(cqerl:send_query(Client, #cql_query{
-        statement=?QUERY,
-        values=[{col1, ?ARG_VAL}],
-        consistency = one
-    })),
-    ok;
+%%execute_async(?DRIVER_CQERL, Client) ->
+%%    true = is_reference(cqerl:send_query(Client, #cql_query{
+%%        statement=?QUERY,
+%%        values=[{col1, ?ARG_VAL}],
+%%        consistency = one
+%%    })),
+%%    ok;
 execute_async(?DRIVER_MARINA, _Client) ->
-    {ok, _} = marina:async_reusable_query(?QUERY, [?ARG_VAL], ?CONSISTENCY_ONE, [], self(), 5000),
+    {ok, _} = marina:async_reusable_query(?QUERY, #{
+        values => [?ARG_VAL],
+        consistency_level => ?CONSISTENCY_ONE,
+        pid => self(),
+        timeout => 5000
+    }),
     ok;
 execute_async(_Module, _Client) ->
     throw(invalid_module).
@@ -75,18 +80,18 @@ receive_response(?DRIVER_ERLCASS) ->
                     UnexpectedResult
             end
     end;
-receive_response(?DRIVER_CQERL) ->
-    receive
-        {result, _Tag, Rs} ->
-            case is_record(Rs, cql_result) of
-                true ->
-                    ok;
-                _ ->
-                    Rs
-            end;
-        {error, _Tag, Reason} ->
-            Reason
-    end;
+%%receive_response(?DRIVER_CQERL) ->
+%%    receive
+%%        {result, _Tag, Rs} ->
+%%            case is_record(Rs, cql_result) of
+%%                true ->
+%%                    ok;
+%%                _ ->
+%%                    Rs
+%%            end;
+%%        {error, _Tag, Reason} ->
+%%            Reason
+%%    end;
 receive_response(?DRIVER_MARINA) ->
     receive
         {#cast{}, Response} ->

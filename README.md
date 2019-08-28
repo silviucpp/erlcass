@@ -69,15 +69,12 @@ used in tests. During test in case of unexpected results from driver will log er
 
 To run the benchmark yourself you should do:
 
-- in `rebar.config` remove comment for `cqerl` and `marina` deps
-- copy `benchmarks/benchmark.erl` and `load_test.erl` in `src`
-- recompile using `rebar3`
 - change the cluster ip in `benchmark.config` for all drivers
-- create the testing keyspace and tables using `load_test:prepare_load_test_table().`
+- run `make setup_benchmark` (this will compile the app using the bench profile and create the necessary schema)
 - use `make benchmark` as described above
 
 The following test was run on a MacBook Pro with Mac OS Sierra 10.12.6 and the cassandra cluster was running on other 3
-physical machines in the same LAN. The schema was created using `load_test:prepare_load_test_table` from `benchmarks/load_test.erl`.
+physical machines in the same LAN. The schema is created using `prepare_load_test_table` from `benchmarks/load_test.erl`.
 Basically the schema contains all possible data types and the query is based on a primary key (will return the same
 row all the time which is fine because we test the driver performances and not the server one)
 

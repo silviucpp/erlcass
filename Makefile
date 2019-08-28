@@ -7,6 +7,7 @@ REBAR=rebar3
 MODULE=erlcass
 PROCS=100
 REQ=100000
+BENCH_PROFILE_ARGS=-pa _build/bench/lib/erlcass/benchmarks -pa _build/bench/lib/*/ebin -noshell -config benchmarks/benchmark.config
 
 nif_compile:
 	@./build_deps.sh $(CPP_DRIVER_REV)
@@ -25,5 +26,9 @@ ct:
 	mkdir -p log
 	ct_run -suite integrity_test_SUITE -pa ebin -pa deps/*/ebin erl -pa _build/default/lib/*/ebin -include include -logdir log -erl_args -config benchmarks/benchmark.config
 
+setup_benchmark:
+	${REBAR} as bench compile
+	erl $(BENCH_PROFILE_ARGS) -eval "load_test:prepare_load_test_table()" -eval "init:stop()."
+
 benchmark:
-	erl -pa _build/default/lib/*/ebin -noshell -config benchmarks/benchmark.config -eval "benchmark:run($(MODULE), $(PROCS), $(REQ))" -eval "init:stop()."
+	erl $(BENCH_PROFILE_ARGS) -eval "benchmark:run($(MODULE), $(PROCS), $(REQ))" -eval "init:stop()."

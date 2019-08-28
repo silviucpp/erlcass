@@ -1,16 +1,8 @@
 IsRebar3 = erlang:function_exported(rebar3, main, 1),
 
-Rebar2Deps0 = [
+Rebar2Deps = [
     {lager, ".*", {git, "https://github.com/erlang-lager/lager.git", {tag, "3.6.9"}}}
 ],
-
-Rebar2Deps = case os:getenv("TEST") of
-    "1" -> [
-        {cqerl, ".*", {git, "https://github.com/matehat/cqerl.git", {tag, "v1.0.8"}}},
-        {marina, ".*", {git, "https://github.com/lpgauth/marina.git", {tag, "0.2.17"}}} | Rebar2Deps0];
-    false ->
-        Rebar2Deps0
-end,
 
 case IsRebar3 of
     true ->

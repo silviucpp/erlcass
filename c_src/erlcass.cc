@@ -91,17 +91,14 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingProtocolVersion = make_atom(env, erlcass::kAtomClusterSettingProtocolVersion);
     ATOMS.atomClusterSettingNumThreadsIo = make_atom(env, erlcass::kAtomClusterSettingNumThreadsIo);
     ATOMS.atomClusterSettingQueueSizeIo = make_atom(env, erlcass::kAtomClusterSettingQueueSizeIo);
+    ATOMS.atomClusterSettingQueueSizeEvent = make_atom(env, erlcass::kAtomClusterSettingQueueSizeEvent);
     ATOMS.atomClusterSettingCoreConnectionsPerHost = make_atom(env, erlcass::kAtomClusterSettingCoreConnectionsPerHost);
+    ATOMS.atomClusterSettingMaxConnectionsPerHost = make_atom(env, erlcass::kAtomClusterSettingMaxConnectionsPerHost);
+    ATOMS.atomClusterSettingReconnectWaitTime = make_atom(env, erlcass::kAtomClusterSettingReconnectWaitTime);
+    ATOMS.atomClusterSettingMaxConcurrentCreation = make_atom(env, erlcass::kAtomClusterSettingMaxConcurrentCreation);
+    ATOMS.atomClusterSettingMaxConcurrentRequestsThreshold = make_atom(env, erlcass::kAtomClusterSettingMaxConcurrentRequestsThreshold);
+    ATOMS.atomClusterSettingMaxRequestsPerFlush = make_atom(env, erlcass::kAtomClusterSettingMaxRequestsPerFlush);
     ATOMS.atomClusterSettingConnectTimeout = make_atom(env, erlcass::kAtomClusterSettingConnectTimeout);
-    ATOMS.atomClusterSettingConstantReconnect = make_atom(env, erlcass::kAtomClusterSettingConstantReconnect);
-    ATOMS.atomClusterSettingExponentialReconnect = make_atom(env, erlcass::kAtomClusterSettingExponentialReconnect);
-    ATOMS.atomClusterSettingCoalesceDelay = make_atom(env, erlcass::kAtomClusterSettingCoalesceDelay);
-    ATOMS.atomClusterSettingRequestRatio = make_atom(env, erlcass::kAtomClusterSettingRequestRatio);
-    ATOMS.atomClusterSettingMaxSchemaWaitTime = make_atom(env, erlcass::kAtomClusterSettingMaxSchemaWaitTime);
-    ATOMS.atomClusterSettingTokenAwareRoutingShuffleReplicas = make_atom(env, erlcass::kAtomClusterSettingTokenAwareRoutingShuffleReplicas);
-    ATOMS.atomClusterSettingUseHostnameResolution = make_atom(env, erlcass::kAtomClusterSettingUseHostnameResolution);
-    ATOMS.atomClusterSettingSpeculativeExecutionPolicy = make_atom(env, erlcass::kAtomClusterSettingSpeculativeExecutionPolicy);
-    ATOMS.atomClusterSettingMaxReusableWriteObjects = make_atom(env, erlcass::kAtomClusterSettingMaxReusableWriteObjects);
     ATOMS.atomClusterSettingRequestTimeout = make_atom(env, erlcass::kAtomClusterSettingRequestTimeout);
     ATOMS.atomClusterSettingCredentials = make_atom(env, erlcass::kAtomClusterSettingCredentials);
     ATOMS.atomClusterSettingLoadBalanceRoundRobin = make_atom(env, erlcass::kAtomClusterSettingLoadBalanceRoundRobin);
@@ -119,6 +116,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingSslPrivateKey = make_atom(env, erlcass::kAtomClusterSettingSslPrivateKey);
     ATOMS.atomClusterSettingRetryPolicy = make_atom(env, erlcass::kAtomClusterSettingRetryPolicy);
     ATOMS.atomClusterSettingRetryPolicyDefault = make_atom(env, erlcass::kAtomClusterSettingRetryPolicyDefault);
+    ATOMS.atomClusterSettingRetryPolicyDowngradingConsistency = make_atom(env, erlcass::kAtomClusterSettingRetryPolicyDowngradingConsistency);
     ATOMS.atomClusterSettingRetryPolicyFallthrough = make_atom(env, erlcass::kAtomClusterSettingRetryPolicyFallthrough);
 
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));

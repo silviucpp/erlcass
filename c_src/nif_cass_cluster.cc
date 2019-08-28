@@ -18,15 +18,6 @@
         return cass_error_to_nif_term(env, Func(data->cluster, BIN_TO_STR(value.data), value.size)); \
     }
 
-#define BOOL_SETTING(Key, Func) \
-    if(enif_is_identical(term_key, Key)) \
-    { \
-        cass_bool_t value; \
-        if(!get_boolean(term_value, &value)) \
-            return make_bad_options(env, term_option); \
-        return cass_error_to_nif_term(env, Func(data->cluster, value)); \
-    }
-
 #define INT_SETTING(Key, Func) \
     if(enif_is_identical(term_key, Key)) \
     { \
@@ -45,18 +36,16 @@
         return cass_error_to_nif_term(env, Func(data->cluster, value)); \
     }
 
-#define UINT64_SETTING(Key, Func) \
-    if(enif_is_identical(term_key, Key)) \
-    { \
-        unsigned long value; \
-        if(!enif_get_uint64(env, term_value, &value)) \
-            return make_bad_options(env, term_option); \
-        return cass_error_to_nif_term(env, Func(data->cluster, static_cast<cass_uint64_t>(value))); \
-    }
-
 #define CUSTOM_SETTING(Key, Func) \
     if(enif_is_identical(term_key, Key)) \
         return Func(env, term_option, term_value, data);
+
+
+CassError internal_cass_cluster_set_reconnect_wait_time(CassCluster* cluster, unsigned wait_time)
+{
+    cass_cluster_set_reconnect_wait_time(cluster, wait_time);
+    return CASS_OK;
+}
 
 CassError internal_cass_cluster_set_connect_timeout(CassCluster* cluster, unsigned timeout)
 {
@@ -80,74 +69,6 @@ CassError internal_cass_cluster_set_connection_idle_timeout(CassCluster* cluster
 {
     cass_cluster_set_connection_idle_timeout(cluster, timeout);
     return CASS_OK;
-}
-
-CassError internal_cass_cluster_set_constant_reconnect(CassCluster* cluster, cass_uint64_t delay_ms)
-{
-    cass_cluster_set_constant_reconnect(cluster, delay_ms);
-    return CASS_OK;
-}
-
-CassError internal_cass_cluster_set_max_schema_wait_time(CassCluster* cluster, unsigned wait_time_ms)
-{
-    cass_cluster_set_max_schema_wait_time(cluster, wait_time_ms);
-    return CASS_OK;
-}
-
-ERL_NIF_TERM internal_cass_cluster_set_exponential_reconnect(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
-{
-    const ERL_NIF_TERM *items;
-    int arity;
-
-    if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
-        return make_badarg(env);
-
-    unsigned long base_delay_ms;
-    unsigned long max_delay_ms;
-
-    if(!enif_get_uint64(env, items[0], &base_delay_ms) || !enif_get_uint64(env, items[1], &max_delay_ms))
-        return make_bad_options(env, term_option);
-
-    return cass_error_to_nif_term(env, cass_cluster_set_exponential_reconnect(data->cluster, base_delay_ms, max_delay_ms));
-}
-
-ERL_NIF_TERM internal_set_speculative_execution_policy(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
-{
-    CassError error = CASS_OK;
-
-    if(enif_is_identical(ATOMS.atomNull, term_value))
-    {
-        error = cass_cluster_set_no_speculative_execution_policy(data->cluster);
-    }
-    else
-    {
-        const ERL_NIF_TERM *items;
-        int arity;
-
-        if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
-            return make_badarg(env);
-
-        unsigned long constant_delay_ms;
-        int max_speculative_executions;
-
-        if(!enif_get_uint64(env, items[0], &constant_delay_ms) || !enif_get_int(env, items[1], &max_speculative_executions))
-            return make_bad_options(env, term_option);
-
-        error = cass_cluster_set_constant_speculative_execution_policy(data->cluster, constant_delay_ms, max_speculative_executions);
-    }
-
-    return cass_error_to_nif_term(env, error);
-}
-
-ERL_NIF_TERM internal_cass_cluster_set_token_aware_routing_shuffle_replicas(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
-{
-    cass_bool_t enabled;
-
-    if(!get_boolean(term_value, &enabled))
-        return make_bad_options(env, term_option);
-
-    cass_cluster_set_token_aware_routing_shuffle_replicas(data->cluster, enabled);
-    return ATOMS.atomOk;
 }
 
 ERL_NIF_TERM internal_cass_cluster_set_token_aware_routing(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
@@ -278,6 +199,8 @@ ERL_NIF_TERM internal_cluster_set_retry_policy(ErlNifEnv* env, ERL_NIF_TERM term
 
     if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyDefault))
         retry_policy.reset(cass_retry_policy_default_new());
+    else if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyDowngradingConsistency))
+        retry_policy.reset(cass_retry_policy_downgrading_consistency_new());
     else if(enif_is_identical(rp, ATOMS.atomClusterSettingRetryPolicyFallthrough))
         retry_policy.reset(cass_retry_policy_fallthrough_new());
     else
@@ -451,17 +374,15 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     INT_SETTING(ATOMS.atomClusterSettingProtocolVersion, cass_cluster_set_protocol_version);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingNumThreadsIo, cass_cluster_set_num_threads_io);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingQueueSizeIo, cass_cluster_set_queue_size_io);
+    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingQueueSizeEvent, cass_cluster_set_queue_size_event);
+    //@todo: implement cass_cluster_set_queue_size_log
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingCoreConnectionsPerHost, cass_cluster_set_core_connections_per_host);
+    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConnectionsPerHost, cass_cluster_set_max_connections_per_host);
+    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingReconnectWaitTime, internal_cass_cluster_set_reconnect_wait_time);
+    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConcurrentCreation, cass_cluster_set_max_concurrent_creation);
+    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConcurrentRequestsThreshold, cass_cluster_set_max_concurrent_requests_threshold);
+    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxRequestsPerFlush, cass_cluster_set_max_requests_per_flush);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingConnectTimeout, internal_cass_cluster_set_connect_timeout);
-    UINT64_SETTING(ATOMS.atomClusterSettingConstantReconnect, internal_cass_cluster_set_constant_reconnect);
-    CUSTOM_SETTING(ATOMS.atomClusterSettingExponentialReconnect, internal_cass_cluster_set_exponential_reconnect);
-    UINT64_SETTING(ATOMS.atomClusterSettingCoalesceDelay, cass_cluster_set_coalesce_delay);
-    INT_SETTING(ATOMS.atomClusterSettingRequestRatio, cass_cluster_set_new_request_ratio);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxSchemaWaitTime, internal_cass_cluster_set_max_schema_wait_time);
-    CUSTOM_SETTING(ATOMS.atomClusterSettingTokenAwareRoutingShuffleReplicas, internal_cass_cluster_set_token_aware_routing_shuffle_replicas);
-    BOOL_SETTING(ATOMS.atomClusterSettingUseHostnameResolution, cass_cluster_set_use_hostname_resolution);
-    CUSTOM_SETTING(ATOMS.atomClusterSettingSpeculativeExecutionPolicy, internal_set_speculative_execution_policy);
-    UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxReusableWriteObjects, cass_cluster_set_max_reusable_write_objects);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingRequestTimeout, internal_cass_cluster_set_request_timeout);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingHeartbeatInterval, internal_cass_cluster_set_connection_heartbeat_interval);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingIdleTimeout, internal_cass_cluster_set_connection_idle_timeout);

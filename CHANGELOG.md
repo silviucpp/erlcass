@@ -1,34 +1,5 @@
 ### Changelog:
 
-##### v3.2.5
-
-Note: This is a major update due to upgrade of the cpp-driver to a major version which use a different internal 
-architecture which provides a significant performance improvement. 
-
-- Update cpp-driver to 2.13.0
-- Use epoch day offset when returning date types
-- Fix gcc 8 build
-- Add support for speculative execution (see `speculative_execution_policy`)
-- Removed deprecated cluster configs: 
-    - `queue_size_event`
-    - `max_connections_host`
-    - `reconnect_wait_time`
-    - `max_concurrent_creation`
-    - `max_requests_threshold`
-    - `requests_per_flush`
-Add support for new cluster configs (for more details see wiki):
-    - `constant_reconnect`
-    - `exponential_reconnect`
-    - `coalesce_delay`
-    - `request_ratio`
-    - `max_schema_wait_time`
-    - `token_aware_routing_shuffle_replicas`
-    - `use_hostname_resolution`
-    - `speculative_execution_policy`
-    - `max_reusable_write_objects`
-    
-- Removed deprecated retry policy: `downgrading_consistency`
-
 ##### v3.2.4
 
 - Fix a critical memory issue discovered by running the VM in debug mode.

@@ -4,10 +4,10 @@
 #include "cassandra.h"
 #include "erl_nif.h"
 
-namespace datastax { namespace internal { namespace core {
+namespace cass {
     class DataType;
-}}}
+}
 
-ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value);
+ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const cass::DataType* data_type, ERL_NIF_TERM value);
 
 #endif

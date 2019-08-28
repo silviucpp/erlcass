@@ -49,7 +49,7 @@ void cass_uuid_string(CassUuid uuid, char* output)
 {
     size_t pos = 0;
     char encoded[16];
-    datastax::internal::encode_uuid(encoded, uuid);
+    cass::encode_uuid(encoded, uuid);
 
     for (size_t i = 0; i < 16; ++i)
     {
@@ -85,7 +85,7 @@ CassError cass_uuid_from_string_n(const char* str, size_t str_length, CassUuid* 
         pos += 2;
     }
 
-    datastax::internal::decode_uuid(buf, output);
+    cass::decode_uuid(buf, output);
 
     return CASS_OK;
 }

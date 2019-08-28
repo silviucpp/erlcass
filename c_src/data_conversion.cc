@@ -333,13 +333,13 @@ ERL_NIF_TERM small_int_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 
 ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 {
-    size_t itemsCount = cass_value_item_count(value);
+    size_t items_count = cass_value_item_count(value);
 
-    if(itemsCount == 0)
+    if(items_count == 0)
         return enif_make_list(env, 0);
 
-    ERL_NIF_TERM itemsList[itemsCount];
-    size_t rowIndex = 0;
+    std::vector<ERL_NIF_TERM> array;
+    array.reserve(items_count);
 
     if(cass_value_type(value) == CASS_VALUE_TYPE_MAP)
     {
@@ -349,7 +349,7 @@ ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value)
         {
             const CassValue* c_key = cass_iterator_get_map_key(iterator.get());
             const CassValue* c_value = cass_iterator_get_map_value(iterator.get());
-            itemsList[rowIndex++] = enif_make_tuple2(env, cass_value_to_nif_term(env, c_key), cass_value_to_nif_term(env, c_value));
+            array.push_back(enif_make_tuple2(env, cass_value_to_nif_term(env, c_key), cass_value_to_nif_term(env, c_value)));
         }
     }
     else
@@ -357,10 +357,10 @@ ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value)
         scoped_ptr(iterator, CassIterator, cass_iterator_from_collection(value), cass_iterator_free);
 
         while (cass_iterator_next(iterator.get()))
-            itemsList[rowIndex++] = cass_value_to_nif_term(env, cass_iterator_get_value(iterator.get()));
+            array.push_back(cass_value_to_nif_term(env, cass_iterator_get_value(iterator.get())));
     }
 
-    return enif_make_list_from_array(env, itemsList, static_cast<unsigned>(itemsCount));
+    return enif_make_list_from_array(env, array.data(), array.size());
 }
 
 ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value)
@@ -388,8 +388,8 @@ ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value)
     if(items_count == 0)
         return ATOMS.atomNull;
 
-    ERL_NIF_TERM items_list[items_count];
-    size_t rowIndex = 0;
+    std::vector<ERL_NIF_TERM> array;
+    array.reserve(items_count);
 
     scoped_ptr(iterator, CassIterator, cass_iterator_fields_from_user_type(value), cass_iterator_free);
 
@@ -402,21 +402,16 @@ ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value)
             return ATOMS.atomNull;
 
         ERL_NIF_TERM field_value = cass_value_to_nif_term(env, cass_iterator_get_user_type_field_value(iterator.get()));
-        items_list[rowIndex++] = enif_make_tuple2(env, make_binary(env, field_name_ptr, field_name_length), field_value);
+        array.push_back(enif_make_tuple2(env, make_binary(env, field_name_ptr, field_name_length), field_value));
     }
 
-    //as workaround for https://github.com/silviucpp/erlcass/issues/42 we are using as array length the rowIndex not
-    //items_count. seems for the old UDT type values inserted before alter cpp-driver cass_value_item_count returns the actual
-    //number of properties but the iterator will only walk through the existing one.
-    //for sure this is not the expected behaviour. Iterator should be able to walk through a number of elements equal with the value
-    //returned by cass_value_item_count.
-
-    return enif_make_list_from_array(env, items_list, rowIndex);
+    return enif_make_list_from_array(env, array.data(), array.size());
 }
 
 ERL_NIF_TERM column_data_to_erlang_term(ErlNifEnv* env, const CassResult* result, size_t columns_count)
 {
-    ERL_NIF_TERM column_names_array[columns_count];
+    std::vector<ERL_NIF_TERM> array;
+    array.reserve(columns_count);
 
     for(size_t index = 0; index < columns_count; index++)
     {
@@ -428,10 +423,10 @@ ERL_NIF_TERM column_data_to_erlang_term(ErlNifEnv* env, const CassResult* result
 
         const CassDataType *column_dt = cass_result_column_data_type (result, index);
         ERL_NIF_TERM dt_type_term = cass_data_type_to_nif_term(env, column_dt);
-        column_names_array[index] = enif_make_tuple2(env, make_binary(env, name, name_length), dt_type_term);
+        array.push_back(enif_make_tuple2(env, make_binary(env, name, name_length), dt_type_term));
     }
 
-    return enif_make_list_from_array(env, column_names_array, columns_count);
+    return enif_make_list_from_array(env, array.data(), array.size());
 }
 
 ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result)
@@ -447,24 +442,24 @@ ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result
     if(rows_count == 0)
         return enif_make_tuple3(env, ATOMS.atomOk, column_data, enif_make_list(env, 0));
 
-    ERL_NIF_TERM nif_array_columns[columns_count];
-    ERL_NIF_TERM nif_array_rows[rows_count];
+    std::vector<ERL_NIF_TERM> array_columns;
+    std::vector<ERL_NIF_TERM> array_rows;
+    array_columns.reserve(columns_count);
+    array_rows.reserve(rows_count);
 
     scoped_ptr(iterator, CassIterator, cass_iterator_from_result(result), cass_iterator_free);
-
-    size_t row_index = 0;
 
     while (cass_iterator_next(iterator.get()))
     {
         const CassRow* row = cass_iterator_get_row(iterator.get());
-        for(size_t i = 0; i < columns_count; i++)
-            nif_array_columns[i] = cass_value_to_nif_term(env, cass_row_get_column(row, i));
 
-        nif_array_rows[row_index++] = enif_make_list_from_array(env, nif_array_columns, columns_count);
+        for(size_t i = 0; i < columns_count; i++)
+            array_columns[i] = cass_value_to_nif_term(env, cass_row_get_column(row, i));
+
+        array_rows.push_back(enif_make_list_from_array(env, array_columns.data(), columns_count));
     }
 
-    ERL_NIF_TERM rows = enif_make_list_from_array(env, nif_array_rows, rows_count);
-    return enif_make_tuple3(env, ATOMS.atomOk, column_data, rows);
+    return enif_make_tuple3(env, ATOMS.atomOk, column_data, enif_make_list_from_array(env, array_rows.data(), array_rows.size()));
 }
 
 ERL_NIF_TERM get_column_meta(ErlNifEnv* env, const CassColumnMeta* meta)
@@ -528,12 +523,13 @@ ERL_NIF_TERM cass_table_meta_fields_to_erlang_term(ErlNifEnv* env, const CassTab
 {
     const char* name;
     size_t name_length;
-    std::vector<ERL_NIF_TERM> field_data;
 
     cass_table_meta_name(meta, &name, &name_length);
     ERL_NIF_TERM table_name = make_binary(env, name, name_length);
 
     scoped_ptr(field_it, CassIterator, cass_iterator_fields_from_table_meta(meta), cass_iterator_free);
+
+    std::vector<ERL_NIF_TERM> field_data;
 
     while (cass_iterator_next(field_it.get()))
         field_data.push_back(get_meta_field(env, field_it.get()));
@@ -541,6 +537,8 @@ ERL_NIF_TERM cass_table_meta_fields_to_erlang_term(ErlNifEnv* env, const CassTab
     ERL_NIF_TERM table_field_data = enif_make_list_from_array(env, field_data.data(), field_data.size());
 
     std::vector<ERL_NIF_TERM> column_data;
+    column_data.reserve(cass_table_meta_column_count(meta));
+
     scoped_ptr(iterator, CassIterator, cass_iterator_columns_from_table_meta(meta), cass_iterator_free);
 
     while (cass_iterator_next(iterator.get()))

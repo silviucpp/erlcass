@@ -1,5 +1,5 @@
-#ifndef ERLCASS_C_SRC_FUN_BINDINGS_H
-#define ERLCASS_C_SRC_FUN_BINDINGS_H
+#ifndef C_SRC_FUN_BINDINGS_H_
+#define C_SRC_FUN_BINDINGS_H_
 
 #include "cassandra.h"
 
@@ -20,4 +20,4 @@ CassError erlcass_cass_collection_append_collection(CassCollection* collection, 
 CassError erlcass_cass_collection_append_tuple(CassCollection* collection, size_t index, const CassTuple* value);
 CassError erlcass_cass_collection_append_user_type(CassCollection* collection, size_t index, const CassUserType* value);
 
-#endif
+#endif  // C_SRC_FUN_BINDINGS_H_

@@ -32,3 +32,9 @@ setup_benchmark:
 
 benchmark:
 	erl $(BENCH_PROFILE_ARGS) -eval "benchmark:run($(MODULE), $(PROCS), $(REQ))" -eval "init:stop()."
+
+cpplint:
+	cpplint --counting=detailed --filter=-legal/copyright,-build/include_subdir,-build/include_order,-whitespace/braces,-whitespace/parens,-whitespace/newline \
+			--linelength=300 \
+			--exclude=c_src/*.o --exclude=c_src/*.mk  \
+			c_src/*.*

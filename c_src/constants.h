@@ -1,9 +1,9 @@
-#ifndef ERLCASS_C_SRC_CONSTANTS_H
-#define ERLCASS_C_SRC_CONSTANTS_H
+#ifndef C_SRC_CONSTANTS_H_
+#define C_SRC_CONSTANTS_H_
 
 namespace erlcass {
 
-//message errors
+// message errors
 
 extern const char kInvalidUuidGeneratorMsg[];
 extern const char kClusterObjectFailedToCreateMsg[];
@@ -16,7 +16,7 @@ extern const char kFailedToSetUnknownType[];
 extern const char kUnknownKeyspace[];
 extern const char kUnknownTable[];
 
-//misc atoms
+// misc atoms
 
 extern const char kAtomOk[];
 extern const char kAtomError[];
@@ -29,7 +29,7 @@ extern const char kAtomConsistencyLevel[];
 extern const char kAtomSerialConsistencyLevel[];
 extern const char kAtomLogMsgRecord[];
 
-//events atoms
+// events atoms
 
 extern const char kAtomSessionConnected[];
 extern const char kAtomSessionClosed[];
@@ -37,7 +37,7 @@ extern const char kAtomPreparedStatementResult[];
 extern const char kAtomExecuteStatementResult[];
 extern const char kAtomLogMessageReceived[];
 
-//data types
+// data types
 
 extern const char kAtomAscii[];
 extern const char kAtomBigInt[];
@@ -66,7 +66,7 @@ extern const char kAtomUdt[];
 extern const char kAtomVarchar[];
 extern const char kAtomVarint[];
 
-//column types
+// column types
 
 extern const char kAtomColumnTypeRegular[];
 extern const char kAtomColumnTypePartitionKey[];
@@ -74,14 +74,14 @@ extern const char kAtomColumnTypeClusteringKey[];
 extern const char kAtomColumnTypeStatic[];
 extern const char kAtomColumnTypeCompactValue[];
 
-//metadata
+// metadata
 
 extern const char kAtomMetadataSchemaVersion[];
 extern const char kAtomColumnMetaColumnName[];
 extern const char kAtomColumnMetaDataType[];
 extern const char kAtomColumnMetaType[];
 
-//cluster settings atoms
+// cluster settings atoms
 
 extern const char kAtomClusterDefaultConsistencyLevel[];
 extern const char kAtomClusterSettingContactPoints[];
@@ -117,6 +117,6 @@ extern const char kAtomClusterSettingRetryPolicyDefault[];
 extern const char kAtomClusterSettingRetryPolicyDowngradingConsistency[];
 extern const char kAtomClusterSettingRetryPolicyFallthrough[];
 
-}
+}  // namespace erlcass
 
-#endif
+#endif  // C_SRC_CONSTANTS_H_

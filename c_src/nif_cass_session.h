@@ -1,5 +1,5 @@
-#ifndef ERLCASS_C_SRC_NIF_CASS_SESSION_H
-#define ERLCASS_C_SRC_NIF_CASS_SESSION_H
+#ifndef C_SRC_NIF_CASS_SESSION_H_
+#define C_SRC_NIF_CASS_SESSION_H_
 
 #include "erl_nif.h"
 
@@ -13,4 +13,4 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
 ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 ERL_NIF_TERM nif_cass_session_get_schema_metadata(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 
-#endif
+#endif  // C_SRC_NIF_CASS_SESSION_H_

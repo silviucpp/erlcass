@@ -31,7 +31,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomSerialConsistencyLevel = make_atom(env, erlcass::kAtomSerialConsistencyLevel);
     ATOMS.atomLogMsgRecord = make_atom(env, erlcass::kAtomLogMsgRecord);
 
-    //events atoms
+    // events atoms
 
     ATOMS.atomSessionConnected = make_atom(env, erlcass::kAtomSessionConnected);
     ATOMS.atomSessionClosed = make_atom(env, erlcass::kAtomSessionClosed);
@@ -39,7 +39,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomExecuteStatementResult = make_atom(env, erlcass::kAtomExecuteStatementResult);
     ATOMS.atomLogMessageReceived = make_atom(env, erlcass::kAtomLogMessageReceived);
 
-    //data types
+    // data types
 
     ATOMS.atomAscii = make_atom(env, erlcass::kAtomAscii);
     ATOMS.atomBigInt = make_atom(env, erlcass::kAtomBigInt);
@@ -68,7 +68,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomVarchar = make_atom(env, erlcass::kAtomVarchar);
     ATOMS.atomVarint = make_atom(env, erlcass::kAtomVarint);
 
-    //column types
+    // column types
 
     ATOMS.atomColumnTypeRegular = make_atom(env, erlcass::kAtomColumnTypeRegular);
     ATOMS.atomColumnTypePartitionKey = make_atom(env, erlcass::kAtomColumnTypePartitionKey);
@@ -76,14 +76,14 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomColumnTypeStatic = make_atom(env, erlcass::kAtomColumnTypeStatic);
     ATOMS.atomColumnTypeCompactValue = make_atom(env, erlcass::kAtomColumnTypeCompactValue);
 
-    //metadata
+    // metadata
 
     ATOMS.atomMetadataSchemaVersion = make_atom(env, erlcass::kAtomMetadataSchemaVersion);
     ATOMS.atomColumnMetaColumnName = make_atom(env, erlcass::kAtomColumnMetaColumnName);
     ATOMS.atomColumnMetaDataType = make_atom(env, erlcass::kAtomColumnMetaDataType);
     ATOMS.atomColumnMetaType = make_atom(env, erlcass::kAtomColumnMetaType);
 
-    //cluster settings atoms
+    // cluster settings atoms
 
     ATOMS.atomClusterDefaultConsistencyLevel = make_atom(env, erlcass::kAtomClusterDefaultConsistencyLevel);
     ATOMS.atomClusterSettingContactPoints = make_atom(env, erlcass::kAtomClusterSettingContactPoints);
@@ -162,7 +162,7 @@ int on_nif_upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM in
 
 static ErlNifFunc nif_funcs[] =
 {
-    //CassCluster
+    // CassCluster
 
     {"cass_cluster_create", 0, nif_cass_cluster_create},
     {"cass_cluster_release", 0, nif_cass_cluster_release},
@@ -170,7 +170,7 @@ static ErlNifFunc nif_funcs[] =
     {"cass_log_set_level", 1, nif_cass_log_set_level},
     {"cass_cluster_set_options", 1, nif_cass_cluster_set_options},
 
-    //CassSession
+    // CassSession
 
     {"cass_session_new", 0, nif_cass_session_new},
     {"cass_session_connect", 2, nif_cass_session_connect},
@@ -189,25 +189,24 @@ static ErlNifFunc nif_funcs[] =
     {"cass_session_get_schema_metadata", 2, nif_cass_session_get_schema_metadata},
     {"cass_session_get_schema_metadata", 3, nif_cass_session_get_schema_metadata},
 
-    //CassUuidGen
+    // CassUuidGen
 
     {"cass_uuid_gen_time", 0, nif_cass_uuid_gen_time},
     {"cass_uuid_gen_random", 0, nif_cass_uuid_gen_random},
     {"cass_uuid_gen_from_time", 1, nif_cass_uuid_gen_from_time},
 
-    //CassUuid
+    // CassUuid
 
     {"cass_uuid_min_from_time", 1, nif_cass_uuid_min_from_time},
     {"cass_uuid_max_from_time", 1, nif_cass_uuid_max_from_time},
     {"cass_uuid_timestamp", 1, nif_cass_uuid_timestamp},
     {"cass_uuid_version", 1, nif_cass_uuid_version},
 
-    //Date Time functions
+    // Date Time functions
 
     {"cass_date_from_epoch", 1, nif_cass_date_from_epoch},
     {"cass_time_from_epoch", 1, nif_cass_time_from_epoch},
     {"cass_date_time_to_epoch", 2, nif_cass_date_time_to_epoch}
-
 };
 
 ERL_NIF_INIT(erlcass_nif, nif_funcs, on_nif_load, NULL, on_nif_upgrade, on_nif_unload)

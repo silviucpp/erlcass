@@ -1,5 +1,5 @@
-#ifndef ERLCASS_C_SRC_NIF_CASS_STATEMENT_H
-#define ERLCASS_C_SRC_NIF_CASS_STATEMENT_H
+#ifndef C_SRC_NIF_CASS_STATEMENT_H_
+#define C_SRC_NIF_CASS_STATEMENT_H_
 
 #include "erlcass.h"
 #include "nif_utils.h"
@@ -10,4 +10,4 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource
 ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 void nif_cass_statement_free(ErlNifEnv* env, void* obj);
 
-#endif
+#endif  // C_SRC_NIF_CASS_STATEMENT_H_

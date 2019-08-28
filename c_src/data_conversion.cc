@@ -92,7 +92,7 @@ ERL_NIF_TERM cass_value_to_nif_term(ErlNifEnv* env, const CassValue* value)
             return udt_to_erlang_term(env, value);
 
         default:
-            //unsuported types and null values
+            // unsuported types and null values
             return ATOMS.atomNull;
     }
 }
@@ -365,20 +365,20 @@ ERL_NIF_TERM collection_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 
 ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 {
-    size_t itemsCount = cass_value_item_count(value);
+    size_t items_count = cass_value_item_count(value);
 
-    if(itemsCount == 0)
+    if(items_count == 0)
         return enif_make_tuple(env, 0);
 
-    ERL_NIF_TERM itemsList[itemsCount];
-    size_t rowIndex = 0;
+    std::vector<ERL_NIF_TERM> items;
+    items.resize(items_count);
 
     scoped_ptr(iterator, CassIterator, cass_iterator_from_tuple(value), cass_iterator_free);
 
     while (cass_iterator_next(iterator.get()))
-        itemsList[rowIndex++] = cass_value_to_nif_term(env, cass_iterator_get_value(iterator.get()));
+        items.push_back(cass_value_to_nif_term(env, cass_iterator_get_value(iterator.get())));
 
-    return enif_make_tuple_from_array(env, itemsList, static_cast<unsigned>(itemsCount));
+    return enif_make_tuple_from_array(env, items.data(), items.size());
 }
 
 ERL_NIF_TERM udt_to_erlang_term(ErlNifEnv* env, const CassValue* value)

@@ -21,7 +21,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
 
     if(type == BIND_BY_NAME)
     {
-        //bind by name -> {name, value}
+        // bind by name -> {name, value}
 
         cass::IndexVec indices;
         ErlNifBinary column_name;
@@ -50,7 +50,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
     }
     else
     {
-        //bind by index
+        // bind by index
 
         size_t index = 0;
 
@@ -82,7 +82,7 @@ CassStatement* get_statement(ErlNifEnv* env, ErlNifResourceType* resource_type, 
 {
     enif_cass_statement * enif_stm = NULL;
 
-    if(!enif_get_resource(env, arg, resource_type, (void**) &enif_stm))
+    if(!enif_get_resource(env, arg, resource_type, reinterpret_cast<void**>(&enif_stm)))
         return NULL;
 
     return enif_stm->statement;
@@ -169,7 +169,7 @@ ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const 
 
     enif_cass_statement * enif_stm = NULL;
 
-    if(!enif_get_resource(env, argv[0], data->resCassStatement, (void**) &enif_stm) || !enif_is_list(env, argv[2]))
+    if(!enif_get_resource(env, argv[0], data->resCassStatement, reinterpret_cast<void**>(&enif_stm)) || !enif_is_list(env, argv[2]))
         return make_badarg(env);
 
     int bind_type;

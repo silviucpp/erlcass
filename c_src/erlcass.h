@@ -1,5 +1,5 @@
-#ifndef ERLCASS_C_SRC_ERLCASS_H
-#define ERLCASS_C_SRC_ERLCASS_H
+#ifndef C_SRC_ERLCASS_H_
+#define C_SRC_ERLCASS_H_
 
 #include "erl_nif.h"
 #include "cassandra.h"
@@ -17,7 +17,7 @@ struct atoms
     ERL_NIF_TERM atomSerialConsistencyLevel;
     ERL_NIF_TERM atomLogMsgRecord;
 
-    //events atoms
+    // events atoms
 
     ERL_NIF_TERM atomSessionConnected;
     ERL_NIF_TERM atomSessionClosed;
@@ -25,7 +25,7 @@ struct atoms
     ERL_NIF_TERM atomExecuteStatementResult;
     ERL_NIF_TERM atomLogMessageReceived;
 
-    //data types
+    // data types
 
     ERL_NIF_TERM atomAscii;
     ERL_NIF_TERM atomBigInt;
@@ -54,7 +54,7 @@ struct atoms
     ERL_NIF_TERM atomVarchar;
     ERL_NIF_TERM atomVarint;
 
-    //column types
+    // column types
 
     ERL_NIF_TERM atomColumnTypeRegular;
     ERL_NIF_TERM atomColumnTypePartitionKey;
@@ -62,14 +62,14 @@ struct atoms
     ERL_NIF_TERM atomColumnTypeStatic;
     ERL_NIF_TERM atomColumnTypeCompactValue;
 
-    //metadata
+    // metadata
 
     ERL_NIF_TERM atomMetadataSchemaVersion;
     ERL_NIF_TERM atomColumnMetaColumnName;
     ERL_NIF_TERM atomColumnMetaDataType;
     ERL_NIF_TERM atomColumnMetaType;
 
-    //cluster setings atoms
+    // cluster setings atoms
 
     ERL_NIF_TERM atomClusterDefaultConsistencyLevel;
     ERL_NIF_TERM atomClusterSettingContactPoints;
@@ -120,4 +120,4 @@ struct cassandra_data
 
 extern atoms ATOMS;
 
-#endif
+#endif  // C_SRC_ERLCASS_H_

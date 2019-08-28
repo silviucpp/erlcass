@@ -7,11 +7,10 @@
 #include <string.h>
 #include <memory>
 
-//CassCluster
+// CassCluster
 
 #define STRING_SETTING(Key, Func) \
-    if(enif_is_identical(term_key, Key)) \
-    { \
+    if(enif_is_identical(term_key, Key)) { \
         ErlNifBinary value; \
         if(!get_bstring(env, term_value, &value)) \
             return make_bad_options(env, term_option); \
@@ -19,8 +18,7 @@
     }
 
 #define INT_SETTING(Key, Func) \
-    if(enif_is_identical(term_key, Key)) \
-    { \
+    if(enif_is_identical(term_key, Key)) { \
         int value; \
         if(!enif_get_int(env, term_value, &value)) \
             return make_bad_options(env, term_option); \
@@ -28,8 +26,7 @@
     }
 
 #define UNSIGNED_INT_SETTING(Key, Func) \
-    if(enif_is_identical(term_key, Key)) \
-    { \
+    if(enif_is_identical(term_key, Key)) { \
         unsigned int value; \
         if(!enif_get_uint(env, term_value, &value)) \
             return make_bad_options(env, term_option); \
@@ -311,7 +308,7 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
 {
     if(enif_is_atom(env, term_value))
     {
-        //only enable/disable
+        // only enable/disable
         cass_bool_t latency_aware_routing;
 
         if(!get_boolean(term_value, &latency_aware_routing))
@@ -334,7 +331,7 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
 
     cass_cluster_set_latency_aware_routing(data->cluster, latency_aware_routing);
 
-    //set also the settings
+    // set also the settings
 
     if(!enif_get_tuple(env, items[1], &arity, &items) || arity != 5)
         return make_bad_options(env, term_option);
@@ -375,7 +372,6 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingNumThreadsIo, cass_cluster_set_num_threads_io);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingQueueSizeIo, cass_cluster_set_queue_size_io);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingQueueSizeEvent, cass_cluster_set_queue_size_event);
-    //@todo: implement cass_cluster_set_queue_size_log
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingCoreConnectionsPerHost, cass_cluster_set_core_connections_per_host);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxConnectionsPerHost, cass_cluster_set_max_connections_per_host);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingReconnectWaitTime, internal_cass_cluster_set_reconnect_wait_time);
@@ -404,7 +400,7 @@ ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TER
 
     if(data->cluster)
     {
-        //this can happened in case the erlcass gen_server is crashes
+        // this can happened in case the erlcass gen_server is crashes
         cass_cluster_free(data->cluster);
         data->cluster = NULL;
     }

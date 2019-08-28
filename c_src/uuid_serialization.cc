@@ -43,7 +43,7 @@ const char kHexaToByteTable[256] =
     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
 };
 
-//more performant methods for converting CassUuid into string representation.
+// more performant methods for converting CassUuid into string representation.
 
 void cass_uuid_string(CassUuid uuid, char* output)
 {
@@ -90,4 +90,4 @@ CassError cass_uuid_from_string_n(const char* str, size_t str_length, CassUuid* 
     return CASS_OK;
 }
 
-}
+}  // namespace erlcass

@@ -137,7 +137,7 @@ void on_statement_executed(CassFuture* future, void* user_data)
 
     if(cb->fire_and_forget)
     {
-        //we only log the response in case it's an error
+        // we only log the response in case it's an error
 
         if (cass_future_error_code(future) != CASS_OK)
         {
@@ -173,7 +173,7 @@ void on_statement_executed(CassFuture* future, void* user_data)
     callback_info_free(cb);
 }
 
-//CassSession
+// CassSession
 
 ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
@@ -200,7 +200,7 @@ ERL_NIF_TERM nif_cass_session_connect(ErlNifEnv* env, int argc, const ERL_NIF_TE
     ErlNifBinary keyspace;
     ErlNifPid pid;
 
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+    if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return make_badarg(env);
 
     if(!enif_get_local_pid(env, argv[1], &pid))
@@ -234,7 +234,7 @@ ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     enif_cass_session * enif_session = NULL;
     ErlNifPid pid;
 
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+    if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return make_badarg(env);
 
     if(enif_get_local_pid(env, argv[1], &pid) == 0)
@@ -262,7 +262,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     enif_cass_session * enif_session = NULL;
     ErlNifPid pid;
 
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+    if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return make_badarg(env);
 
     if(!enif_get_local_pid(env, argv[1], &pid))
@@ -296,7 +296,7 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
 
     enif_cass_session * enif_session = NULL;
 
-    if(!enif_get_resource(env, argv[1], data->resCassSession, (void**) &enif_session))
+    if(!enif_get_resource(env, argv[1], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return make_badarg(env);
 
     CassStatement* stm = get_statement(env, data->resCassStatement, argv[2]);
@@ -340,7 +340,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     int batch_type;
     ErlNifPid pid;
 
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+    if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return make_badarg(env);
 
     if(!enif_get_int(env, argv[1], &batch_type))
@@ -426,7 +426,7 @@ ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NI
 
     enif_cass_session * enif_session = NULL;
 
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+    if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return make_badarg(env);
 
     CassMetrics metrics;
@@ -469,7 +469,7 @@ ERL_NIF_TERM nif_cass_session_get_schema_metadata(ErlNifEnv* env, int argc, cons
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
     enif_cass_session* enif_session = NULL;
 
-    if(!enif_get_resource(env, argv[0], data->resCassSession, (void**) &enif_session))
+    if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return enif_make_badarg(env);
 
     scoped_ptr(schema_meta, const CassSchemaMeta, cass_session_get_schema_meta(enif_session->session), cass_schema_meta_free);

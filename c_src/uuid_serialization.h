@@ -1,5 +1,5 @@
-#ifndef ERLCASS_C_SRC_UUID_SERIALIZATION_H
-#define ERLCASS_C_SRC_UUID_SERIALIZATION_H
+#ifndef C_SRC_UUID_SERIALIZATION_H_
+#define C_SRC_UUID_SERIALIZATION_H_
 
 #include "cassandra.h"
 
@@ -10,4 +10,4 @@ CassError cass_uuid_from_string_n(const char* str, size_t str_length, CassUuid* 
 
 }
 
-#endif
+#endif  // C_SRC_UUID_SERIALIZATION_H_

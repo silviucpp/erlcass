@@ -1,5 +1,5 @@
-#ifndef ERLCASS_C_SRC_DATA_CONVERSION_H
-#define ERLCASS_C_SRC_DATA_CONVERSION_H
+#ifndef C_SRC_DATA_CONVERSION_H_
+#define C_SRC_DATA_CONVERSION_H_
 
 #include "erl_nif.h"
 
@@ -14,4 +14,4 @@ ERL_NIF_TERM cass_schema_meta_fields_to_erlang_term(ErlNifEnv* env, const CassSc
 
 ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result);
 
-#endif
+#endif  // C_SRC_DATA_CONVERSION_H_

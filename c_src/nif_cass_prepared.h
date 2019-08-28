@@ -1,5 +1,5 @@
-#ifndef ERLCASS_C_SRC_NIF_CASS_PREPARED_H
-#define ERLCASS_C_SRC_NIF_CASS_PREPARED_H
+#ifndef C_SRC_NIF_CASS_PREPARED_H_
+#define C_SRC_NIF_CASS_PREPARED_H_
 
 #include "erl_nif.h"
 #include "cassandra.h"
@@ -9,4 +9,4 @@ ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* rs, const
 ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
 void nif_cass_prepared_free(ErlNifEnv* env, void* obj);
 
-#endif
+#endif  // C_SRC_NIF_CASS_PREPARED_H_

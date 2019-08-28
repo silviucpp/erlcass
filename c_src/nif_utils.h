@@ -1,5 +1,5 @@
-#ifndef ERLCASS_C_SRC_NIF_UTILS_H
-#define ERLCASS_C_SRC_NIF_UTILS_H
+#ifndef C_SRC_NIF_UTILS_H_
+#define C_SRC_NIF_UTILS_H_
 
 #include "erl_nif.h"
 #include "cassandra.h"
@@ -15,7 +15,7 @@ struct ConsistencyLevelOptions
 
 struct QueryTerm
 {
-    QueryTerm(const ConsistencyLevelOptions& opt) : consistency(opt) {}
+    explicit QueryTerm(const ConsistencyLevelOptions& opt) : consistency(opt) {}
 
     ErlNifBinary query;
     ConsistencyLevelOptions consistency;
@@ -36,4 +36,4 @@ ERL_NIF_TERM parse_query_term(ErlNifEnv* env, ERL_NIF_TERM qterm, QueryTerm* q);
 bool get_bstring(ErlNifEnv* env, ERL_NIF_TERM term, ErlNifBinary* bin);
 bool get_boolean(ERL_NIF_TERM term, cass_bool_t* val);
 
-#endif
+#endif  // C_SRC_NIF_UTILS_H_

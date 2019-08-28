@@ -103,5 +103,5 @@ ERL_NIF_TERM nif_cass_uuid_version(ErlNifEnv* env, int argc, const ERL_NIF_TERM 
     if(erlcass::cass_uuid_from_string_n(BIN_TO_STR(bin.data), bin.size, &uuid) != CASS_OK)
         return make_badarg(env);
 
-    return enif_make_tuple2(env, ATOMS.atomOk, enif_make_int(env,cass_uuid_version(uuid)));
+    return enif_make_tuple2(env, ATOMS.atomOk, enif_make_int(env, cass_uuid_version(uuid)));
 }

@@ -2,7 +2,7 @@
 
 namespace erlcass {
 
-//message errors
+// message errors
 
 const char kInvalidUuidGeneratorMsg[] = "invalid uuid generator";
 const char kClusterObjectFailedToCreateMsg[] = "failed to create the cluster object";
@@ -15,7 +15,7 @@ const char kFailedToSetUnknownType[] = "failed to set unknown type";
 const char kUnknownKeyspace[] = "keyspace doesn't exist";
 const char kUnknownTable[] = "table doesn't exist";
 
-//misc atoms
+// misc atoms
 
 const char kAtomOk[] = "ok";
 const char kAtomError[] = "error";
@@ -28,7 +28,7 @@ const char kAtomConsistencyLevel[] = "consistency_level";
 const char kAtomSerialConsistencyLevel[] = "serial_consistency_level";
 const char kAtomLogMsgRecord[] = "log_msg";
 
-//events atoms
+// events atoms
 
 const char kAtomSessionConnected[] = "session_connected";
 const char kAtomSessionClosed[] = "session_closed";
@@ -36,7 +36,7 @@ const char kAtomPreparedStatementResult[] = "prepared_statement_result";
 const char kAtomExecuteStatementResult[] = "execute_statement_result";
 const char kAtomLogMessageReceived[] = "log_message_recv";
 
-//data types
+// data types
 
 const char kAtomAscii[] = "ascii";
 const char kAtomBigInt[] = "bigint";
@@ -65,7 +65,7 @@ const char kAtomUdt[] = "udt";
 const char kAtomVarchar[] = "varchar";
 const char kAtomVarint[] = "varint";
 
-//column types
+// column types
 
 const char kAtomColumnTypeRegular[] = "regular";
 const char kAtomColumnTypePartitionKey[] = "partition_key";
@@ -73,14 +73,14 @@ const char kAtomColumnTypeClusteringKey[] = "clustering_key";
 const char kAtomColumnTypeStatic[] = "static";
 const char kAtomColumnTypeCompactValue[] = "compact_value";
 
-//metadata
+// metadata
 
 const char kAtomMetadataSchemaVersion[] = "version";
 const char kAtomColumnMetaColumnName[] = "column_name";
 const char kAtomColumnMetaDataType[] = "data_type";
 const char kAtomColumnMetaType[] = "type";
 
-//cluster settings atoms
+// cluster settings atoms
 
 const char kAtomClusterDefaultConsistencyLevel[] = "default_consistency_level";
 const char kAtomClusterSettingContactPoints[] = "contact_points";
@@ -116,4 +116,4 @@ const char kAtomClusterSettingRetryPolicyDefault[] = "default";
 const char kAtomClusterSettingRetryPolicyDowngradingConsistency[] = "downgrading_consistency";
 const char kAtomClusterSettingRetryPolicyFallthrough[] = "fallthrough";
 
-}
+}  // namespace erlcass

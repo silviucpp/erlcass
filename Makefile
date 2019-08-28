@@ -9,7 +9,8 @@ PROCS=100
 REQ=100000
 BENCH_PROFILE_ARGS=-pa _build/bench/lib/erlcass/benchmarks -pa _build/bench/lib/*/ebin -noshell -config benchmarks/benchmark.config
 
-C_SRC_ENV ?= c_src/env.mk
+C_SRC_DIR = $(shell pwd)/c_src
+C_SRC_ENV ?= $(C_SRC_DIR)/env.mk
 
 #regenerate all the time the env.mk
 ifneq ($(wildcard $(C_SRC_DIR)),)

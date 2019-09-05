@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v3.2.6
+
+- Fix hex.pm package
+- Cleaned the code using cppcheck and cpplint
+
 ##### v3.2.5
 
 - Use epoch day offset when returning date types

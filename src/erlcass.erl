@@ -219,10 +219,10 @@ async_execute(Identifier, BindType, Params, Tag) ->
 
 async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
     case bind_prepared_statement(Identifier) of
-        {ok, Stm} ->
-            case erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, BindType, Params) of
+        {ok, #erlcass_stm{stm = Statement, session = Session}} ->
+            case erlcass_nif:cass_statement_bind_parameters(Statement, BindType, Params) of
                 ok ->
-                    erlcass_nif:cass_session_execute(get_identifier(ReceiverPid, Identifier), Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag);
+                    erlcass_nif:cass_session_execute(get_identifier(ReceiverPid, Identifier), Session, Statement, ReceiverPid, Tag);
                 Error ->
                     Error
             end;
@@ -474,7 +474,7 @@ get_identifier(_, _Identifier) ->
     Id :: atom() | binary() | {atom() | binary(), term()},
     Bin :: binary().
 id2bin(Id) when is_atom(Id) ->
-    atom_to_binary(Id, utf8);
+    atom_to_binary(Id, latin1);
 id2bin(Id) when is_binary(Id) ->
     Id;
 id2bin({Id, _Opts}) ->

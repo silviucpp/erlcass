@@ -1,6 +1,6 @@
 ### Changelog:
 
-##### v4.0.0 (not released)
+##### v4.0.0
 
 Note: This is a major update due to upgrade of the cpp-driver to a major version which use a different internal 
 architecture. 

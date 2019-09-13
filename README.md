@@ -1,9 +1,9 @@
 # ErlCass
 
 [![Build Status](https://travis-ci.org/silviucpp/erlcass.svg?branch=master)](https://travis-ci.org/silviucpp/erlcass)
-![GitHub](https://img.shields.io/github/license/silviucpp/erlcass)
-![Hex.pm](https://img.shields.io/hexpm/v/erlcass)
-![Maintenance](https://img.shields.io/maintenance/yes/2019)
+[![GitHub](https://img.shields.io/github/license/silviucpp/erlcass)](https://github.com/silviucpp/erlcass/blob/master/LICENSE)
+[![Hex.pm](https://img.shields.io/hexpm/v/erlcass)](https://hex.pm/packages/erlcass)
+[![Maintenance](https://img.shields.io/maintenance/yes/2019)]()
 
 *An Erlang Cassandra driver, based on [DataStax cpp driver][1] focused on performance.*
 

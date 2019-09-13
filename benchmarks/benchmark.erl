@@ -153,7 +153,8 @@ run(Module, NrProcesses, NrReq) ->
 
     List = lists:seq(1, NrProcesses),
     {Time, _} = timer:tc(fun()-> bench(Fun, List) end),
-    io:format("Time to complete: ~p ms ~n", [Time/1000]).
+    TimeMs = Time/1000,
+    io:format("Time to complete: ~p ms req/sec: ~p ~n", [TimeMs, round(NrReq/(TimeMs/1000))]).
 
 bench(Fun, ProcsList) ->
     Pids = [spawn_link(Fun) || _ <- ProcsList],

@@ -50,6 +50,7 @@ setup_benchmark:
 	erl $(BENCH_PROFILE_ARGS) -eval "load_test:prepare_load_test_table()" -eval "init:stop()."
 
 benchmark:
+	${REBAR} as bench compile
 	erl $(BENCH_PROFILE_ARGS) -eval "benchmark:run($(MODULE), $(PROCS), $(REQ))" -eval "init:stop()."
 
 cpplint:

@@ -6,6 +6,17 @@
 
 *An Erlang Cassandra driver, based on [DataStax cpp driver][1] focused on performance.*
 
+### Note for v4.0.0
+
+- Starting with `erlcass` version v4.x the native driver is based on Datastax cpp-driver > 2.10.0 which is a massive 
+release that includes many new features as well as architectural and performance improvements. 
+
+- Some cluster configs were removed and some other were added. For more info please see the [Changelog][5].
+- This new version adds support for speculative execution: For certain applications it is of the utmost importance to 
+minimize latency. Speculative execution is a way to minimize latency by preemptively executing several instances of 
+the same query against different nodes. The fastest response is then returned to the client application and the other 
+requests are cancelled. Speculative execution is disabled by default. (see `speculative_execution_policy`)
+
 ### Update from 2.x to 3.0
 
 This update breaks the compatibility with the other versions. All query results will return in case of success:
@@ -23,6 +34,34 @@ Because the DataStax cpp driver is async, `ErlCass` won't block the scheduler th
 functions will return immediately. The DataStax driver use it's own thread pool for managing the requests.
 Also the responses are received on this threads and sent back to Erlang calling processes using `enif_send` in
 an async manner.
+
+#### Features
+
+List of supported features:
+
+- Asynchronous API
+- Synchronous API
+- Simple, Prepared, and Batch statements
+- Asynchronous I/O, parallel execution, and request pipelining
+- Connection pooling
+- Automatic node discovery
+- Automatic reconnection
+- Configurable load balancing
+- Works with any cluster size
+- Authentication
+- SSL
+- Latency-aware routing
+- Performance metrics
+- Tuples and UDTs
+- Nested collections
+- Retry policies
+- Support for materialized view and secondary index metadata
+- Support for clustering key order, `frozen<>` and Cassandra version metadata
+- Reverse DNS with SSL peer identity verification support
+- Randomized contact points
+- Speculative execution
+
+Missing features from Datastax driver can be found into the [Todo List][9].
 
 #### Benchmark comparing with other drivers
 
@@ -125,7 +164,6 @@ The cluster options can be set inside your `app.config` file under the `cluster_
         {token_aware_routing, true},
         {number_threads_io, 4},
         {queue_size_io, 128000},
-        {max_connections_host, 5},
         {tcp_nodelay, true},
         {tcp_keepalive, {true, 1800}},
         {default_consistency_level, 6}
@@ -370,3 +408,4 @@ For mode details about bind by index and name please see: 'Run a prepared statem
 [6]:https://github.com/matehat/cqerl
 [7]:https://github.com/lpgauth/marina
 [8]:https://github.com/silviucpp/erlcass
+[9]:https://github.com/silviucpp/erlcass/wiki/Todo-list

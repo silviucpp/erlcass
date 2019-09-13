@@ -147,9 +147,9 @@ void on_statement_executed(CassFuture* future, void* user_data)
             cass_future_error_message(future, &message, &message_length);
 
             if(get_bstring(cb->env, cb->arguments, &query_id))
-                cass::Logger::log(CASS_LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, "'%.*s' -> %.*s", static_cast<int>(query_id.size), BIN_TO_STR(query_id.data), static_cast<int>(message_length), message);
+                datastax::internal::Logger::log(CASS_LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, "'%.*s' -> %.*s", static_cast<int>(query_id.size), BIN_TO_STR(query_id.data), static_cast<int>(message_length), message);
             else
-                cass::Logger::log(CASS_LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, "'unknown identifier' -> %.*s", static_cast<int>(message_length), message);
+                datastax::internal::Logger::log(CASS_LOG_ERROR, __FILE__, __LINE__, __FUNCTION__, "'unknown identifier' -> %.*s", static_cast<int>(message_length), message);
         }
     }
     else

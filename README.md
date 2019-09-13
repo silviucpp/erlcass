@@ -75,10 +75,18 @@ To run the benchmark yourself you should do:
 - run `make setup_benchmark` (this will compile the app using the bench profile and create the necessary schema)
 - use `make benchmark` as described above
 
-The following test was run on a MacBook Pro with Mac OS Sierra 10.12.6 and the cassandra cluster was running on other 3
+The following test was run on a Ubuntu 16.04 LTS (Intel(R) Core(TM) i5-2500 CPU @ 3.30GHz 4 cores) and the cassandra cluster was running on other 3
 physical machines in the same LAN. The schema is created using `prepare_load_test_table` from `benchmarks/load_test.erl`.
 Basically the schema contains all possible data types and the query is based on a primary key (will return the same
 row all the time which is fine because we test the driver performances and not the server one)
+
+To create schema:
+
+```erlang
+make setup_benchmark
+```
+
+To run the benchmark:
 
 ```erlang
 make benchmark MODULE=erlcass PROCS=100 REQ=100000
@@ -86,24 +94,17 @@ make benchmark MODULE=erlcass PROCS=100 REQ=100000
 
 Where:
 
-- `MODULE`: the driver used to benchmark. Can be one of : `erlcass`, `cqerl` or `marina`
+- `MODULE`: the driver used to benchmark. Can be one of : `erlcass` or `marina`
 - `PROCS`: the number or erlang processes used to send the requests (concurrency level). Default 100.
 - `REQ`: the number of requests to be sent. Default 100000.
 
-The results for 100 concurrent processes that sends 100k queries. Measured the average time for 3 runs:
+The results for 100 concurrent processes that sends 100k queries. Picked the average time from 3 runs:
 
 | cassandra driver     | Time (ms) | Req/sec  |
 |:--------------------:| ---------:|---------:|
-| [erlcass][8] v3.0    | 1466      | 68212    |
-| [cqerl][6] v1.0.8    | 11016     | 9077     |
-| [marina][7] 0.2.17   | 1779      | 56221    |
+| [erlcass][8] v4.0.0    | 947     | 105544   |
+| [marina][7] 0.3.5    | 2360      | 42369    |
 
-Notes:
-
-- `marina` performs very nice unfortunately you need to tune properly the `backlog_size` and `pool_size` based on the
-concurrency level you are using. From my test performance degrades a lot if pool size is increased (for example for 100 connections time to complete was 3044 ms instead 1779 ms for 30 connections)
-Also in case te pool is too small you start getting all kind of errors (like no socket available) or in case the backlog is not big enough you get errors as well.
-- `erlcass` seems to have the smallest variation between tests. Results are always in the same range +/- 100 ms. On the other drivers might happened time to time to have bigger variations.
 
 #### Changelog
 

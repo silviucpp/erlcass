@@ -1,4 +1,5 @@
 # ErlCass
+
 [![Build Status](https://travis-ci.org/silviucpp/erlcass.svg?branch=master)](https://travis-ci.org/silviucpp/erlcass)
 ![GitHub](https://img.shields.io/github/license/silviucpp/erlcass)
 ![Hex.pm](https://img.shields.io/hexpm/v/erlcass)
@@ -158,25 +159,30 @@ The cluster options can be set inside your `app.config` file under the `cluster_
     {log_level, 3},
     {keyspace, <<"keyspace">>},
     {cluster_options,[
-        {contact_points, <<"172.17.3.129,172.17.3.130,172.17.3.131">>},
-        {port, 9042},
-        {load_balance_dc_aware, {<<"dc-name">>, 0, false}},
+        {contact_points, <<"172.17.3.129,172.17.3.130,172.17.3.131">>},       
         {latency_aware_routing, true},
         {token_aware_routing, true},
         {number_threads_io, 4},
         {queue_size_io, 128000},
+        {core_connections_host, 1},
         {tcp_nodelay, true},
-        {tcp_keepalive, {true, 1800}},
+        {tcp_keepalive, {true, 60}},
+        {connect_timeout, 5000},
+        {request_timeout, 5000},
+        {retry_policy, {default, true}},
         {default_consistency_level, 6}
     ]}
 ]},
 ```
 
-*Tips for production environment:*
+### Tips for production environment:
 
 - Use `token_aware_routing` and `latency_aware_routing`
 - Don't use `number_threads_io` bigger than the number of your cores.
 - Use `tcp_nodelay` and also enable `tcp_keepalive`
+- Don't use large values for `core_connections_host`. The driver is system call bound and performs better with less I/O threads 
+and connections because it can batch a larger number of writes into a single system call (the driver will naturally attempt to coallesce these operations). 
+You may want to reduce the number of I/O threads to 2 or 3 and reduce the core connections to 1 (default).
 
 All available options are described in the following [wiki section][4].
 

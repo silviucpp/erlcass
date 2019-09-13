@@ -72,9 +72,9 @@ execute_async(_Module, _Client) ->
 
 receive_response(?DRIVER_ERLCASS) ->
     receive
-        {execute_statement_result, _Tag, Rs} ->
+        {execute_statement_result, _, Rs} ->
             case Rs of
-                {ok, _Cols, _Rows} ->
+                {ok, _, _} ->
                     ok;
                 UnexpectedResult ->
                     UnexpectedResult

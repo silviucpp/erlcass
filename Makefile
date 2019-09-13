@@ -2,12 +2,23 @@
 
 REBAR=rebar3
 
+NCPUS:=1
+OS:=$(shell uname -s)
+
+ifeq ($(OS),Linux)
+	NCPUS:=$(shell grep -c ^processor /proc/cpuinfo)
+endif
+ifeq ($(OS),Darwin) # Assume Mac OS X
+	NCPUS:=$(shell system_profiler | awk '/Number Of CPUs/{print $4}{next;}')
+endif
+
 # for benchmark
 
 MODULE=erlcass
 PROCS=100
 REQ=100000
-BENCH_PROFILE_ARGS=-pa _build/bench/lib/erlcass/benchmarks -pa _build/bench/lib/*/ebin -noshell -config benchmarks/benchmark.config
+VM_ARGS=-env ERL_FULLSWEEP_AFTER 10 -mode interactive -noinput -noshell +K true +A 10 -IOt $(NCPUS) -IOp $(NCPUS)
+BENCH_PROFILE_ARGS=-pa _build/bench/lib/erlcass/benchmarks -pa _build/bench/lib/*/ebin -config benchmarks/benchmark.config $(VM_ARGS)
 
 C_SRC_DIR = $(shell pwd)/c_src
 C_SRC_ENV ?= $(C_SRC_DIR)/env.mk
@@ -30,7 +41,7 @@ include $(C_SRC_ENV)
 
 nif_compile:
 	@./build_deps.sh $(CPP_DRIVER_REV)
-	@make V=0 -C c_src -j 8
+	@make V=0 -C c_src -j $(NCPUS)
 
 nif_clean:
 	@make -C c_src clean
@@ -60,7 +71,7 @@ cpplint:
 			c_src/*.*
 
 cppcheck:
-	cppcheck -j 8 --enable=all \
+	cppcheck -j $(NCPUS) --enable=all \
 	 		 -I /usr/local/opt/openssl/include \
 	 		 -I /usr/local/include \
 	 		 -I _build/deps/cpp-driver/include \

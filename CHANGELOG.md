@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.0.1
+
+- Fix building on OTP 23 or newer.
+
 ##### v4.0.0
 
 Note: This is a major update due to upgrade of the cpp-driver to a major version which use a different internal 

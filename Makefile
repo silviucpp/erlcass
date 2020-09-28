@@ -9,7 +9,7 @@ ifeq ($(OS),Linux)
 	NCPUS:=$(shell grep -c ^processor /proc/cpuinfo)
 endif
 ifeq ($(OS),Darwin) # Assume Mac OS X
-	NCPUS:=$(shell system_profiler | awk '/Number Of CPUs/{print $4}{next;}')
+	NCPUS:=$(shell sysctl -n hw.ncpu)
 endif
 
 # for benchmark

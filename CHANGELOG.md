@@ -1,12 +1,9 @@
 ### Changelog:
 
-##### v4.0.2
-
-- Fix build on OSX Catalina
-
 ##### v4.0.1
 
 - Fix building on OTP 23 or newer.
+- Fix build on OSX Catalina
 
 ##### v4.0.0
 

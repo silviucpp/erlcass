@@ -2,7 +2,7 @@
     {description, "ErlCass - Erlang Cassandra Driver"},
     {licenses, ["MIT"]},
     {links,[{"Github","https://github.com/silviucpp/erlcass"}]},
-    {vsn, "4.0.2"},
+    {vsn, "4.0.1"},
     {registered, []},
     {applications, [kernel, stdlib, lager]},
     {mod, {erlcass_app, []}},

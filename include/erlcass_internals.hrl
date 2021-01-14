@@ -8,19 +8,19 @@
     io:format(Format, Args)).
 
 -define(DEBUG_MSG(Format, Args),
-    lager:debug(Format, Args)).
+    logger:debug(Format, Args)).
 
 -define(INFO_MSG(Format, Args),
-    lager:info(Format, Args)).
+    logger:info(Format, Args)).
 
 -define(WARNING_MSG(Format, Args),
-    lager:warning(Format, Args)).
+    logger:warning(Format, Args)).
 
 -define(ERROR_MSG(Format, Args),
-    lager:error(Format, Args)).
+    logger:error(Format, Args)).
 
 -define(CRITICAL_MSG(Format, Args),
-    lager:critical(Format, Args)).
+    logger:critical(Format, Args)).
 
 % timeouts
 

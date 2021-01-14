@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.0.1-1
+
+- Remove lager and its heavyweight dependencies
+
 ##### v4.0.1
 
 - Fix building on OTP 23 or newer.

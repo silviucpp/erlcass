@@ -129,9 +129,8 @@ application:start(erlcass).
 
 ### Setting the log level
 
-`Erlcass` is using `lager` for logging the errors. Beside the fact that you can set in lager the desired log level,
-for better performances it's better to set also in `erlcass` the desired level otherwise there will be a lot of
-resources consumed by lager to format the messages and then drop them. Also the native driver performances can be
+For better performances it's better to set also in `erlcass` the desired level otherwise there will be a lot of
+resources consumed to format the messages and then drop them. Also the native driver performances can be
 affected because of the time spent in generating the logs and sending them from C++ into Erlang.  
 
 Available Log levels are:

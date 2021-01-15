@@ -8,7 +8,14 @@ if [ -d "$DEPS_LOCATION" ]; then
 fi
 
 OS=$(uname -s)
-KERNEL=$(echo $(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | head -n1 | awk '{print $1;}') | awk '{print $1;}')
+if [ -x "$(command -v lsb_release)" ]; then
+    KERNEL=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
+elif [ -f /etc/os-release ]; then
+    . /etc/os-release
+    KERNEL=$(echo $ID)
+else
+    KERNEL=unknown
+fi
 
 ##echo $OS
 ##echo $KERNEL
@@ -19,7 +26,7 @@ CPP_DRIVER_REV=$1
 case $OS in
     Linux)
         case $KERNEL in
-            CentOS)
+            centos)
 
                 echo "Linux, CentOS"
                 sudo yum -y install automake cmake gcc-c++ git libtool openssl-devel wget
@@ -43,7 +50,7 @@ case $OS in
                 fi
             ;;
 
-            Ubuntu)
+            ubuntu)
 
                 echo "Linux, Ubuntu"
                 # check ubuntu version

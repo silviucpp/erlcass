@@ -157,6 +157,7 @@ The cluster options can be set inside your `app.config` file under the `cluster_
 {erlcass, [
     {log_level, 3},
     {keyspace, <<"keyspace">>},
+    {keyspace_cql, <<"your CQL query to create keyspace if missing">>},
     {cluster_options,[
         {contact_points, <<"172.17.3.129,172.17.3.130,172.17.3.131">>},       
         {latency_aware_routing, true},

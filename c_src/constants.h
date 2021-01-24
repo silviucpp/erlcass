@@ -35,6 +35,8 @@ extern const char kAtomSessionConnected[];
 extern const char kAtomSessionClosed[];
 extern const char kAtomPreparedStatementResult[];
 extern const char kAtomExecuteStatementResult[];
+extern const char kAtomPagedExecuteStatementResult[];
+extern const char kAtomPagedExecuteStatementResultHasMore[];
 extern const char kAtomLogMessageReceived[];
 
 // data types

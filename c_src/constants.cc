@@ -34,6 +34,8 @@ const char kAtomSessionConnected[] = "session_connected";
 const char kAtomSessionClosed[] = "session_closed";
 const char kAtomPreparedStatementResult[] = "prepared_statement_result";
 const char kAtomExecuteStatementResult[] = "execute_statement_result";
+const char kAtomPagedExecuteStatementResult[] = "paged_execute_statement_result";
+const char kAtomPagedExecuteStatementResultHasMore[] = "paged_execute_statement_result_has_more";
 const char kAtomLogMessageReceived[] = "log_message_recv";
 
 // data types

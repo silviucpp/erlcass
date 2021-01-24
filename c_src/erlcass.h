@@ -23,6 +23,8 @@ struct atoms
     ERL_NIF_TERM atomSessionClosed;
     ERL_NIF_TERM atomPreparedStatementResult;
     ERL_NIF_TERM atomExecuteStatementResult;
+    ERL_NIF_TERM atomPagedExecuteStatementResult;
+    ERL_NIF_TERM atomPagedExecuteStatementResultHasMore;
     ERL_NIF_TERM atomLogMessageReceived;
 
     // data types

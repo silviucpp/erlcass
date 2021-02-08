@@ -273,21 +273,14 @@ set_paging_size(Stm, PageSize) ->
     {ok, tag()} | {error, reason()}.
 
 async_execute_paged(Stm, Identifier) ->
-    Tag = make_ref(),
-    ReceiverPid = self(),
-    case erlcass_nif:cass_session_execute_paged(get_identifier(ReceiverPid, Identifier), Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag) of
-        ok ->
-            {ok, Tag};
-        Error ->
-            Error
-    end.
+    async_execute_paged(Stm, Identifier, self()).
 
 -spec async_execute_paged(statement_ref(), atom(), recv_pid()) ->
     {ok, tag()} | {error, reason()}.
 
-async_execute_paged(Stm, Identifier, ReceiverPid) ->
+async_execute_paged(#erlcass_stm{session = Session, stm = Statement}, Identifier, ReceiverPid) ->
     Tag = make_ref(),
-    case erlcass_nif:cass_session_execute_paged(get_identifier(ReceiverPid, Identifier), Stm#erlcass_stm.session, Stm#erlcass_stm.stm, ReceiverPid, Tag) of
+    case erlcass_nif:cass_session_execute_paged(get_identifier(ReceiverPid, Identifier), Session, Statement, ReceiverPid, Tag) of
         ok ->
             {ok, Tag};
         Error ->
@@ -300,7 +293,7 @@ async_execute_paged(Stm, Identifier, ReceiverPid) ->
 execute_paged(Stm, Identifier) ->
     case async_execute_paged(Stm, Identifier) of
         {ok, Tag} ->
-            receive_paged_response(Tag);
+            receive_response(Tag);
         Error ->
             Error
     end.
@@ -410,21 +403,6 @@ receive_response(Tag) ->
     receive
         {execute_statement_result, Tag, Result} ->
             Result
-
-    after ?RESPONSE_TIMEOUT ->
-        {error, timeout}
-    end.
-
-receive_paged_response(Tag) ->
-    receive
-        {paged_execute_statement_result, Tag, {ok, Columns, Rows}} ->
-            {ok, Columns, Rows, false};
-        {paged_execute_statement_result_has_more, Tag, {ok, Columns, Rows}} ->
-            {ok, Columns, Rows, true};
-        {paged_execute_statement_result, Tag, Error} ->
-            Error;
-        {paged_execute_statement_result_has_more, Tag, Error} ->
-            Error
 
     after ?RESPONSE_TIMEOUT ->
         {error, timeout}

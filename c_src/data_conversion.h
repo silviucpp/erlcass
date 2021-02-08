@@ -12,6 +12,6 @@ ERL_NIF_TERM cass_table_meta_fields_to_erlang_term(ErlNifEnv* env, const CassTab
 ERL_NIF_TERM cass_keyspace_meta_fields_to_erlang_term(ErlNifEnv* env, const CassKeyspaceMeta* keyspace_meta);
 ERL_NIF_TERM cass_schema_meta_fields_to_erlang_term(ErlNifEnv* env, const CassSchemaMeta* schema_meta);
 
-ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result);
+ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result, const bool is_paged, const bool has_more);
 
 #endif  // C_SRC_DATA_CONVERSION_H_

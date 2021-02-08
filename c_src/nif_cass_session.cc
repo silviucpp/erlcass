@@ -137,7 +137,8 @@ void on_statement_prepared(CassFuture* future, void* user_data)
 void on_statement_executed(CassFuture* future, void* user_data)
 {
     callback_info* cb = static_cast<callback_info*>(user_data);
-    cass_bool_t has_more_pages = cass_false;
+    const bool is_paged = cb->paged_statment != NULL;
+    bool has_more = false;
 
     if(cb->fire_and_forget)
     {
@@ -167,28 +168,15 @@ void on_statement_executed(CassFuture* future, void* user_data)
         else
         {
             const CassResult* cassResult = cass_future_get_result(future);
-            result = cass_result_to_erlang_term(cb->env, cassResult);
-            if (cb->paged_statment != NULL) {
-                /* Check to see if there are more pages remaining for this result */
-                has_more_pages = cass_result_has_more_pages(cassResult);
-
-                if (has_more_pages) {
-                    /* If there are more pages we need to set the position for the next execute */
-                    cass_statement_set_paging_state(cb->paged_statment, cassResult);
-                }
-            }
+            // Check to see if there are more pages remaining for this result
+            has_more = is_paged ? (bool) cass_result_has_more_pages(cassResult) : false;
+            result = cass_result_to_erlang_term(cb->env, cassResult, is_paged, has_more);
+            // If there are more pages we need to set the position for the next execute
+            if (has_more) cass_statement_set_paging_state(cb->paged_statment, cassResult);
             cass_result_free(cassResult);
         }
 
-        if (cb->paged_statment != NULL) {
-            if (!has_more_pages) {
-                enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomPagedExecuteStatementResult, cb->arguments, result));
-            } else {
-                enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomPagedExecuteStatementResultHasMore, cb->arguments, result));
-            }
-        } else {
-            enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomExecuteStatementResult, cb->arguments, result));
-        }
+        enif_send(NULL, &cb->pid, cb->env, enif_make_tuple3(cb->env, ATOMS.atomExecuteStatementResult, cb->arguments, result));
     }
 
     callback_info_free(cb);

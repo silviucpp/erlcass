@@ -37,8 +37,6 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomSessionClosed = make_atom(env, erlcass::kAtomSessionClosed);
     ATOMS.atomPreparedStatementResult = make_atom(env, erlcass::kAtomPreparedStatementResult);
     ATOMS.atomExecuteStatementResult = make_atom(env, erlcass::kAtomExecuteStatementResult);
-    ATOMS.atomPagedExecuteStatementResult = make_atom(env, erlcass::kAtomPagedExecuteStatementResult);
-    ATOMS.atomPagedExecuteStatementResultHasMore = make_atom(env, erlcass::kAtomPagedExecuteStatementResultHasMore);
     ATOMS.atomLogMessageReceived = make_atom(env, erlcass::kAtomLogMessageReceived);
 
     // data types

@@ -1,10 +1,11 @@
 ### Changelog:
 
-##### v4.0.2 (not released)
+##### v4.0.2
 
 - Add support for Paged queries (thanks to Jesper Lundgren - https://github.com/cleaton)
 - Fix segmentation fault into tuple decoding.
 - Update cpp-driver to 2.15.3 
+- Use libuv 1.x for Ubuntu 14.04 (thanks to Dominic Letz - https://github.com/dominicletz)
 
 ##### v4.0.1
 

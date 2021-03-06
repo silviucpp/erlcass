@@ -138,7 +138,6 @@ void on_statement_executed(CassFuture* future, void* user_data)
 {
     callback_info* cb = static_cast<callback_info*>(user_data);
     const bool is_paged = cb->paged_statment != NULL;
-    bool has_more = false;
 
     if(cb->fire_and_forget)
     {
@@ -168,11 +167,13 @@ void on_statement_executed(CassFuture* future, void* user_data)
         else
         {
             const CassResult* cassResult = cass_future_get_result(future);
-            // Check to see if there are more pages remaining for this result
-            has_more = is_paged ? (bool) cass_result_has_more_pages(cassResult) : false;
+            // check to see if there are more pages remaining for this result
+            bool has_more = is_paged ? cass_result_has_more_pages(cassResult) : false;
             result = cass_result_to_erlang_term(cb->env, cassResult, is_paged, has_more);
-            // If there are more pages we need to set the position for the next execute
-            if (has_more) cass_statement_set_paging_state(cb->paged_statment, cassResult);
+            // if there are more pages we need to set the position for the next execute
+            if (has_more)
+                cass_statement_set_paging_state(cb->paged_statment, cassResult);
+
             cass_result_free(cassResult);
         }
 

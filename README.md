@@ -27,7 +27,7 @@ This update breaks the compatibility with the other versions. All query results 
 
 #### How ErlCass affects the Erlang schedulers
 
-It's well known that NIF's can affect the Erlang schedulers performances in case the functions are not returning in less
+It's well-known that NIF's can affect the Erlang schedulers performances in case the functions are not returning in less
 than 1-2 ms and blocks the threads.
 
 Because the DataStax cpp driver is async, `ErlCass` won't block the scheduler threads and all calls to the native

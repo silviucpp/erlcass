@@ -460,11 +460,11 @@ ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result
     }
 
     ERL_NIF_TERM row_data = enif_make_list_from_array(env, array_rows.data(), array_rows.size());
-    if (is_paged) {
+
+    if (is_paged)
         return enif_make_tuple4(env, ATOMS.atomOk, column_data, row_data, has_more ? ATOMS.atomTrue : ATOMS.atomFalse);
-    } else {
+    else
         return enif_make_tuple3(env, ATOMS.atomOk, column_data, row_data);
-    }
 }
 
 ERL_NIF_TERM get_column_meta(ErlNifEnv* env, const CassColumnMeta* meta)

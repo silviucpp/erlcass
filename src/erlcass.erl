@@ -408,13 +408,11 @@ receive_response(Tag) ->
         {error, timeout}
     end.
 
+do_connect(Session, Pid, Keyspace) ->
+    erlcass_nif:cass_session_connect(Session, Pid, Keyspace).
+
 do_connect(Session, Pid) ->
-    case erlcass_utils:get_env(keyspace) of
-        {ok, Keyspace} ->
-            erlcass_nif:cass_session_connect(Session, Pid, Keyspace);
-        _ ->
-            erlcass_nif:cass_session_connect(Session, Pid)
-    end.
+    erlcass_nif:cass_session_connect(Session, Pid).
 
 do_close(undefined, _Pid, _Timeout) ->
     ok;
@@ -433,22 +431,65 @@ session_create() ->
     case erlcass_nif:cass_session_new() of
         {ok, Session} ->
             Self = self(),
-            case do_connect(Session, Self) of
+            Keyspace = case erlcass_utils:get_env(keyspace) of
+                {ok, Space} -> Space;
+                _ -> ""
+            end,
+            KeyspaceCQL = case erlcass_utils:get_env(keyspace_cql) of
+                {ok, CQL} -> CQL;
+                _ -> ""
+            end,
+            Connect = case Keyspace of
+              ""       -> do_connect(Session, Self);
+              Keyspace -> do_connect(Session, Self, Keyspace)
+            end,
+            case Connect of
                 ok ->
-                    receive
-                        {session_connected, Self, Result} ->
-                            ?INFO_MSG("session ~p connection complete result: ~p", [Self, Result]),
-                            {ok, Session}
-
-                    after ?CONNECT_TIMEOUT ->
-                        ?ERROR_MSG("session ~p connection timeout", [Self]),
-                        {error, connect_session_timeout}
+                    case receive_session_connect(Keyspace, Self) of
+                        ok -> {ok, Session};
+                        {error, missing_keyspace} when KeyspaceCQL =/= "", Keyspace =/= "" ->
+                            ?INFO_MSG("Keyspace '~s' is missing, will create using: '~s'", [Keyspace, KeyspaceCQL]),
+                            ok = do_connect(Session, Self),
+                            case receive_session_connect("", Self) of
+                                ok ->
+                                    {ok, StmRef} = query_new_statement(KeyspaceCQL),
+                                    erlcass_nif:cass_session_execute(nil, Session, StmRef, Self, init_keyspace),
+                                    ?INFO_MSG("Creating Keyspace '~s'", [Keyspace]),
+                                    ok = receive_response(init_keyspace),
+                                    ?INFO_MSG("Keyspace '~s' Created", [Keyspace]),
+                                    ok = do_close(Session, Self, 5000),
+                                    ?INFO_MSG("Session Closed", []);
+                                Error -> Error
+                            end,
+                            ?INFO_MSG("Reconnecting with Keyspace", []),
+                            ok = do_connect(Session, Self, Keyspace),
+                            ?INFO_MSG("Waiting for coonection", []),
+                            case receive_session_connect(Keyspace, Self) of
+                                ok -> {ok, Session};
+                                Err -> Err
+                            end;
+                        Error -> Error
                     end;
                 Error ->
                     Error
             end;
         Error ->
             Error
+    end.
+
+receive_session_connect(Keyspace, Self) ->
+    MissingKeyspaceError = list_to_binary(lists:flatten(io_lib:format("Keyspace '~s' does not exist", [Keyspace]))),
+    receive
+        {session_connected, Self, {error, MissingKeyspaceError}} ->
+            {error, missing_keyspace};
+
+        {session_connected, Self, Result} ->
+            ?INFO_MSG("session ~p connection complete result: ~p", [Self, Result]),
+            ok
+
+    after ?CONNECT_TIMEOUT ->
+        ?ERROR_MSG("session ~p connection timeout", [Self]),
+        {error, connect_session_timeout}
     end.
 
 session_prepare_cached_statements(SessionRef) ->

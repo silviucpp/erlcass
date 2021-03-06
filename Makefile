@@ -54,7 +54,7 @@ clean:
 
 ct:
 	mkdir -p log
-	ct_run -suite integrity_test_SUITE -pa ebin -pa deps/*/ebin erl -pa _build/default/lib/*/ebin -include include -logdir log -erl_args -config benchmarks/benchmark.config
+	ct_run -suite integrity_test_SUITE -pa _build/default/lib/*/ebin -include include -logdir log -erl_args -config test/sys.config
 
 setup_benchmark:
 	${REBAR} as bench compile

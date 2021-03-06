@@ -168,7 +168,7 @@ void on_statement_executed(CassFuture* future, void* user_data)
         {
             const CassResult* cassResult = cass_future_get_result(future);
             // check to see if there are more pages remaining for this result
-            bool has_more = is_paged ? cass_result_has_more_pages(cassResult) : false;
+            bool has_more = is_paged ? static_cast<bool>(cass_result_has_more_pages(cassResult)) : false;
             result = cass_result_to_erlang_term(cb->env, cassResult, is_paged, has_more);
             // if there are more pages we need to set the position for the next execute
             if (has_more)

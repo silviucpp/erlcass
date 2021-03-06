@@ -6,6 +6,7 @@
 - Fix segmentation fault into tuple decoding.
 - Update cpp-driver to 2.15.3 
 - Use libuv 1.x for Ubuntu 14.04 (thanks to Dominic Letz - https://github.com/dominicletz)
+- Fix build with GCC 9
 
 ##### v4.0.1
 

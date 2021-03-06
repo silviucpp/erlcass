@@ -11,7 +11,7 @@ struct enif_cass_prepared
 
 ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* rs, const CassPrepared* prep, const ConsistencyLevelOptions& consistency)
 {
-    enif_cass_prepared *enif_obj = static_cast<enif_cass_prepared*>(enif_alloc_resource(rs, sizeof(enif_cass_prepared)));
+    enif_cass_prepared* enif_obj = static_cast<enif_cass_prepared*>(enif_alloc_resource(rs, sizeof(enif_cass_prepared)));
 
     if(enif_obj == NULL)
         return make_error(env, erlcass::kFailedToAllocResourceMsg);
@@ -27,7 +27,7 @@ ERL_NIF_TERM nif_cass_prepared_new(ErlNifEnv* env, ErlNifResourceType* rs, const
 
 void nif_cass_prepared_free(ErlNifEnv* env, void* obj)
 {
-    enif_cass_prepared *enif_prepared = static_cast<enif_cass_prepared*>(obj);
+    enif_cass_prepared* enif_prepared = static_cast<enif_cass_prepared*>(obj);
 
     if(enif_prepared->prepared != NULL)
         cass_prepared_free(enif_prepared->prepared);
@@ -37,7 +37,7 @@ ERL_NIF_TERM nif_cass_prepared_bind(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_prepared * enif_prep = NULL;
+    enif_cass_prepared* enif_prep = NULL;
 
     if(!enif_get_resource(env, argv[0], data->resCassPrepared, reinterpret_cast<void**>(&enif_prep)))
         return make_badarg(env);

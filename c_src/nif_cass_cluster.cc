@@ -91,7 +91,7 @@ CassError internal_cass_cluster_set_max_schema_wait_time(CassCluster* cluster, u
 
 ERL_NIF_TERM internal_cass_cluster_set_exponential_reconnect(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
@@ -116,7 +116,7 @@ ERL_NIF_TERM internal_set_speculative_execution_policy(ErlNifEnv* env, ERL_NIF_T
     }
     else
     {
-        const ERL_NIF_TERM *items;
+        const ERL_NIF_TERM* items;
         int arity;
 
         if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
@@ -175,7 +175,7 @@ ERL_NIF_TERM internal_cass_cluster_set_load_balance_round_robin(ErlNifEnv* env, 
 
 ERL_NIF_TERM internal_cass_cluster_set_credentials(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
@@ -193,7 +193,7 @@ ERL_NIF_TERM internal_cass_cluster_set_credentials(ErlNifEnv* env, ERL_NIF_TERM 
 
 ERL_NIF_TERM internal_cass_cluster_set_load_balance_dc_aware(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 3)
@@ -219,7 +219,7 @@ ERL_NIF_TERM internal_cass_cluster_set_load_balance_dc_aware(ErlNifEnv* env, ERL
 
 ERL_NIF_TERM internal_cass_cluster_set_tcp_keepalive(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
@@ -256,7 +256,7 @@ ERL_NIF_TERM internal_cluster_set_retry_policy(ErlNifEnv* env, ERL_NIF_TERM term
 
     if(enif_is_tuple(env, term_value))
     {
-        const ERL_NIF_TERM *items;
+        const ERL_NIF_TERM* items;
         int arity;
 
         if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
@@ -302,7 +302,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_opt
 
     while(enif_get_list_cell(env, term_value, &head, &term_value))
     {
-        const ERL_NIF_TERM *items;
+        const ERL_NIF_TERM* items;
         int arity;
 
         if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
@@ -340,7 +340,7 @@ ERL_NIF_TERM internal_cass_cluster_set_ssl(ErlNifEnv* env, ERL_NIF_TERM term_opt
         }
         else if(enif_is_identical(items[0], ATOMS.atomClusterSettingSslPrivateKey))
         {
-            const ERL_NIF_TERM *pk_items;
+            const ERL_NIF_TERM* pk_items;
             int pk_arity;
             ErlNifBinary pk;
             ErlNifBinary pk_pwd;
@@ -393,7 +393,7 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
         return ATOMS.atomOk;
     }
 
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
@@ -514,7 +514,7 @@ ERL_NIF_TERM nif_cass_cluster_set_options(ErlNifEnv* env, int argc, const ERL_NI
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
     ERL_NIF_TERM head;
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     while(enif_get_list_cell(env, options, &head, &options))

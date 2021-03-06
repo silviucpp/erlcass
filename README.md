@@ -11,10 +11,10 @@
 - Starting with `erlcass` version v4.x the native driver is based on Datastax cpp-driver > 2.10.0 which is a massive 
 release that includes many new features as well as architectural and performance improvements. 
 
-- Some cluster configs were removed and some other were added. For more info please see the [Changelog][5].
+- Some cluster configs were removed while other configs were added. For more info please see the [Changelog][5].
 - This new version adds support for speculative execution: For certain applications it is of the utmost importance to 
 minimize latency. Speculative execution is a way to minimize latency by preemptively executing several instances of 
-the same query against different nodes. The fastest response is then returned to the client application and the other 
+the same query against different nodes. The fastest response is then returned to the client application, and the other 
 requests are cancelled. Speculative execution is disabled by default. (see `speculative_execution_policy`)
 
 ### Update from 2.x to 3.0
@@ -31,8 +31,8 @@ It's well-known that NIF's can affect the Erlang schedulers performances in case
 than 1-2 ms and blocks the threads.
 
 Because the DataStax cpp driver is async, `ErlCass` won't block the scheduler threads and all calls to the native
-functions will return immediately. The DataStax driver use it's own thread pool for managing the requests.
-Also the responses are received on this threads and sent back to Erlang calling processes using `enif_send` in
+functions will return immediately. The DataStax driver use its own thread pool for managing the requests.
+Also, the responses are received on these threads and sent back to Erlang calling processes using `enif_send` in
 an async manner.
 
 #### Features
@@ -42,6 +42,7 @@ List of supported features:
 - Asynchronous API
 - Synchronous API
 - Simple, Prepared, and Batch statements
+- Paged queries
 - Asynchronous I/O, parallel execution, and request pipelining
 - Connection pooling
 - Automatic node discovery
@@ -178,9 +179,9 @@ The cluster options can be set inside your `app.config` file under the `cluster_
 
 - Use `token_aware_routing` and `latency_aware_routing`
 - Don't use `number_threads_io` bigger than the number of your cores.
-- Use `tcp_nodelay` and also enable `tcp_keepalive`
+- Use `tcp_nodelay` and enable `tcp_keepalive`
 - Don't use large values for `core_connections_host`. The driver is system call bound and performs better with less I/O threads 
-and connections because it can batch a larger number of writes into a single system call (the driver will naturally attempt to coallesce these operations). 
+and connections because it can batch a larger number of writes into a single system call (the driver will naturally attempt to coalesce these operations).
 You may want to reduce the number of I/O threads to 2 or 3 and reduce the core connections to 1 (default).
 
 All available options are described in the following [wiki section][4].
@@ -224,7 +225,7 @@ ok = erlcass:add_prepare_statement(insert_blogpost, {
 ### Run a prepared statement query
 
 You can bind the parameters in 2 ways: by name and by index. You can use `?BIND_BY_INDEX` and `?BIND_BY_NAME` from
-`execute/3` in order to specify the desired method. By default is binding by index
+`execute/3` in order to specify the desired method. By default is binding by index.
 
 Example:
 

@@ -16,7 +16,7 @@ ERL_NIF_TERM make_atom(ErlNifEnv* env, const char* name)
 ERL_NIF_TERM make_binary(ErlNifEnv* env, const char* buff, size_t length)
 {
     ERL_NIF_TERM term;
-    unsigned char *destination_buffer = enif_make_new_binary(env, length, &term);
+    unsigned char* destination_buffer = enif_make_new_binary(env, length, &term);
     memcpy(destination_buffer, buff, length);
     return term;
 }
@@ -90,7 +90,7 @@ ERL_NIF_TERM cass_future_error_to_nif_term(ErlNifEnv* env, CassFuture* future)
 ERL_NIF_TERM parse_consistency_level_options(ErlNifEnv* env, ERL_NIF_TERM options_list, ConsistencyLevelOptions* cls)
 {
     ERL_NIF_TERM head;
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     while(enif_get_list_cell(env, options_list, &head, &options_list))
@@ -132,7 +132,7 @@ ERL_NIF_TERM parse_query_term(ErlNifEnv* env, ERL_NIF_TERM qterm, QueryTerm* q)
 {
     if(enif_is_tuple(env, qterm))
     {
-        const ERL_NIF_TERM *items;
+        const ERL_NIF_TERM* items;
         int arity;
 
         if(!enif_get_tuple(env, qterm, &arity, &items) || arity != 2)

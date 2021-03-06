@@ -25,7 +25,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
 
         datastax::internal::core::IndexVec indices;
         ErlNifBinary column_name;
-        const ERL_NIF_TERM *items;
+        const ERL_NIF_TERM* items;
         int arity;
 
         while(enif_get_list_cell(env, list, &head, &list))
@@ -114,7 +114,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
             return cass_error_to_nif_term(env, cass_result);
     }
 
-    enif_cass_statement *enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(data->resCassStatement, sizeof(enif_cass_statement)));
+    enif_cass_statement* enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(data->resCassStatement, sizeof(enif_cass_statement)));
 
     if(enif_obj == NULL)
         return make_error(env, erlcass::kFailedToAllocResourceMsg);

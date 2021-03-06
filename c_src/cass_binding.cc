@@ -111,7 +111,7 @@ const set_data_functions<CassUserType*> kCassUserTypeFuns = {
 
 ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const datastax::internal::core::DataType* data_type, CassUserType** udt);
 ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const datastax::internal::core::DataType* data_type, CassTuple** tp);
-ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const datastax::internal::core::DataType* data_type, CassCollection ** col);
+ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const datastax::internal::core::DataType* data_type, CassCollection** col);
 
 template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T obj, size_t index, set_data_functions<T> fun, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value)
 {
@@ -247,7 +247,7 @@ template <typename T> ERL_NIF_TERM cass_set_from_nif(ErlNifEnv* env, T obj, size
 
         case CASS_VALUE_TYPE_DECIMAL:
         {
-            const ERL_NIF_TERM *items;
+            const ERL_NIF_TERM* items;
             int arity;
 
             if(!enif_get_tuple(env, value, &arity, &items) || arity != 2)
@@ -333,7 +333,7 @@ ERL_NIF_TERM nif_term_to_cass_udt(ErlNifEnv* env, ERL_NIF_TERM term, const datas
     scoped_ptr(utv, CassUserType, cass_user_type_new_from_data_type(data_type.get()), cass_user_type_free);
 
     ERL_NIF_TERM head;
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     while(enif_get_list_cell(env, term, &head, &term))
@@ -368,7 +368,7 @@ ERL_NIF_TERM nif_term_to_cass_tuple(ErlNifEnv* env, ERL_NIF_TERM term, const dat
 {
     const datastax::internal::core::CompositeType* ct = static_cast<const datastax::internal::core::CompositeType*>(data_type);
 
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     if(!enif_get_tuple(env, term, &arity, &items) || arity == 0 || static_cast<size_t>(arity) != ct->types().size())
@@ -411,7 +411,7 @@ ERL_NIF_TERM populate_list_set_collection(ErlNifEnv* env, ERL_NIF_TERM list, Cas
 ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassCollection* collection, const datastax::internal::core::DataType* kt, const datastax::internal::core::DataType* vt)
 {
     ERL_NIF_TERM head;
-    const ERL_NIF_TERM *items;
+    const ERL_NIF_TERM* items;
     int arity;
 
     while(enif_get_list_cell(env, list, &head, &list))
@@ -436,7 +436,7 @@ ERL_NIF_TERM populate_map_collection(ErlNifEnv* env, ERL_NIF_TERM list, CassColl
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const datastax::internal::core::DataType* data_type, CassCollection ** col)
+ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, const datastax::internal::core::DataType* data_type, CassCollection** col)
 {
     const datastax::internal::core::CompositeType* ct = static_cast<const datastax::internal::core::CompositeType*>(data_type);
 

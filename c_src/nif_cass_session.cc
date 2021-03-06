@@ -18,7 +18,7 @@ struct enif_cass_session
 
 struct callback_info
 {
-    ErlNifEnv *env;
+    ErlNifEnv* env;
     ErlNifPid pid;
     ERL_NIF_TERM arguments;
     bool fire_and_forget;
@@ -27,7 +27,7 @@ struct callback_info
 
 struct callback_statement_info
 {
-    ErlNifEnv *env;
+    ErlNifEnv* env;
     ErlNifPid pid;
     ERL_NIF_TERM arguments;
     ErlNifResourceType* prepared_res;
@@ -66,7 +66,7 @@ void callback_info_free(callback_info* cb)
 
 void nif_cass_session_free(ErlNifEnv* env, void* obj)
 {
-    enif_cass_session *enif_session = static_cast<enif_cass_session*>(obj);
+    enif_cass_session* enif_session = static_cast<enif_cass_session*>(obj);
 
     if(enif_session->session != NULL)
         cass_session_free(enif_session->session);
@@ -189,7 +189,7 @@ ERL_NIF_TERM nif_cass_session_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_session *enif_session = static_cast<enif_cass_session*>(enif_alloc_resource(data->resCassSession, sizeof(enif_cass_session)));
+    enif_cass_session* enif_session = static_cast<enif_cass_session*>(enif_alloc_resource(data->resCassSession, sizeof(enif_cass_session)));
 
     if(enif_session == NULL)
         return make_error(env, erlcass::kFailedToAllocResourceMsg);
@@ -241,7 +241,7 @@ ERL_NIF_TERM nif_cass_session_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_session * enif_session = NULL;
+    enif_cass_session* enif_session = NULL;
     ErlNifPid pid;
 
     if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
@@ -269,7 +269,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_session * enif_session = NULL;
+    enif_cass_session* enif_session = NULL;
     ErlNifPid pid;
 
     if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
@@ -304,7 +304,7 @@ ERL_NIF_TERM nif_cass_session_execute(ErlNifEnv* env, int argc, const ERL_NIF_TE
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_session * enif_session = NULL;
+    enif_cass_session* enif_session = NULL;
 
     if(!enif_get_resource(env, argv[1], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return make_badarg(env);
@@ -346,7 +346,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_session * enif_session = NULL;
+    enif_cass_session* enif_session = NULL;
     int batch_type;
     ErlNifPid pid;
 
@@ -424,7 +424,7 @@ ERL_NIF_TERM nif_cass_session_execute_paged(ErlNifEnv* env, int argc, const ERL_
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_session * enif_session = NULL;
+    enif_cass_session* enif_session = NULL;
 
     if(!enif_get_resource(env, argv[1], data->resCassSession, (void**) &enif_session))
         return make_badarg(env);
@@ -475,7 +475,7 @@ ERL_NIF_TERM nif_cass_session_get_metrics(ErlNifEnv* env, int argc, const ERL_NI
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_session * enif_session = NULL;
+    enif_cass_session* enif_session = NULL;
 
     if(!enif_get_resource(env, argv[0], data->resCassSession, reinterpret_cast<void**>(&enif_session)))
         return make_badarg(env);

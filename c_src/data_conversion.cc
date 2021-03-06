@@ -233,10 +233,10 @@ ERL_NIF_TERM string_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 
 ERL_NIF_TERM blob_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 {
-    const cass_byte_t * buffer = NULL;
+    const cass_byte_t* buffer = NULL;
     size_t buffer_size;
     cass_value_get_bytes(value, &buffer, &buffer_size);
-    return make_binary(env, (const char*)buffer, buffer_size);
+    return make_binary(env, reinterpret_cast<const char*>(buffer), buffer_size);
 }
 
 ERL_NIF_TERM uuid_to_erlang_term(ErlNifEnv* env, const CassValue* value)
@@ -263,7 +263,7 @@ ERL_NIF_TERM inet_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 
 ERL_NIF_TERM decimal_to_erlang_term(ErlNifEnv* env, const CassValue* value)
 {
-    const cass_byte_t * buffer = NULL;
+    const cass_byte_t* buffer = NULL;
     size_t buffer_size;
     cass_int32_t scale;
     cass_value_get_decimal(value, &buffer, &buffer_size, &scale);
@@ -421,7 +421,7 @@ ERL_NIF_TERM column_data_to_erlang_term(ErlNifEnv* env, const CassResult* result
         if (cass_result_column_name(result, index, &name, &name_length) != CASS_OK)
             return enif_make_list(env, 0);
 
-        const CassDataType *column_dt = cass_result_column_data_type (result, index);
+        const CassDataType* column_dt = cass_result_column_data_type (result, index);
         ERL_NIF_TERM dt_type_term = cass_data_type_to_nif_term(env, column_dt);
         array.push_back(enif_make_tuple2(env, make_binary(env, name, name_length), dt_type_term));
     }

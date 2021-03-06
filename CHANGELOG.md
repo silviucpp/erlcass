@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v4.0.2 (not released)
+
+- Add support for Paged queries (thanks to Jesper Lundgren - https://github.com/cleaton)
+- Fix segmentation fault into tuple decoding.
+
 ##### v4.0.1
 
 - Fix building on OTP 23 or newer.

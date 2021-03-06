@@ -27,9 +27,13 @@
     async_execute/3,
     async_execute/4,
     async_execute/5,
+    async_execute_paged/2,
+    async_execute_paged/3,
     execute/1,
     execute/2,
     execute/3,
+    execute_paged/2,
+    set_paging_size/2,
 
     % batch
 
@@ -68,6 +72,7 @@
 -type tag()             :: reference().
 -type recv_pid()        :: pid() | null.
 -type query_result()    :: ok | {ok, list(), list()} | {error, reason()}.
+-type paged_query_result()  :: {ok, list(), list(), boolean()} | {error, reason()}.
 
 -spec get_metrics() ->
     {ok, list()} | {error, reason()}.
@@ -252,6 +257,41 @@ execute(Identifier, Params) ->
 
 execute(Identifier, BindType, Params) ->
     case async_execute(Identifier, BindType, Params) of
+        {ok, Tag} ->
+            receive_response(Tag);
+        Error ->
+            Error
+    end.
+
+-spec set_paging_size(statement_ref(), integer()) ->
+    ok | {error, reason()}.
+
+set_paging_size(#erlcass_stm{stm = Statement}, PageSize) ->
+    erlcass_nif:cass_statement_set_paging_size(Statement, PageSize).
+
+-spec async_execute_paged(statement_ref(), atom()) ->
+    {ok, tag()} | {error, reason()}.
+
+async_execute_paged(Stm, Identifier) ->
+    async_execute_paged(Stm, Identifier, self()).
+
+-spec async_execute_paged(statement_ref(), atom(), recv_pid()) ->
+    {ok, tag()} | {error, reason()}.
+
+async_execute_paged(#erlcass_stm{session = Session, stm = Statement}, Identifier, ReceiverPid) ->
+    Tag = make_ref(),
+    case erlcass_nif:cass_session_execute_paged(get_identifier(ReceiverPid, Identifier), Session, Statement, ReceiverPid, Tag) of
+        ok ->
+            {ok, Tag};
+        Error ->
+            Error
+    end.
+
+-spec execute_paged(statement_ref(), atom()) ->
+    paged_query_result().
+
+execute_paged(Stm, Identifier) ->
+    case async_execute_paged(Stm, Identifier) of
         {ok, Tag} ->
             receive_response(Tag);
         Error ->

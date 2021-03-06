@@ -27,7 +27,7 @@ This update breaks the compatibility with the other versions. All query results 
 
 #### How ErlCass affects the Erlang schedulers
 
-It's well known that NIF's can affect the Erlang schedulers performances in case the functions are not returning in less
+It's well-known that NIF's can affect the Erlang schedulers performances in case the functions are not returning in less
 than 1-2 ms and blocks the threads.
 
 Because the DataStax cpp driver is async, `ErlCass` won't block the scheduler threads and all calls to the native
@@ -325,6 +325,25 @@ ok = erlcass:bind_prepared_params_by_index(Stm2, [Id2, Age2, Email2]),
 ok = erlcass:batch_execute(?CASS_BATCH_TYPE_LOGGED, [Stm1, Stm2], [
     {consistency_level, ?CASS_CONSISTENCY_QUORUM}
 ]).
+```
+
+### Paged queries
+
+In order to perform paged query statements you can use `erlcass:async_execute_paged/2`, `erlcass:async_execute_paged/3` or `erlcass:execute_paged/2`.
+
+Statement paging is set with `erlcass:set_paging_size/2`.
+
+Example:
+
+```erlang
+ok = erlcass:add_prepare_statement(paged_query_prep, <<"SELECT val FROM table1">>),
+{ok, Stm} = erlcass:bind_prepared_statement(paged_query_prep),
+PageSize = 3,
+ok = erlcass:set_paging_size(Stm, PageSize),
+{ok, Columns, Rows1, HasMore1} = erlcass:execute_paged(Stm, paged_query_prep),
+% Continue get more rows from same Stm until HasMore is false
+% In this example, Rows1 contains at most 3 rows [[val1], [val2], [val3]]
+%{ok, Columns, Rows2, HasMore2} = erlcass:execute_paged(Stm, paged_query_prep),
 ```
 
 ### Working with uuid or timeuuid fields:

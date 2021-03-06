@@ -30,6 +30,7 @@ groups() -> [
         uuid_testing,
         date_time_testing,
         get_metrics,
+        paged_query,
         drop_keyspace
     ]}
 ].
@@ -479,6 +480,26 @@ date_time_testing(_Config) ->
 
 get_metrics(_Config) ->
     {ok, _} = erlcass:get_metrics(),
+    ok.
+
+paged_query(_Config) ->
+    CreationQ = <<"CREATE TABLE erlang_driver_test.paged (key varchar, val bigint, PRIMARY KEY(key, val));">>,
+    ok = erlcass:query(CreationQ),
+    InsertStatement = <<"INSERT INTO erlang_driver_test.paged(key, val) VALUES ('a', ?)">>,
+    QueryStatement = <<"SELECT val FROM erlang_driver_test.paged WHERE key = 'a'">>,
+    ok = erlcass:add_prepare_statement(paged_insert_prep, InsertStatement),
+    ok = erlcass:add_prepare_statement(paged_query_prep, QueryStatement),
+    Data = [1,2,3,4,5,6,7,8,9,10],
+    InsertF = fun(I) -> ok = erlcass:execute(paged_insert_prep, ?BIND_BY_INDEX, [I]) end,
+    lists:foreach(InsertF, Data),
+
+    {ok, Stm} = erlcass:bind_prepared_statement(paged_query_prep),
+    PageSize = 3,
+    ok = erlcass:set_paging_size(Stm, PageSize),
+    {ok, _Columns, [[1],[2],[3]] = _Rows1, true = _HasMore1} = erlcass:execute_paged(Stm, paged_query_prep),
+    {ok, _Columns, [[4],[5],[6]] = _Rows2, true = _HasMore2} = erlcass:execute_paged(Stm, paged_query_prep),
+    {ok, _Columns, [[7],[8],[9]] = _Rows3, true = _HasMore3} = erlcass:execute_paged(Stm, paged_query_prep),
+    {ok, _Columns, [[10]] = _Rows4, false = _HasMore4} = erlcass:execute_paged(Stm, paged_query_prep),
     ok.
 
 drop_keyspace(_Config) ->

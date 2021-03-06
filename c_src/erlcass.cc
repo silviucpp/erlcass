@@ -183,8 +183,10 @@ static ErlNifFunc nif_funcs[] =
     {"cass_prepared_bind", 1, nif_cass_prepared_bind},
     {"cass_statement_new", 1, nif_cass_statement_new},
     {"cass_statement_bind_parameters", 3, nif_cass_statement_bind_parameters},
+    {"cass_statement_set_paging_size", 2, nif_cass_statement_set_paging_size},
     {"cass_session_execute", 5, nif_cass_session_execute},
     {"cass_session_execute_batch", 5, nif_cass_session_execute_batch},
+    {"cass_session_execute_paged", 5, nif_cass_session_execute_paged},
     {"cass_session_get_metrics", 1, nif_cass_session_get_metrics},
 
     {"cass_session_get_schema_metadata", 1, nif_cass_session_get_schema_metadata},

@@ -371,7 +371,7 @@ ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value)
         return enif_make_tuple(env, 0);
 
     std::vector<ERL_NIF_TERM> items;
-    items.resize(items_count);
+    items.reserve(items_count);
 
     scoped_ptr(iterator, CassIterator, cass_iterator_from_tuple(value), cass_iterator_free);
 
@@ -429,7 +429,7 @@ ERL_NIF_TERM column_data_to_erlang_term(ErlNifEnv* env, const CassResult* result
     return enif_make_list_from_array(env, array.data(), array.size());
 }
 
-ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result)
+ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result, const bool is_paged, const bool has_more)
 {
     size_t columns_count = cass_result_column_count(result);
 
@@ -459,7 +459,12 @@ ERL_NIF_TERM cass_result_to_erlang_term(ErlNifEnv* env, const CassResult* result
         array_rows.push_back(enif_make_list_from_array(env, array_columns.data(), columns_count));
     }
 
-    return enif_make_tuple3(env, ATOMS.atomOk, column_data, enif_make_list_from_array(env, array_rows.data(), array_rows.size()));
+    ERL_NIF_TERM row_data = enif_make_list_from_array(env, array_rows.data(), array_rows.size());
+
+    if (is_paged)
+        return enif_make_tuple4(env, ATOMS.atomOk, column_data, row_data, has_more ? ATOMS.atomTrue : ATOMS.atomFalse);
+    else
+        return enif_make_tuple3(env, ATOMS.atomOk, column_data, row_data);
 }
 
 ERL_NIF_TERM get_column_meta(ErlNifEnv* env, const CassColumnMeta* meta)

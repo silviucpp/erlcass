@@ -80,7 +80,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
 
 CassStatement* get_statement(ErlNifEnv* env, ErlNifResourceType* resource_type, ERL_NIF_TERM arg)
 {
-    enif_cass_statement * enif_stm = NULL;
+    enif_cass_statement* enif_stm = NULL;
 
     if(!enif_get_resource(env, arg, resource_type, reinterpret_cast<void**>(&enif_stm)))
         return NULL;
@@ -129,7 +129,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
 
 ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, const ConsistencyLevelOptions& consistency)
 {
-    enif_cass_statement *enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(resource_type, sizeof(enif_cass_statement)));
+    enif_cass_statement* enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(resource_type, sizeof(enif_cass_statement)));
 
     if(enif_obj == NULL)
         return make_error(env, erlcass::kFailedToAllocResourceMsg);
@@ -157,7 +157,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource
 
 void nif_cass_statement_free(ErlNifEnv* env, void* obj)
 {
-    enif_cass_statement *data = static_cast<enif_cass_statement*>(obj);
+    enif_cass_statement* data = static_cast<enif_cass_statement*>(obj);
 
     if(data->statement != NULL)
         cass_statement_free(data->statement);
@@ -167,7 +167,7 @@ ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const 
 {
     cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
 
-    enif_cass_statement * enif_stm = NULL;
+    enif_cass_statement* enif_stm = NULL;
 
     if(!enif_get_resource(env, argv[0], data->resCassStatement, reinterpret_cast<void**>(&enif_stm)) || !enif_is_list(env, argv[2]))
         return make_badarg(env);
@@ -178,4 +178,22 @@ ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const 
         return make_badarg(env);
 
     return bind_prepared_statement_params(env, enif_stm->statement, bind_type, argv[2]);
+}
+
+ERL_NIF_TERM nif_cass_statement_set_paging_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    cassandra_data* data = static_cast<cassandra_data*>(enif_priv_data(env));
+
+    enif_cass_statement* enif_stm = NULL;
+
+    if(!enif_get_resource(env, argv[0], data->resCassStatement, reinterpret_cast<void**>(&enif_stm)))
+        return make_badarg(env);
+
+    int page_size = 0;
+
+    if((!enif_get_int(env, argv[1], &page_size)) || (page_size < 1))
+        return make_badarg(env);
+
+    cass_statement_set_paging_size(enif_stm->statement, page_size);
+    return ATOMS.atomOk;
 }

@@ -68,4 +68,5 @@ LDFLAGS +=  -L$(BASEDIR)/_build/deps/cpp-driver/build \
             -luv \
             -lstdc++ \
             -lssl \
-            -lcrypto
+            -lcrypto \
+            -lz

@@ -4,6 +4,7 @@
 
 - Add support for Paged queries (thanks to Jesper Lundgren - https://github.com/cleaton)
 - Fix segmentation fault into tuple decoding.
+- Update cpp-driver to 2.15.3 
 
 ##### v4.0.1
 

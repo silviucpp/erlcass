@@ -371,7 +371,7 @@ ERL_NIF_TERM tuple_to_erlang_term(ErlNifEnv* env, const CassValue* value)
         return enif_make_tuple(env, 0);
 
     std::vector<ERL_NIF_TERM> items;
-    items.resize(items_count);
+    items.reserve(items_count);
 
     scoped_ptr(iterator, CassIterator, cass_iterator_from_tuple(value), cass_iterator_free);
 

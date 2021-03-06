@@ -1,18 +1,15 @@
 
 language: erlang
 
-services:
-  - cassandra
-
 matrix:
 
   include:
     - os: linux
-      dist: bionic
+      dist: focal
       otp_release: 23.1.2
 
     - os: linux
-      dist: xenial
+      dist: bionic
       otp_release: 22.3
 
     - os: linux
@@ -24,7 +21,7 @@ matrix:
       otp_release: 20.3
 
     - os: linux
-      dist: xenial
+      dist: trusty
       otp_release: 19.3
 
     - os: osx
@@ -43,6 +40,3 @@ before_script:
 
 script:
     - ./rebar3 compile
-
-after_success:
-  - ./rebar3 ct

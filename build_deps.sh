@@ -50,8 +50,8 @@ case $OS in
                 UBUNTU_VSN=$(lsb_release -sr)
                 if [[ $UBUNTU_VSN == "14.04" ]]; then
                     # system is Ubuntu 14.04, need to install PPA and possibly override libuv
-                    sudo apt-add-repository -y ppa:linuxjedi/ppa
-                    LIBUDEV_PACKAGE_NAME=libuv-dev
+                    sudo add-apt-repository ppa:acooks/libwebsockets6
+                    LIBUDEV_PACKAGE_NAME=libuv1.dev
                 else
                     LIBUDEV_PACKAGE_NAME=libuv1-dev
                 fi

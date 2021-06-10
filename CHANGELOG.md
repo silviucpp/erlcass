@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.0.3
+
+- Fix for OTP 24 build
+
 ##### v4.0.2
 
 - Add support for Paged queries (thanks to Jesper Lundgren - https://github.com/cleaton)

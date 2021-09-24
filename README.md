@@ -1,6 +1,6 @@
 # ErlCass
 
-[![Build Status](https://travis-ci.com/silviucpp/erlcass.svg?branch=master)](https://travis-ci.com/silviucpp/erlcass)
+[![Build Status](https://travis-ci.com/silviucpp/erlcass.svg?branch=master)](https://travis-ci.com/github/silviucpp/erlcass)
 [![GitHub](https://img.shields.io/github/license/silviucpp/erlcass)](https://github.com/silviucpp/erlcass/blob/master/LICENSE)
 [![Hex.pm](https://img.shields.io/hexpm/v/erlcass)](https://hex.pm/packages/erlcass)
 

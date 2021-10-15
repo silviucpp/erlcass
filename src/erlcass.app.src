@@ -4,7 +4,7 @@
     {links,[{"Github","https://github.com/silviucpp/erlcass"}]},
     {vsn, "4.0.3"},
     {registered, []},
-    {applications, [kernel, stdlib, lager]},
+    {applications, [kernel, stdlib]},
     {mod, {erlcass_app, []}},
     {env, []},
 

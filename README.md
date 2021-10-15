@@ -130,10 +130,14 @@ application:start(erlcass).
 
 ### Setting the log level
 
-`Erlcass` is using `lager` for logging the errors. Beside the fact that you can set in lager the desired log level,
-for better performances it's better to set also in `erlcass` the desired level otherwise there will be a lot of
-resources consumed by lager to format the messages and then drop them. Also the native driver performances can be
-affected because of the time spent in generating the logs and sending them from C++ into Erlang.  
+The erlang [logger][10] facility is used. Refer to the OTP documentation to configure the log level.
+
+Additionally, for better performance also set in `erlcass` the desired level, otherwise there will be a lot of
+resources consumed to format the messages and then drop them. Also the native driver performances can be
+affected because of the time spent in generating the logs and sending them from C++ into Erlang.
+
+In order to change the log level for the native driver you need to set the `log_level` environment variable for
+`erlcass` into your app config file, example: `{log_level, 3}`.
 
 Available Log levels are:
 
@@ -146,9 +150,6 @@ Available Log levels are:
 -define(CASS_LOG_DEBUG,5).
 -define(CASS_LOG_TRACE, 6).
 ```
-
-In order to change the log level for the native driver you need to set the `log_level` environment variable for
-`erlcass` into your app config file, example: `{log_level, 3}`.
 
 ### Setting the cluster options
 
@@ -435,3 +436,4 @@ For mode details about bind by index and name please see: 'Run a prepared statem
 [7]:https://github.com/lpgauth/marina
 [8]:https://github.com/silviucpp/erlcass
 [9]:https://github.com/silviucpp/erlcass/wiki/Todo-list
+[10]:https://erlang.org/doc/man/logger.html

@@ -87,10 +87,7 @@ mkdir -p $DEPS_LOCATION
 #checkout repo
 
 pushd $DEPS_LOCATION
-git clone ${CPP_DRIVER_REPO}
-pushd cpp-driver
-git checkout ${CPP_DRIVER_REV}
-popd
+git clone -b ${CPP_DRIVER_REV} --depth=1 ${CPP_DRIVER_REPO}
 popd
 
 #build

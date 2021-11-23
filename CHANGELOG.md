@@ -1,5 +1,11 @@
 ### Changelog:
 
+##### v4.0.4
+
+- Speed up builds, use shallow clone for `cpp-driver`
+- Upgrade cpp-driver to v2.16.1
+- Use openssl@1.1 in MacOS.
+
 ##### v4.0.3
 
 - Fix for OTP 24 build

@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.0.5
+
+- Fix compilation error under elixir 1.13
+
 ##### v4.0.4
 
 - Speed up builds, use shallow clone for `cpp-driver`

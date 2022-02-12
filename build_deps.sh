@@ -7,6 +7,7 @@ if [ -d "$DEPS_LOCATION" ]; then
     exit 0
 fi
 
+CPUS=`getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.ncpu`
 OS=$(uname -s)
 if [ -x "$(command -v lsb_release)" ]; then
     KERNEL=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
@@ -95,5 +96,5 @@ popd
 mkdir -p $DEPS_LOCATION/cpp-driver/build
 pushd $DEPS_LOCATION/cpp-driver/build
 cmake .. -DCASS_BUILD_STATIC=ON -DCMAKE_BUILD_TYPE=RELEASE
-make -j 12
+make -j $CPUS
 popd

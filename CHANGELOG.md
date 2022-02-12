@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.0.6
+
+- Improve build scripts
+
 ##### v4.0.5
 
 - Fix compilation error under elixir 1.13

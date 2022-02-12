@@ -5,10 +5,12 @@ include nif.mk
 
 ifeq ($(UNAME_SYS), darwin)
 
-	CXXFLAGS += -I/usr/local/opt/openssl/include \
+	OPENSSL_ROOT := $(shell brew --prefix openssl@1.1)
+
+	CXXFLAGS += -I$(OPENSSL_ROOT)/include \
 				-I/usr/local/include \
 
-	LDFLAGS +=  -L/usr/local/opt/openssl/lib \
+	LDFLAGS +=  -L$(OPENSSL_ROOT)/lib \
 				-L/usr/local/lib \
 				-Wl,-U,_enif_alloc \
 				-Wl,-U,_enif_free \

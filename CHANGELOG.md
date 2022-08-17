@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.0.7
+
+- Fix compilation on architectures where char is unsigned by default https://github.com/silviucpp/erlcass/issues/53
+
 ##### v4.0.6
 
 - Improve build scripts

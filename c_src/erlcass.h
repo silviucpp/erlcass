@@ -11,6 +11,7 @@ struct atoms
     ERL_NIF_TERM atomTrue;
     ERL_NIF_TERM atomFalse;
     ERL_NIF_TERM atomNull;
+    ERL_NIF_TERM atomUndefined;
     ERL_NIF_TERM atomBadArg;
     ERL_NIF_TERM atomOptions;
     ERL_NIF_TERM atomConsistencyLevel;

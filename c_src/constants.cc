@@ -22,6 +22,7 @@ const char kAtomError[] = "error";
 const char kAtomTrue[] = "true";
 const char kAtomFalse[] = "false";
 const char kAtomNull[] = "null";
+const char kAtomUndefined[] = "undefined";
 const char kAtomBadArg[] = "badarg";
 const char kAtomOptions[] = "options";
 const char kAtomConsistencyLevel[] = "consistency_level";

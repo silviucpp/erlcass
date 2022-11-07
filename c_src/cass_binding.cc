@@ -464,6 +464,9 @@ ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, cons
 
 ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value)
 {
+    if(enif_is_identical(value, ATOMS.atomUndefined))
+        return ATOMS.atomOk;
+
     if(enif_is_identical(value, ATOMS.atomNull))
         return cass_error_to_nif_term(env, cass_statement_bind_null(statement, index));
 

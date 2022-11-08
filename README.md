@@ -263,13 +263,11 @@ erlcass:execute(insert_test_bind, ?BIND_BY_NAME, [
 
 ### Async queries and blocking queries
 
-For blocking operations use `erlcass:execute`, for async execution use : `erlcass:async_execute`.
+For sync operations use `erlcass:execute`, for async execution use : `erlcass:async_execute`.
 
-The blocking operation the calling process will block (still async into the native code in order to avoid
-freezing of the VM threads) until will get the result from the cluster.
+The sync API will block the calling process (still async into the native code in order to avoid  freezing of the VM threads) until will get the result from the cluster.
 
-In case of an async execution the calling process will receive a message of the following format:
-`{execute_statement_result, Tag, Result}` when the data from the server was retrieved.
+In case of an async execution the calling process will receive a message of the following format: `{execute_statement_result, Tag, Result}` when the data from the server was retrieved.
 
 For example:
 
@@ -287,8 +285,7 @@ In order to run queries that you don't want to run them as prepared statements y
 `query/1`, `query_async/1` or `query_new_statement/1` (in order to create a query statement that can be executed into a
 batch query along other prepared or not prepared statements)
 
-The same rules apply for setting the desired consistency level as on prepared statements (see Add prepare statement
-section).
+The same rules apply for setting the desired consistency level as on prepared statements (see Add prepare statement section).
 
 ```erlang
 erlcass:query(<<"select * from blogposts where domain = 'Domain_1' LIMIT 1">>).

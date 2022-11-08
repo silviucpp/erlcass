@@ -42,6 +42,7 @@ List of supported features:
 - Asynchronous API
 - Synchronous API
 - Simple, Prepared, and Batch statements
+- [Avoid undesired tombstone while null binding][10] (only on protocol 4 or newer).
 - Paged queries
 - Asynchronous I/O, parallel execution, and request pipelining
 - Connection pooling
@@ -204,6 +205,7 @@ Also this is possible using `{Query, Options}` where options is a proplist with 
 - `serial_consistency_level` - This consistency can only be either `?CASS_CONSISTENCY_SERIAL` or
 `?CASS_CONSISTENCY_LOCAL_SERIAL` and if not present, it defaults to `?CASS_CONSISTENCY_SERIAL`. This option will be
 ignored for anything else that a conditional update/insert.
+- `null_binding` - Boolean (by default `true`). Provides a way to disable the null values binding. [Binding null values][10] will create undesired tombstone in cassandra. 
 
 Example:
 
@@ -435,3 +437,4 @@ For mode details about bind by index and name please see: 'Run a prepared statem
 [7]:https://github.com/lpgauth/marina
 [8]:https://github.com/silviucpp/erlcass
 [9]:https://github.com/silviucpp/erlcass/wiki/Todo-list
+[10]:https://github.com/silviucpp/erlcass/wiki/Null-bindings-on-prepared-statements-and-undesired-tombstone-creation

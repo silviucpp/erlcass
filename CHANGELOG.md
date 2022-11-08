@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v4.0.8
+
+- Update cpp-driver to 2.16.2
+- Add support to avoid creating tombstones while inserting data using prepared statements (https://github.com/silviucpp/erlcass/wiki/Null-bindings-on-prepared-statements-and-undesired-tombstone-creation). 
+
 ##### v4.0.7
 
 - Fix compilation on architectures where char is unsigned by default https://github.com/silviucpp/erlcass/issues/53

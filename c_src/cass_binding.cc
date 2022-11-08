@@ -462,10 +462,21 @@ ERL_NIF_TERM nif_list_to_cass_collection(ErlNifEnv* env, ERL_NIF_TERM list, cons
     return ATOMS.atomOk;
 }
 
-ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value)
+ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value, bool null_binding)
 {
-    if(enif_is_identical(value, ATOMS.atomNull))
-        return cass_error_to_nif_term(env, cass_statement_bind_null(statement, index));
+    if(enif_is_atom(env, value))
+    {
+        if(enif_is_identical(value, ATOMS.atomNull))
+        {
+            if(null_binding)
+                return cass_error_to_nif_term(env, cass_statement_bind_null(statement, index));
+            else
+                return ATOMS.atomOk;
+        }
+
+        if(enif_is_identical(value, ATOMS.atomUndefined))
+            return ATOMS.atomOk;
+    }
 
     return cass_set_from_nif(env, statement, index, kCassStatementFuns, data_type, value);
 }

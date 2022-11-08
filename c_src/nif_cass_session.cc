@@ -32,6 +32,7 @@ struct callback_statement_info
     ERL_NIF_TERM arguments;
     ErlNifResourceType* prepared_res;
     ConsistencyLevelOptions consistency;
+    bool null_binding;
     CassSession* session;
 };
 
@@ -115,7 +116,7 @@ void on_statement_prepared(CassFuture* future, void* user_data)
     {
         const CassPrepared* prep = cass_future_get_prepared(future);
 
-        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistency);
+        ERL_NIF_TERM term = nif_cass_prepared_new(cb->env, cb->prepared_res, prep, cb->consistency, cb->null_binding);
 
         if(enif_is_tuple(cb->env, term))
         {
@@ -292,6 +293,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     callback->arguments = enif_make_copy(callback->env, argv[3]);
     callback->consistency = q.consistency;
     callback->session = enif_session->session;
+    callback->null_binding = q.null_binding;
 
     CassFuture* future = cass_session_prepare_n(enif_session->session, BIN_TO_STR(q.query.data), q.query.size);
 

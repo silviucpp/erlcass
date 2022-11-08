@@ -3,6 +3,60 @@
 
 #include <string.h>
 
+namespace {
+
+ERL_NIF_TERM parse_query_options(ErlNifEnv* env, ERL_NIF_TERM options_list, QueryTerm* q)
+{
+    ERL_NIF_TERM head;
+    const ERL_NIF_TERM* items;
+    int arity;
+
+    while(enif_get_list_cell(env, options_list, &head, &options_list))
+    {
+        if(!enif_get_tuple(env, head, &arity, &items) || arity != 2)
+            return make_bad_options(env, head);
+
+        ERL_NIF_TERM key = items[0];
+        ERL_NIF_TERM value = items[1];
+
+        if(enif_is_identical(key, ATOMS.atomConsistencyLevel))
+        {
+            int c_level;
+
+            if(!enif_get_int(env, value, &c_level))
+                return make_bad_options(env, head);
+
+            q->consistency.cl = static_cast<CassConsistency>(c_level);
+        }
+        else if(enif_is_identical(key, ATOMS.atomSerialConsistencyLevel))
+        {
+            int c_level;
+
+            if(!enif_get_int(env, value, &c_level))
+                return make_bad_options(env, head);
+
+            q->consistency.serial_cl = static_cast<CassConsistency>(c_level);
+        }
+        else if(enif_is_identical(key, ATOMS.atomNullBinding))
+        {
+            cass_bool_t bool_value;
+
+            if(!get_boolean(value, &bool_value))
+                return make_badarg(env);
+
+            q->null_binding = static_cast<bool>(bool_value);
+        }
+        else
+        {
+            return make_bad_options(env, head);
+        }
+    }
+
+    return ATOMS.atomOk;
+}
+
+}
+
 ERL_NIF_TERM make_atom(ErlNifEnv* env, const char* name)
 {
     ERL_NIF_TERM ret;
@@ -143,7 +197,7 @@ ERL_NIF_TERM parse_query_term(ErlNifEnv* env, ERL_NIF_TERM qterm, QueryTerm* q)
 
         if(enif_is_list(env, items[1]))
         {
-            return parse_consistency_level_options(env, items[1], &q->consistency);
+            return parse_query_options(env, items[1], q);
         }
         else
         {

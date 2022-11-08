@@ -7,16 +7,19 @@
 #define BIND_BY_INDEX 1
 #define BIND_BY_NAME  2
 
+namespace {
+
 struct enif_cass_statement
 {
     CassStatement* statement;
+    bool null_binding;
 };
 
-ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* statement, int type, ERL_NIF_TERM list)
+ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, enif_cass_statement* enif_stm, int type, ERL_NIF_TERM list)
 {
     ERL_NIF_TERM head;
 
-    datastax::internal::core::Statement* stm = static_cast<datastax::internal::core::Statement*>(statement);
+    datastax::internal::core::Statement* stm = static_cast<datastax::internal::core::Statement*>(enif_stm->statement);
     const datastax::internal::core::ResultResponse* result = static_cast<datastax::internal::core::ExecuteRequest*>(stm)->prepared()->result().get();
 
     if(type == BIND_BY_NAME)
@@ -42,7 +45,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
             size_t index = indices[0];
 
             const datastax::internal::core::DataType* data_type = result->metadata()->get_column_definition(index).data_type.get();
-            ERL_NIF_TERM nif_result = cass_bind_by_index(env, statement, index, data_type, items[1]);
+            ERL_NIF_TERM nif_result = cass_bind_by_index(env, enif_stm->statement, index, data_type, items[1], enif_stm->null_binding);
 
             if(!enif_is_identical(nif_result, ATOMS.atomOk))
                 return nif_result;
@@ -66,7 +69,7 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
 
             const datastax::internal::core::DataType* data_type = def.data_type.get();
 
-            ERL_NIF_TERM nif_result = cass_bind_by_index(env, statement, index, data_type, head);
+            ERL_NIF_TERM nif_result = cass_bind_by_index(env, enif_stm->statement, index, data_type, head, enif_stm->null_binding);
 
             if(!enif_is_identical(nif_result, ATOMS.atomOk))
                 return nif_result;
@@ -76,6 +79,8 @@ ERL_NIF_TERM bind_prepared_statement_params(ErlNifEnv* env, CassStatement* state
     }
 
     return ATOMS.atomOk;
+}
+
 }
 
 CassStatement* get_statement(ErlNifEnv* env, ErlNifResourceType* resource_type, ERL_NIF_TERM arg)
@@ -120,6 +125,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
         return make_error(env, erlcass::kFailedToAllocResourceMsg);
 
     enif_obj->statement = stm;
+    enif_obj->null_binding = q.null_binding;
 
     ERL_NIF_TERM term = enif_make_resource(env, enif_obj);
     enif_release_resource(enif_obj);
@@ -127,7 +133,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     return enif_make_tuple2(env, ATOMS.atomOk, term);
 }
 
-ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, const ConsistencyLevelOptions& consistency)
+ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource_type, const CassPrepared* prep, const ConsistencyLevelOptions& consistency, bool null_binding)
 {
     enif_cass_statement* enif_obj = static_cast<enif_cass_statement*>(enif_alloc_resource(resource_type, sizeof(enif_cass_statement)));
 
@@ -135,6 +141,7 @@ ERL_NIF_TERM nif_cass_statement_new(ErlNifEnv* env, ErlNifResourceType* resource
         return make_error(env, erlcass::kFailedToAllocResourceMsg);
 
     enif_obj->statement = cass_prepared_bind(prep);
+    enif_obj->null_binding = null_binding;
 
     CassError cass_result = cass_statement_set_consistency(enif_obj->statement, consistency.cl);
 
@@ -177,7 +184,7 @@ ERL_NIF_TERM nif_cass_statement_bind_parameters(ErlNifEnv* env, int argc, const 
     if(!enif_get_int(env, argv[1], &bind_type) || (bind_type != BIND_BY_INDEX && bind_type != BIND_BY_NAME))
         return make_badarg(env);
 
-    return bind_prepared_statement_params(env, enif_stm->statement, bind_type, argv[2]);
+    return bind_prepared_statement_params(env, enif_stm, bind_type, argv[2]);
 }
 
 ERL_NIF_TERM nif_cass_statement_set_paging_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])

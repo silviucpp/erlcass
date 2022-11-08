@@ -23,11 +23,13 @@ extern const char kAtomError[];
 extern const char kAtomTrue[];
 extern const char kAtomFalse[];
 extern const char kAtomNull[];
+extern const char kAtomUndefined[];
 extern const char kAtomBadArg[];
 extern const char kAtomOptions[];
 extern const char kAtomConsistencyLevel[];
 extern const char kAtomSerialConsistencyLevel[];
 extern const char kAtomLogMsgRecord[];
+extern const char kAtomNullBinding[];
 
 // events atoms
 

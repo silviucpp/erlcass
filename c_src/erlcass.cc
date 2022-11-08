@@ -25,11 +25,13 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomTrue = make_atom(env, erlcass::kAtomTrue);
     ATOMS.atomFalse = make_atom(env, erlcass::kAtomFalse);
     ATOMS.atomNull = make_atom(env, erlcass::kAtomNull);
+    ATOMS.atomUndefined = make_atom(env, erlcass::kAtomUndefined);
     ATOMS.atomBadArg = make_atom(env, erlcass::kAtomBadArg);
     ATOMS.atomOptions = make_atom(env, erlcass::kAtomOptions);
     ATOMS.atomConsistencyLevel = make_atom(env, erlcass::kAtomConsistencyLevel);
     ATOMS.atomSerialConsistencyLevel = make_atom(env, erlcass::kAtomSerialConsistencyLevel);
     ATOMS.atomLogMsgRecord = make_atom(env, erlcass::kAtomLogMsgRecord);
+    ATOMS.atomNullBinding = make_atom(env, erlcass::kAtomNullBinding);
 
     // events atoms
 

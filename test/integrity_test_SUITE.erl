@@ -31,6 +31,7 @@ groups() -> [
         date_time_testing,
         get_metrics,
         paged_query,
+        null_prepared_stm_binding,
         drop_keyspace
     ]}
 ].
@@ -496,11 +497,28 @@ paged_query(_Config) ->
     {ok, Stm} = erlcass:bind_prepared_statement(paged_query_prep),
     PageSize = 3,
     ok = erlcass:set_paging_size(Stm, PageSize),
-    {ok, _Columns, [[1],[2],[3]] = _Rows1, true = _HasMore1} = erlcass:execute_paged(Stm, paged_query_prep),
-    {ok, _Columns, [[4],[5],[6]] = _Rows2, true = _HasMore2} = erlcass:execute_paged(Stm, paged_query_prep),
-    {ok, _Columns, [[7],[8],[9]] = _Rows3, true = _HasMore3} = erlcass:execute_paged(Stm, paged_query_prep),
-    {ok, _Columns, [[10]] = _Rows4, false = _HasMore4} = erlcass:execute_paged(Stm, paged_query_prep),
+    {ok, _Columns1, [[1],[2],[3]] = _Rows1, true = _HasMore1} = erlcass:execute_paged(Stm, paged_query_prep),
+    {ok, _Columns2, [[4],[5],[6]] = _Rows2, true = _HasMore2} = erlcass:execute_paged(Stm, paged_query_prep),
+    {ok, _Columns3, [[7],[8],[9]] = _Rows3, true = _HasMore3} = erlcass:execute_paged(Stm, paged_query_prep),
+    {ok, _Columns4, [[10]] = _Rows4, false = _HasMore4} = erlcass:execute_paged(Stm, paged_query_prep),
     ok.
+
+null_prepared_stm_binding(_Config) ->
+    % none of the following inserts will create a tombstone while insert. To avoid tombstone while using prepared statements you can use one of:
+    % a) use bind by name and add into the binding params only the one with values (not null).
+    % b) while using binding by index use `undefined` atom for the values that are not set.
+    % c) when you prepare the statement use the option: `null_binding` as false.
+    ok = erlcass:query(<<"CREATE TABLE erlang_driver_test.null_prepared_stm_binding(key int PRIMARY KEY, name text, age int)">>),
+    ok = erlcass:add_prepare_statement(insert_unset_bind, <<"INSERT INTO erlang_driver_test.null_prepared_stm_binding (key, name, age) VALUES(?,?,?)">>),
+    ok = erlcass:add_prepare_statement(insert_unset_bind_2, {<<"INSERT INTO erlang_driver_test.null_prepared_stm_binding (key, name, age) VALUES(?,?,?)">>, [{null_binding, false}]}),
+    ok = erlcass:add_prepare_statement(select_unset_bind, <<"SELECT key, name, age FROM erlang_driver_test.null_prepared_stm_binding where key = ?">>),
+    ok = erlcass:execute(insert_unset_bind, ?BIND_BY_NAME, [{<<"key">>, 1}]),
+    ok = erlcass:execute(insert_unset_bind, ?BIND_BY_INDEX, [2, undefined, undefined]),
+    ok = erlcass:execute(insert_unset_bind_2, [3, null, null]),
+
+    {ok, _, [[1, null, null]]} = erlcass:execute(select_unset_bind, [1]),
+    {ok, _, [[2, null, null]]} = erlcass:execute(select_unset_bind, [2]),
+    {ok, _, [[3, null, null]]} = erlcass:execute(select_unset_bind, [3]).
 
 drop_keyspace(_Config) ->
     ok = erlcass:query(<<"DROP KEYSPACE erlang_driver_test">>).

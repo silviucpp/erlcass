@@ -17,6 +17,7 @@ struct atoms
     ERL_NIF_TERM atomConsistencyLevel;
     ERL_NIF_TERM atomSerialConsistencyLevel;
     ERL_NIF_TERM atomLogMsgRecord;
+    ERL_NIF_TERM atomNullBinding;
 
     // events atoms
 

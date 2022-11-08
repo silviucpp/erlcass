@@ -8,6 +8,6 @@ namespace datastax { namespace internal { namespace core {
 class DataType;
 }}}
 
-ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value);
+ERL_NIF_TERM cass_bind_by_index(ErlNifEnv* env, CassStatement* statement, size_t index, const datastax::internal::core::DataType* data_type, ERL_NIF_TERM value, bool null_binding);
 
 #endif  // C_SRC_CASS_BINDING_H_

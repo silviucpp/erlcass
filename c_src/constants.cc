@@ -28,6 +28,7 @@ const char kAtomOptions[] = "options";
 const char kAtomConsistencyLevel[] = "consistency_level";
 const char kAtomSerialConsistencyLevel[] = "serial_consistency_level";
 const char kAtomLogMsgRecord[] = "log_msg";
+const char kAtomNullBinding[] = "null_binding";
 
 // events atoms
 

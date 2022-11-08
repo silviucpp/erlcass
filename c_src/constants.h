@@ -29,6 +29,7 @@ extern const char kAtomOptions[];
 extern const char kAtomConsistencyLevel[];
 extern const char kAtomSerialConsistencyLevel[];
 extern const char kAtomLogMsgRecord[];
+extern const char kAtomNullBinding[];
 
 // events atoms
 

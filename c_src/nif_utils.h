@@ -19,6 +19,7 @@ struct QueryTerm
 
     ErlNifBinary query;
     ConsistencyLevelOptions consistency;
+    bool null_binding = true;
 };
 
 ERL_NIF_TERM make_atom(ErlNifEnv* env, const char* name);

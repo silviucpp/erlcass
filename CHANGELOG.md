@@ -1,5 +1,7 @@
 ### Changelog:
 
+##### v4.0.9
+
 - Add support for `cloud_secure_connection_bundle`
 
 ##### v4.0.8

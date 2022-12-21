@@ -122,6 +122,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingRetryPolicy = make_atom(env, erlcass::kAtomClusterSettingRetryPolicy);
     ATOMS.atomClusterSettingRetryPolicyDefault = make_atom(env, erlcass::kAtomClusterSettingRetryPolicyDefault);
     ATOMS.atomClusterSettingRetryPolicyFallthrough = make_atom(env, erlcass::kAtomClusterSettingRetryPolicyFallthrough);
+    ATOMS.atomClusterSettingCloudSecureConnectionBundle = make_atom(env, erlcass::kAtomClusterSettingCloudSecureConnectionBundle);
 
     cassandra_data* data = static_cast<cassandra_data*>(enif_alloc(sizeof(cassandra_data)));
     data->cluster = NULL;

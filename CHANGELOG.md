@@ -1,5 +1,7 @@
 ### Changelog:
 
+- Add support for `cloud_secure_connection_bundle`
+
 ##### v4.0.8
 
 - Update cpp-driver to 2.16.2

@@ -468,6 +468,7 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpNodelay, internal_cass_cluster_set_tcp_nodelay);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTcpKeepalive, internal_cass_cluster_set_tcp_keepalive);
     CUSTOM_SETTING(ATOMS.atomClusterSettingRetryPolicy, internal_cluster_set_retry_policy);
+    STRING_SETTING(ATOMS.atomClusterSettingCloudSecureConnectionBundle, cass_cluster_set_cloud_secure_connection_bundle_n);
 
     return make_bad_options(env, term_option);
 }

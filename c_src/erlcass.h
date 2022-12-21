@@ -108,6 +108,7 @@ struct atoms
     ERL_NIF_TERM atomClusterSettingRetryPolicy;
     ERL_NIF_TERM atomClusterSettingRetryPolicyDefault;
     ERL_NIF_TERM atomClusterSettingRetryPolicyFallthrough;
+    ERL_NIF_TERM atomClusterSettingCloudSecureConnectionBundle;
 };
 
 struct cassandra_data

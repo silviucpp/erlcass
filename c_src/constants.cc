@@ -119,5 +119,6 @@ const char kAtomClusterSettingSslPrivateKey[] = "private_key";
 const char kAtomClusterSettingRetryPolicy[] = "retry_policy";
 const char kAtomClusterSettingRetryPolicyDefault[] = "default";
 const char kAtomClusterSettingRetryPolicyFallthrough[] = "fallthrough";
+const char kAtomClusterSettingCloudSecureConnectionBundle[] ="cloud_secure_connection_bundle";
 
 }  // namespace erlcass

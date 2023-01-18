@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.1.0
+
+- Migrate from lager to OTP logger.
+
 ##### v4.0.9
 
 - Add support for `cloud_secure_connection_bundle`

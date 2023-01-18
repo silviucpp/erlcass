@@ -30,13 +30,13 @@ loop() ->
 log_message(#log_msg{message = Msg, function = Fun, file = File, line = Line, severity = Severity}) ->
     case Severity of
         ?CASS_LOG_CRITICAL ->
-            ?CRITICAL_MSG(?MSG_FORMAT, [Msg, Fun, File, Line]);
+            ?LOG_CRITICAL(?MSG_FORMAT, [Msg, Fun, File, Line]);
         ?CASS_LOG_ERROR ->
-            ?ERROR_MSG(?MSG_FORMAT, [Msg, Fun, File, Line]);
+            ?LOG_ERROR(?MSG_FORMAT, [Msg, Fun, File, Line]);
         ?CASS_LOG_WARN ->
-            ?WARNING_MSG(?MSG_FORMAT, [Msg, Fun, File, Line]);
+            ?LOG_WARNING(?MSG_FORMAT, [Msg, Fun, File, Line]);
         ?CASS_LOG_INFO ->
-            ?INFO_MSG(?MSG_FORMAT, [Msg, Fun, File, Line]);
+            ?LOG_INFO(?MSG_FORMAT, [Msg, Fun, File, Line]);
         _ ->
-            ?DEBUG_MSG(?MSG_FORMAT, [Msg, Fun, File, Line])
+            ?LOG_DEBUG(?MSG_FORMAT, [Msg, Fun, File, Line])
     end.

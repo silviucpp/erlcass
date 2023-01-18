@@ -362,12 +362,12 @@ handle_call(get_metrics, _From, #state{session = Session} = State) ->
     {reply, erlcass_nif:cass_session_get_metrics(Session), State}.
 
 handle_cast(Request, State) ->
-    ?ERROR_MSG("session ~p received unexpected cast: ~p", [self(), Request]),
+    ?LOG_ERROR("session ~p received unexpected cast: ~p", [self(), Request]),
     {noreply, State}.
 
 handle_info({prepared_statement_result, Result, {From, Identifier, Query}}, #state{session = Session} = State) ->
 
-    ?INFO_MSG("session: ~p prepared statement id: ~p result: ~p", [self(), Identifier, Result]),
+    ?LOG_INFO("session: ~p prepared statement id: ~p result: ~p", [self(), Identifier, Result]),
 
     case Result of
         {ok, StmRef} ->
@@ -380,18 +380,18 @@ handle_info({prepared_statement_result, Result, {From, Identifier, Query}}, #sta
     {noreply, State};
 
 handle_info(Info, State) ->
-    ?ERROR_MSG("session ~p received unexpected message: ~p", [self(), Info]),
+    ?LOG_ERROR("session ~p received unexpected message: ~p", [self(), Info]),
     {noreply, State}.
 
 terminate(Reason, #state {session = Session}) ->
     Self = self(),
-    ?INFO_MSG("closing session ~p with reason: ~p", [Self, Reason]),
+    ?LOG_INFO("closing session ~p with reason: ~p", [Self, Reason]),
 
     case do_close(Session, Self, ?CONNECT_TIMEOUT) of
         ok ->
-            ?INFO_MSG("session ~p closed completed", [Self]);
+            ?LOG_INFO("session ~p closed completed", [Self]);
         Error ->
-            ?ERROR_MSG("session ~p closed with error: ~p", [Self, Error])
+            ?LOG_ERROR("session ~p closed with error: ~p", [Self, Error])
     end.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -437,11 +437,11 @@ session_create() ->
                 ok ->
                     receive
                         {session_connected, Self, Result} ->
-                            ?INFO_MSG("session ~p connection complete result: ~p", [Self, Result]),
+                            ?LOG_INFO("session ~p connection complete result: ~p", [Self, Result]),
                             {ok, Session}
 
                     after ?CONNECT_TIMEOUT ->
-                        ?ERROR_MSG("session ~p connection timeout", [Self]),
+                        ?LOG_ERROR("session ~p connection timeout", [Self]),
                         {error, connect_session_timeout}
                     end;
                 Error ->
@@ -461,7 +461,7 @@ session_prepare_cached_statements(SessionRef) ->
                 receive
                     {prepared_statement_result, Result, Tag} ->
 
-                        ?INFO_MSG("session ~p prepared cached statement id: ~p result: ~p", [Self, Identifier, Result]),
+                        ?LOG_INFO("session ~p prepared cached statement id: ~p result: ~p", [Self, Identifier, Result]),
 
                         case Result of
                             {ok, StmRef} ->

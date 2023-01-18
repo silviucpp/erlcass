@@ -45,7 +45,7 @@
 
 load_nif() ->
     SoName = get_priv_path(?MODULE),
-    ?INFO_MSG("loading library: ~p ~n", [SoName]),
+    ?LOG_INFO("loading library: ~p ~n", [SoName]),
     ok = erlang:load_nif(SoName, 0).
 
 get_priv_path(File) ->

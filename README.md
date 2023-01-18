@@ -131,10 +131,10 @@ application:start(erlcass).
 
 ### Setting the log level
 
-`Erlcass` is using `lager` for logging the errors. Beside the fact that you can set in lager the desired log level,
+`Erlcass` is using OTP `logger` for logging the errors. Beside the fact that you can set in logger the desired log level,
 for better performances it's better to set also in `erlcass` the desired level otherwise there will be a lot of
-resources consumed by lager to format the messages and then drop them. Also the native driver performances can be
-affected because of the time spent in generating the logs and sending them from C++ into Erlang.  
+resources consumed for messages that are going to be dropped anyway. Also the native driver performances can decrease 
+because of the time spent in generating the logs and sending them from C++ into Erlang.  
 
 Available Log levels are:
 
@@ -142,7 +142,7 @@ Available Log levels are:
 -define(CASS_LOG_DISABLED, 0).
 -define(CASS_LOG_CRITICAL, 1).
 -define(CASS_LOG_ERROR, 2).
--define(CASS_LOG_WARN, 3). (default)
+-define(CASS_LOG_WARN, 3). % default
 -define(CASS_LOG_INFO, 4).
 -define(CASS_LOG_DEBUG,5).
 -define(CASS_LOG_TRACE, 6).

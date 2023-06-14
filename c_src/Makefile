@@ -5,7 +5,7 @@ include nif.mk
 
 ifeq ($(UNAME_SYS), darwin)
 
-	OPENSSL_ROOT := $(shell brew --prefix openssl@1.1)
+	OPENSSL_ROOT := $(shell brew --prefix openssl)
 
 	CXXFLAGS += -I$(OPENSSL_ROOT)/include \
 				-I/usr/local/include \

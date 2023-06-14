@@ -74,8 +74,8 @@ case $OS in
     ;;
 
     Darwin)
-        brew install libuv cmake openssl@1.1
-        export OPENSSL_ROOT_DIR=$(brew --prefix openssl@1.1)
+        brew install libuv cmake openssl
+        export OPENSSL_ROOT_DIR=$(brew --prefix openssl)
         export OPENSSL_INCLUDE_DIR=$OPENSSL_ROOT_DIR/include/
         export OPENSSL_LIBRARIES=$OPENSSL_ROOT_DIR/lib
         ;;

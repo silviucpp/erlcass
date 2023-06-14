@@ -33,7 +33,7 @@ before_script:
 - if [[ $TRAVIS_OS_NAME == linux ]]; then sudo apt-get -y update || true ; fi
 - if [[ $TRAVIS_OS_NAME == linux ]]; then sudo apt-get install -y g++ make cmake libssl-dev libuv1-dev || true ; fi
 
-- if [[ $TRAVIS_OS_NAME == osx ]]; then brew install erlang libuv cmake openssl@1.1 || true; fi
+- if [[ $TRAVIS_OS_NAME == osx ]]; then brew install erlang libuv cmake openssl || true; fi
 
 - curl https://s3.amazonaws.com/rebar3/rebar3 --output rebar3 && chmod +x rebar3
 

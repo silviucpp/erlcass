@@ -66,7 +66,7 @@ CXXFLAGS+=  -g -std=c++11 -Wextra -Werror -fno-rtti \
             -I $(BASEDIR)/_build/deps/cpp-driver/src/third_party/sparsehash/src \
 
 LDFLAGS +=  -L$(BASEDIR)/_build/deps/cpp-driver/build \
-            -lcassandra_static \
+            -lscylla-cpp-driver_static \
             -luv \
             -lstdc++ \
             -lssl \

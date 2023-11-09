@@ -121,6 +121,7 @@ extern const char kAtomClusterSettingRetryPolicy[];
 extern const char kAtomClusterSettingRetryPolicyDefault[];
 extern const char kAtomClusterSettingRetryPolicyFallthrough[];
 extern const char kAtomClusterSettingCloudSecureConnectionBundle[];
+extern const char kAtomClusterLocalPortRange[];
 
 }  // namespace erlcass
 

@@ -88,6 +88,8 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     // cluster settings atoms
 
     ATOMS.atomClusterDefaultConsistencyLevel = make_atom(env, erlcass::kAtomClusterDefaultConsistencyLevel);
+    ATOMS.atomClusterSettingLocalPortRange = make_atom(env, erlcass::kAtomClusterLocalPortRange);
+
     ATOMS.atomClusterSettingContactPoints = make_atom(env, erlcass::kAtomClusterSettingContactPoints);
     ATOMS.atomClusterSettingPort = make_atom(env, erlcass::kAtomClusterSettingPort);
     ATOMS.atomClusterSettingProtocolVersion = make_atom(env, erlcass::kAtomClusterSettingProtocolVersion);

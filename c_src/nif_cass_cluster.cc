@@ -238,6 +238,37 @@ ERL_NIF_TERM internal_cass_cluster_set_tcp_keepalive(ErlNifEnv* env, ERL_NIF_TER
     return ATOMS.atomOk;
 }
 
+ERL_NIF_TERM internal_cluster_set_local_port_range(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
+{
+    if(!enif_is_tuple(env, term_value))
+        return make_bad_options(env, term_value);
+
+    const ERL_NIF_TERM* items;
+    int arity;
+
+    if(!enif_get_tuple(env, term_value, &arity, &items) || arity != 2)
+        return make_bad_options(env, term_value);
+
+    // thhere should be two integers...
+    int range_start;
+    int range_end;
+
+    if (!enif_get_int(env, items[0], &range_start)) {
+        return make_bad_options(env, items[0]);
+    }
+
+    if (!enif_get_int(env, items[1], &range_end)) {
+        return make_bad_options(env, items[1]);
+    }
+
+    if (range_start >= range_end) {
+        return make_bad_options(env, term_option);
+    }
+
+    cass_cluster_set_local_port_range(data->cluster, range_start, range_end);
+    return ATOMS.atomOk;
+}
+
 ERL_NIF_TERM internal_cluster_set_default_consistency_level(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     int level;
@@ -439,7 +470,7 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
 ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_key, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     CUSTOM_SETTING(ATOMS.atomClusterDefaultConsistencyLevel, internal_cluster_set_default_consistency_level);
-
+    CUSTOM_SETTING(ATOMS.atomClusterSettingLocalPortRange, internal_cluster_set_local_port_range);
     STRING_SETTING(ATOMS.atomClusterSettingContactPoints, cass_cluster_set_contact_points_n);
     INT_SETTING(ATOMS.atomClusterSettingPort, cass_cluster_set_port);
     CUSTOM_SETTING(ATOMS.atomClusterSettingSsl, internal_cass_cluster_set_ssl);
@@ -470,7 +501,7 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     CUSTOM_SETTING(ATOMS.atomClusterSettingRetryPolicy, internal_cluster_set_retry_policy);
     STRING_SETTING(ATOMS.atomClusterSettingCloudSecureConnectionBundle, cass_cluster_set_cloud_secure_connection_bundle_n);
 
-    return make_bad_options(env, term_option);
+    return make_error(env, "Invalid cluster configuration passed...");
 }
 
 ERL_NIF_TERM nif_cass_cluster_create(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])

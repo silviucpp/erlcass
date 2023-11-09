@@ -74,8 +74,10 @@ struct atoms
     // cluster setings atoms
 
     ERL_NIF_TERM atomClusterDefaultConsistencyLevel;
+    ERL_NIF_TERM atomClusterLocalPortRange;
     ERL_NIF_TERM atomClusterSettingContactPoints;
     ERL_NIF_TERM atomClusterSettingPort;
+    ERL_NIF_TERM atomClusterSettingLocalPortRange;
     ERL_NIF_TERM atomClusterSettingProtocolVersion;
     ERL_NIF_TERM atomClusterSettingNumThreadsIo;
     ERL_NIF_TERM atomClusterSettingQueueSizeIo;

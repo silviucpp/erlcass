@@ -85,6 +85,7 @@ const char kAtomColumnMetaType[] = "type";
 // cluster settings atoms
 
 const char kAtomClusterDefaultConsistencyLevel[] = "default_consistency_level";
+const char kAtomClusterLocalPortRange[] = "local_port_range";
 const char kAtomClusterSettingContactPoints[] = "contact_points";
 const char kAtomClusterSettingPort[] = "port";
 const char kAtomClusterSettingProtocolVersion[] = "protocol_version";

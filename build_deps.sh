@@ -21,7 +21,7 @@ fi
 #echo $OS
 #echo $KERNEL
 
-CPP_DRIVER_REPO=https://github.com/datastax/cpp-driver.git
+CPP_DRIVER_REPO=https://github.com/scylladb/cpp-driver.git
 CPP_DRIVER_REV=$1
 
 case $OS in

@@ -54,6 +54,11 @@ case $OS in
                 ;;
 
             ubuntu)
+                # if sudo isn't installed, install it:
+                if ! hash sudo 2>/dev/null; then
+                    apt-get update
+                    apt-get install -y sudo
+                fi
 
                 echo "Linux, Ubuntu"
                 # check ubuntu version

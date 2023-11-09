@@ -6,11 +6,12 @@ include nif.mk
 ifeq ($(UNAME_SYS), darwin)
 
 	OPENSSL_ROOT := $(shell brew --prefix openssl)
+	LIBUV_ROOT := $(shell brew --prefix libuv)
 
-	CXXFLAGS += -I$(OPENSSL_ROOT)/include \
+	CXXFLAGS += -I$(OPENSSL_ROOT)/include -I$(LIBUV_ROOT)/include \
 				-I/usr/local/include \
 
-	LDFLAGS +=  -L$(OPENSSL_ROOT)/lib \
+	LDFLAGS +=  -L$(OPENSSL_ROOT)/lib -L$(LIBUV_ROOT)/lib \
 				-L/usr/local/lib \
 				-Wl,-U,_enif_alloc \
 				-Wl,-U,_enif_free \

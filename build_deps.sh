@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 DEPS_LOCATION=_build/deps
 
@@ -23,6 +24,7 @@ fi
 
 CPP_DRIVER_REPO=https://github.com/scylladb/cpp-driver.git
 CPP_DRIVER_REV=$1
+echo "building deps on $OS / $KERNEL - ${CPP_DRIVER_REPO} ${CPP_DRIVER_REV}"
 
 case $OS in
     Linux)
@@ -33,7 +35,7 @@ case $OS in
                 sudo yum -y install automake cmake gcc-c++ git libtool openssl-devel wget
                 OUTPUT=`ldconfig -p | grep libuv`
                 if [[ $(echo $OUTPUT) != "" ]]
-                    then echo "libuv has already been installed"
+                then echo "libuv has already been installed"
                 else
                     pushd /tmp
                     wget https://dist.libuv.org/dist/v1.18.0/libuv-v1.18.0.tar.gz
@@ -49,7 +51,7 @@ case $OS in
                     sudo ldconfig -v
 
                 fi
-            ;;
+                ;;
 
             ubuntu)
 
@@ -65,19 +67,22 @@ case $OS in
                 fi
                 sudo apt-get -y update
                 sudo apt-get -y install g++ make cmake libssl-dev $LIBUDEV_PACKAGE_NAME
-            ;;
+                ;;
 
             *) echo "Your system $KERNEL is not supported"
         esac
         export CFLAGS="-fPIC -Wno-class-memaccess"
-		export CXXFLAGS="-fPIC -Wno-class-memaccess"
-    ;;
+        export CXXFLAGS="-fPIC -Wno-class-memaccess"
+        ;;
 
     Darwin)
         brew install libuv cmake openssl
         export OPENSSL_ROOT_DIR=$(brew --prefix openssl)
         export OPENSSL_INCLUDE_DIR=$OPENSSL_ROOT_DIR/include/
         export OPENSSL_LIBRARIES=$OPENSSL_ROOT_DIR/lib
+        export LIBUV_ROOT_DIR=$(brew --prefix libuv)
+        export LIBUV_INCLUDE_DIR=$LIBUV_ROOT_DIR/include/
+        export LIBUV_LIBRARIES=$LIBUV_ROOT_DIR/lib
         ;;
 
     *) echo "Your system $OS is not supported"
@@ -95,6 +100,11 @@ popd
 
 mkdir -p $DEPS_LOCATION/cpp-driver/build
 pushd $DEPS_LOCATION/cpp-driver/build
+echo "starting cmake of driver"
 cmake .. -DCASS_BUILD_STATIC=ON -DCMAKE_BUILD_TYPE=RELEASE
+
+echo "starting make in $CPUS"
 make -j $CPUS
 popd
+
+echo "finished building dependencies..."

@@ -22,7 +22,7 @@ BENCH_PROFILE_ARGS=-pa _build/bench/lib/erlcass/benchmarks -pa _build/bench/lib/
 
 C_SRC_DIR = $(shell pwd)/c_src
 C_SRC_ENV ?= $(C_SRC_DIR)/env.mk
-CPP_DRIVER_REV ?= 2.16.2b
+CPP_DRIVER_REV ?= bb35fe103024c38be98fbe21306440ece908935a
 
 #regenerate all the time the env.mk
 ifneq ($(wildcard $(C_SRC_DIR)),)

@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.1.1
+
+- Use MacOS build caused by openssl@1.1
+
 ##### v4.1.0
 
 - Migrate from lager to OTP logger.

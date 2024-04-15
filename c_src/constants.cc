@@ -98,7 +98,6 @@ const char kAtomClusterSettingCoalesceDelay[] = "coalesce_delay";
 const char kAtomClusterSettingRequestRatio[] = "request_ratio";
 const char kAtomClusterSettingMaxSchemaWaitTime[] = "max_schema_wait_time";
 const char kAtomClusterSettingTokenAwareRoutingShuffleReplicas[] = "token_aware_routing_shuffle_replicas";
-const char kAtomClusterSettingUseHostnameResolution[] = "use_hostname_resolution";
 const char kAtomClusterSettingSpeculativeExecutionPolicy[] = "speculative_execution_policy";
 const char kAtomClusterSettingMaxReusableWriteObjects[] = "max_reusable_write_objects";
 const char kAtomClusterSettingRequestTimeout[] = "request_timeout";

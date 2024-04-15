@@ -99,7 +99,6 @@ extern const char kAtomClusterSettingCoalesceDelay[];
 extern const char kAtomClusterSettingRequestRatio[];
 extern const char kAtomClusterSettingMaxSchemaWaitTime[];
 extern const char kAtomClusterSettingTokenAwareRoutingShuffleReplicas[];
-extern const char kAtomClusterSettingUseHostnameResolution[];
 extern const char kAtomClusterSettingSpeculativeExecutionPolicy[];
 extern const char kAtomClusterSettingMaxReusableWriteObjects[];
 extern const char kAtomClusterSettingRequestTimeout[];

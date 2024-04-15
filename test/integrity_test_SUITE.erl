@@ -51,6 +51,8 @@ create_keyspace(_Config) ->
         ok ->
             ok;
         {error,<<"Cannot drop non existing", _/binary>>} ->
+            ok;
+        {error, <<"Keyspace 'erlang_driver_test' doesn't exist">>} ->
             ok
     end,
     ok = erlcass:query(<<"CREATE KEYSPACE erlang_driver_test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}">>).

@@ -101,7 +101,6 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     ATOMS.atomClusterSettingRequestRatio = make_atom(env, erlcass::kAtomClusterSettingRequestRatio);
     ATOMS.atomClusterSettingMaxSchemaWaitTime = make_atom(env, erlcass::kAtomClusterSettingMaxSchemaWaitTime);
     ATOMS.atomClusterSettingTokenAwareRoutingShuffleReplicas = make_atom(env, erlcass::kAtomClusterSettingTokenAwareRoutingShuffleReplicas);
-    ATOMS.atomClusterSettingUseHostnameResolution = make_atom(env, erlcass::kAtomClusterSettingUseHostnameResolution);
     ATOMS.atomClusterSettingSpeculativeExecutionPolicy = make_atom(env, erlcass::kAtomClusterSettingSpeculativeExecutionPolicy);
     ATOMS.atomClusterSettingMaxReusableWriteObjects = make_atom(env, erlcass::kAtomClusterSettingMaxReusableWriteObjects);
     ATOMS.atomClusterSettingRequestTimeout = make_atom(env, erlcass::kAtomClusterSettingRequestTimeout);

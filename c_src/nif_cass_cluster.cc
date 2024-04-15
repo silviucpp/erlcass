@@ -454,7 +454,6 @@ ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ER
     INT_SETTING(ATOMS.atomClusterSettingRequestRatio, cass_cluster_set_new_request_ratio);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxSchemaWaitTime, internal_cass_cluster_set_max_schema_wait_time);
     CUSTOM_SETTING(ATOMS.atomClusterSettingTokenAwareRoutingShuffleReplicas, internal_cass_cluster_set_token_aware_routing_shuffle_replicas);
-    BOOL_SETTING(ATOMS.atomClusterSettingUseHostnameResolution, cass_cluster_set_use_hostname_resolution);
     CUSTOM_SETTING(ATOMS.atomClusterSettingSpeculativeExecutionPolicy, internal_set_speculative_execution_policy);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingMaxReusableWriteObjects, cass_cluster_set_max_reusable_write_objects);
     UNSIGNED_INT_SETTING(ATOMS.atomClusterSettingRequestTimeout, internal_cass_cluster_set_request_timeout);

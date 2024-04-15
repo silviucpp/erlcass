@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v4.1.2
+
+- Upgrade cpp-driver to v2.17.1 
+- Remove `use_hostname_resolution` config option.
+
 ##### v4.1.1
 
 - Use MacOS build caused by openssl@1.1

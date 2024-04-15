@@ -74,6 +74,9 @@ case $OS in
     ;;
 
     Darwin)
+        export HOMEBREW_NO_INSTALL_UPGRADE=true
+        export HOMEBREW_NO_INSTALL_CLEANUP=true
+        export HOMEBREW_NO_AUTO_UPDATE=1
         brew install libuv cmake openssl
         export OPENSSL_ROOT_DIR=$(brew --prefix openssl)
         export OPENSSL_INCLUDE_DIR=$OPENSSL_ROOT_DIR/include/

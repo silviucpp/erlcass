@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.1.3
+
+- Downgrade to cpp-driver v2.17.0 because of https://datastax-oss.atlassian.net/jira/software/c/projects/CPP/issues/CPP-995
+
 ##### v4.1.2
 
 - Upgrade cpp-driver to v2.17.1 

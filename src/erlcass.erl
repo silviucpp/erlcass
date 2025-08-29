@@ -73,6 +73,7 @@
 -type recv_pid()        :: pid() | null.
 -type query_result()    :: ok | {ok, list(), list()} | {error, reason()}.
 -type paged_query_result()  :: {ok, list(), list(), boolean()} | {error, reason()}.
+-type identifier()      :: atom() | binary().
 
 -spec get_metrics() ->
     {ok, list()} | {error, reason()}.
@@ -141,13 +142,13 @@ query(Q) ->
 
 %prepared statements
 
--spec add_prepare_statement(atom(), query()) ->
+-spec add_prepare_statement(identifier(), query()) ->
     ok | {error, reason()}.
 
 add_prepare_statement(Identifier, Query) ->
     call({add_prepare_statement, Identifier, Query}, ?RESPONSE_TIMEOUT).
 
--spec bind_prepared_statement(atom()) ->
+-spec bind_prepared_statement(identifier()) ->
     {ok, statement_ref()} | {error, reason()}.
 
 bind_prepared_statement(Identifier) ->
@@ -177,7 +178,7 @@ bind_prepared_params_by_name(Stm, Params) ->
 bind_prepared_params_by_index(Stm, Params) ->
     erlcass_nif:cass_statement_bind_parameters(Stm#erlcass_stm.stm, ?BIND_BY_INDEX, Params).
 
--spec async_execute(atom()) ->
+-spec async_execute(identifier()) ->
     {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier) ->
@@ -195,13 +196,13 @@ async_execute(Identifier) ->
             Error
     end.
 
--spec async_execute(atom() | query(), list()) ->
+-spec async_execute(identifier() | query(), list()) ->
     {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier, Params) ->
     async_execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec async_execute(atom() | binary(), bind_type(), list()) ->
+-spec async_execute(identifier(), bind_type(), list()) ->
     {ok, tag()} | {error, reason()}.
 
 async_execute(Identifier, BindType, Params) ->
@@ -213,13 +214,13 @@ async_execute(Identifier, BindType, Params) ->
             Error
     end.
 
--spec async_execute(atom() | binary(), bind_type(), list(), any()) ->
+-spec async_execute(identifier(), bind_type(), list(), any()) ->
     ok | {error, reason()}.
 
 async_execute(Identifier, BindType, Params, Tag) ->
     async_execute(Identifier, BindType, Params, self(), Tag).
 
--spec async_execute(atom(), bind_type(), list(), recv_pid(), any()) ->
+-spec async_execute(identifier(), bind_type(), list(), recv_pid(), any()) ->
     ok | {error, reason()}.
 
 async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
@@ -235,7 +236,7 @@ async_execute(Identifier, BindType, Params, ReceiverPid, Tag) ->
             Error
     end.
 
--spec execute(atom()) ->
+-spec execute(identifier()) ->
     query_result().
 
 execute(Identifier) ->
@@ -246,13 +247,13 @@ execute(Identifier) ->
             Error
     end.
 
--spec execute(atom(), list()) ->
+-spec execute(identifier(), list()) ->
     query_result().
 
 execute(Identifier, Params) ->
     execute(Identifier, ?BIND_BY_INDEX, Params).
 
--spec execute(atom(), bind_type(), list()) ->
+-spec execute(identifier(), bind_type(), list()) ->
     query_result().
 
 execute(Identifier, BindType, Params) ->
@@ -269,13 +270,13 @@ execute(Identifier, BindType, Params) ->
 set_paging_size(#erlcass_stm{stm = Statement}, PageSize) ->
     erlcass_nif:cass_statement_set_paging_size(Statement, PageSize).
 
--spec async_execute_paged(statement_ref(), atom()) ->
+-spec async_execute_paged(statement_ref(), identifier()) ->
     {ok, tag()} | {error, reason()}.
 
 async_execute_paged(Stm, Identifier) ->
     async_execute_paged(Stm, Identifier, self()).
 
--spec async_execute_paged(statement_ref(), atom(), recv_pid()) ->
+-spec async_execute_paged(statement_ref(), identifier(), recv_pid()) ->
     {ok, tag()} | {error, reason()}.
 
 async_execute_paged(#erlcass_stm{session = Session, stm = Statement}, Identifier, ReceiverPid) ->
@@ -287,7 +288,7 @@ async_execute_paged(#erlcass_stm{session = Session, stm = Statement}, Identifier
             Error
     end.
 
--spec execute_paged(statement_ref(), atom()) ->
+-spec execute_paged(statement_ref(), identifier()) ->
     paged_query_result().
 
 execute_paged(Stm, Identifier) ->

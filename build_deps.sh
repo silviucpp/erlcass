@@ -94,6 +94,9 @@ pushd $DEPS_LOCATION
 git clone -b ${CPP_DRIVER_REV} --depth=1 ${CPP_DRIVER_REPO}
 popd
 
+# upstream cpp-driver still hasn't had a release to fix cmake support even though https://github.com/apache/cassandra-cpp-driver/pull/580 is merged.
+find $DEPS_LOCATION/cpp-driver -type f -exec sed -i 's/cmake_minimum_required(VERSION 2\.8\.12/cmake_minimum_required(VERSION 3.5.0/g' {} +
+
 #build
 
 mkdir -p $DEPS_LOCATION/cpp-driver/build

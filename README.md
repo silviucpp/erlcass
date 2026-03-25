@@ -119,6 +119,14 @@ The application is compatible with both `rebar` or `rebar3`.
 In case you receive any error related to compiling of the DataStax driver you can try to run `rebar` with `sudo` in
 order to install all dependencies. Also you can check [wiki section][2] for more details
 
+To speed up compilation, you can use `ccache`. Once installed, enable it by setting the `ERLCASS_USE_CCACHE` environment variable before running the build:
+
+```sh
+ERLCASS_USE_CCACHE=1 rebar3 compile
+```
+
+On subsequent builds of unchanged code, ccache will serve compiled objects from its cache, significantly reducing build times.
+
 ### Data types
 
 In order to see the relation between Cassandra column types and Erlang types please check this [wiki section][3]

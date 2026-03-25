@@ -1,5 +1,9 @@
 ### Changelog:
 
+##### v4.1.4
+
+- Add support for `ERLCASS_USE_CCACHE` env variable which significantly reducing build times (On subsequent builds of unchanged code, ccache will serve compiled objects from its cache)
+
 ##### v4.1.3
 
 - Downgrade to cpp-driver v2.17.0 because of https://datastax-oss.atlassian.net/jira/software/c/projects/CPP/issues/CPP-995

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 DEPS_LOCATION=_build/deps
-CPP_DRIVER_REPO=https://github.com/apache/cassandra-cpp-driver.git
+CPP_DRIVER_REPO=https://github.com/silviucpp/cassandra-cpp-driver.git
 CPP_DRIVER_BRANCH=trunk
-CPP_DRIVER_REV=f49a413409a5af3c60b73ac6d7d89a97cb368d46   #v2.7.0
+CPP_DRIVER_REV=debe67edcc703882bccab17bd0d4d426cd01c675
 CPP_DRIVER_DESTINATION=cpp-driver
 
 if [ -f "$DEPS_LOCATION/${CPP_DRIVER_DESTINATION}/build/libcassandra_static.a" ]; then

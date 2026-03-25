@@ -4,7 +4,8 @@
 
 - Add support for `ERLCASS_USE_CCACHE` env variable which significantly reducing build times (On subsequent builds of unchanged code, ccache will serve compiled objects from its cache)
 - Fix for Fails to compile with cmake v4 (https://github.com/silviucpp/erlcass/issues/66)
-
+- Compilation error fix on Erlang/OTP 28 by @swizard0 in https://github.com/silviucpp/erlcass/pull/68
+- Allow identifier to be a binary. by @eseres in https://github.com/silviucpp/erlcass/pull/67
 
 ##### v4.1.3
 

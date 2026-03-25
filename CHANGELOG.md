@@ -3,6 +3,8 @@
 ##### v4.1.4
 
 - Add support for `ERLCASS_USE_CCACHE` env variable which significantly reducing build times (On subsequent builds of unchanged code, ccache will serve compiled objects from its cache)
+- Fix for Fails to compile with cmake v4 (https://github.com/silviucpp/erlcass/issues/66)
+
 
 ##### v4.1.3
 

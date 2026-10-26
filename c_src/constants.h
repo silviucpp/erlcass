@@ -86,6 +86,7 @@ extern const char kAtomColumnMetaType[];
 // cluster settings atoms
 
 extern const char kAtomClusterDefaultConsistencyLevel[];
+extern const char kAtomClusterDefaultSerialConsistencyLevel[];
 extern const char kAtomClusterSettingContactPoints[];
 extern const char kAtomClusterSettingPort[];
 extern const char kAtomClusterSettingProtocolVersion[];

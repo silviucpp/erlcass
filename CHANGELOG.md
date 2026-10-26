@@ -1,5 +1,10 @@
 ### Changelog:
 
+##### v4.1.5
+
+- Add support for `default_serial_consistency_level` cluster option.
+- Changed to use as default serial consistency `CASS_CONSISTENCY_LOCAL_SERIAL` instead `CASS_CONSISTENCY_SERIAL`.
+
 ##### v4.1.4
 
 - Add support for `ERLCASS_USE_CCACHE` env variable which significantly reducing build times (On subsequent builds of unchanged code, ccache will serve compiled objects from its cache)

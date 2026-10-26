@@ -88,6 +88,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     // cluster settings atoms
 
     ATOMS.atomClusterDefaultConsistencyLevel = make_atom(env, erlcass::kAtomClusterDefaultConsistencyLevel);
+    ATOMS.atomClusterDefaultSerialConsistencyLevel = make_atom(env, erlcass::kAtomClusterDefaultSerialConsistencyLevel);
     ATOMS.atomClusterSettingContactPoints = make_atom(env, erlcass::kAtomClusterSettingContactPoints);
     ATOMS.atomClusterSettingPort = make_atom(env, erlcass::kAtomClusterSettingPort);
     ATOMS.atomClusterSettingProtocolVersion = make_atom(env, erlcass::kAtomClusterSettingProtocolVersion);
@@ -127,6 +128,7 @@ int on_nif_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     data->cluster = NULL;
     data->uuid_gen = cass_uuid_gen_new();
     data->defaultConsistencyLevel = CASS_CONSISTENCY_LOCAL_QUORUM;
+    data->defaultSerialConsistencyLevel = CASS_CONSISTENCY_LOCAL_SERIAL;
 
     open_resources(env, data);
 
@@ -155,6 +157,7 @@ int on_nif_upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM in
     data->cluster = old_data->cluster;
     data->uuid_gen = old_data->uuid_gen;
     data->defaultConsistencyLevel = old_data->defaultConsistencyLevel;
+    data->defaultSerialConsistencyLevel = old_data->defaultSerialConsistencyLevel;
     open_resources(env, data);
 
     old_data->cluster = NULL;

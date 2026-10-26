@@ -74,6 +74,7 @@ struct atoms
     // cluster setings atoms
 
     ERL_NIF_TERM atomClusterDefaultConsistencyLevel;
+    ERL_NIF_TERM atomClusterDefaultSerialConsistencyLevel;
     ERL_NIF_TERM atomClusterSettingContactPoints;
     ERL_NIF_TERM atomClusterSettingPort;
     ERL_NIF_TERM atomClusterSettingProtocolVersion;
@@ -117,6 +118,7 @@ struct cassandra_data
     ErlNifPid log_pid;
 
     CassConsistency defaultConsistencyLevel;
+    CassConsistency defaultSerialConsistencyLevel;
     ErlNifResourceType* resCassSession;
     ErlNifResourceType* resCassPrepared;
     ErlNifResourceType* resCassStatement;

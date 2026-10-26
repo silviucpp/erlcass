@@ -249,6 +249,17 @@ ERL_NIF_TERM internal_cluster_set_default_consistency_level(ErlNifEnv* env, ERL_
     return ATOMS.atomOk;
 }
 
+ERL_NIF_TERM internal_cluster_set_default_serial_consistency_level(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
+{
+    int level;
+
+    if(!enif_get_int(env, term_value, &level))
+        return make_bad_options(env, term_option);
+
+    data->defaultSerialConsistencyLevel = static_cast<CassConsistency>(level);
+    return ATOMS.atomOk;
+}
+
 ERL_NIF_TERM internal_cluster_set_retry_policy(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     cass_bool_t log_enable = cass_false;
@@ -439,6 +450,7 @@ ERL_NIF_TERM internal_cluster_set_latency_aware_routing(ErlNifEnv* env, ERL_NIF_
 ERL_NIF_TERM apply_cluster_settings(ErlNifEnv* env, ERL_NIF_TERM term_option, ERL_NIF_TERM term_key, ERL_NIF_TERM term_value, cassandra_data* data)
 {
     CUSTOM_SETTING(ATOMS.atomClusterDefaultConsistencyLevel, internal_cluster_set_default_consistency_level);
+    CUSTOM_SETTING(ATOMS.atomClusterDefaultSerialConsistencyLevel, internal_cluster_set_default_serial_consistency_level);
 
     STRING_SETTING(ATOMS.atomClusterSettingContactPoints, cass_cluster_set_contact_points_n);
     INT_SETTING(ATOMS.atomClusterSettingPort, cass_cluster_set_port);

@@ -279,7 +279,7 @@ ERL_NIF_TERM nif_cass_session_prepare(ErlNifEnv* env, int argc, const ERL_NIF_TE
     if(!enif_get_local_pid(env, argv[1], &pid))
         return make_badarg(env);
 
-    QueryTerm q(ConsistencyLevelOptions(data->defaultConsistencyLevel, CASS_CONSISTENCY_ANY));
+    QueryTerm q(ConsistencyLevelOptions(data->defaultConsistencyLevel, data->defaultSerialConsistencyLevel));
 
     ERL_NIF_TERM parse_result = parse_query_term(env, argv[2], &q);
 
@@ -385,7 +385,7 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
             return cass_error_to_nif_term(env, error);
     }
 
-    ConsistencyLevelOptions cls(data->defaultConsistencyLevel, CASS_CONSISTENCY_ANY);
+    ConsistencyLevelOptions cls(data->defaultConsistencyLevel, data->defaultSerialConsistencyLevel);
 
     ERL_NIF_TERM parse_result = parse_consistency_level_options(env, argv[3], &cls);
 
@@ -397,13 +397,10 @@ ERL_NIF_TERM nif_cass_session_execute_batch(ErlNifEnv* env, int argc, const ERL_
     if(error != CASS_OK)
         return cass_error_to_nif_term(env, error);
 
-    if(cls.serial_cl != CASS_CONSISTENCY_ANY)
-    {
-        error = cass_batch_set_serial_consistency(batch.get(), cls.serial_cl);
+    error = cass_batch_set_serial_consistency(batch.get(), cls.serial_cl);
 
-        if(error != CASS_OK)
-            return cass_error_to_nif_term(env, error);
-    }
+    if(error != CASS_OK)
+        return cass_error_to_nif_term(env, error);
 
     ERL_NIF_TERM tag = enif_make_ref(env);
 
